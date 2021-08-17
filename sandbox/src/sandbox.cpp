@@ -3,12 +3,12 @@
 //
 
 #include <eugine.h>
+#include <iostream>
 
 
 class Sandbox : public eg::Application{
 public:
     Sandbox() {
-
     }
 
     ~Sandbox(){

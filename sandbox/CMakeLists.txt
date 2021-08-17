@@ -5,3 +5,4 @@ add_executable(sandbox src/sandbox.cpp)
 target_link_libraries(sandbox eugine)
 
 target_include_directories(sandbox PUBLIC ${CMAKE_SOURCE_DIR}/eugine/src)
+#target_include_directories(sandbox PUBLIC ${CMAKE_SOURCE_DIR}/eugine/vendor/spdlog/include)
