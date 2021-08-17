@@ -10,8 +10,6 @@ add_subdirectory(src)
 
 target_compile_definitions(eugine PRIVATE EG_BUILD_SHARED_LIB)
 
+add_subdirectory(vendor)
 
-#spdlog
-set(SPDLOG_BUILD_SHARED ON)
-add_subdirectory(vendor/spdlog)
-target_link_libraries(eugine PUBLIC spdlog)
+target_link_libraries(eugine PUBLIC glfw spdlog)
