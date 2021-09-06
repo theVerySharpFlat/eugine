@@ -29,7 +29,14 @@ namespace eg {
     };
 
     class EG_API WindowCloseEvent : public Event {
+    public:
         WindowCloseEvent(){}
+
+        std::string toString() const override{
+            std::stringstream ss;
+            ss << "Window Close Event";
+            return ss.str();
+        }
 
         EVENT_CLASS_TYPE(WINDOW_CLOSE)
 
@@ -37,6 +44,7 @@ namespace eg {
     };
 
     class EG_API AppTickEvent : public Event {
+    public:
         AppTickEvent() {};
 
         EVENT_CLASS_TYPE(APP_TICK)
@@ -51,6 +59,7 @@ namespace eg {
     };
 
     class EG_API AppRenderEvent : public Event {
+    public:
         AppRenderEvent() {};
 
         EVENT_CLASS_TYPE(APP_RENDER)

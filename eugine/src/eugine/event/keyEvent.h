@@ -50,6 +50,23 @@ namespace eg {
 
         EVENT_CLASS_TYPE(KEY_RELEASED)
     };
+
+    class EG_API KeyTypedEvent : public KeyEvent {
+    public:
+        KeyTypedEvent(int keycode) : KeyEvent(keycode) {};
+
+
+        std::string toString() const override {
+            std::stringstream ss;
+            ss << "KeyTypedEvent: " << m_keyCode;
+            return ss.str();
+        }
+
+        EVENT_CLASS_TYPE(KEY_TYPED);
+
+    private:
+
+    };
 }
 
 #endif //EUGINE_KEYEVENT_H

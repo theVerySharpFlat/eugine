@@ -16,4 +16,13 @@
 #include "eugine/event/mouseEvent.h"
 #include "eugine/event/applicationEvent.h"
 
+//window
+#include "eugine/window.h"
+
+//layer
+#include "eugine/layer.h"
+
+//imgui
+#include "eugine/imgui/imguiLayer.h"
+
 #endif //EUGINE_EUGINE_H

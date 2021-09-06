@@ -16,6 +16,7 @@ int main(int argc, char** argv) {
     eg::Log::init();
     EG_CORE_INFO("welcome to Eugine!");
     auto app = eg::createApplication();
+    app -> init();
     app -> run();
     delete app;
 }

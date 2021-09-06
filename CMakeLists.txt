@@ -12,6 +12,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}-$
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
     message("building for linux")
     add_compile_definitions(EG_PLATFORM_LINUX)
+    set(OpenGL_GL_PREFERENCE "GLVND")
 elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
     message("building for windows")
     add_compile_definitions(EG_PLATFORM_WINDOWS)

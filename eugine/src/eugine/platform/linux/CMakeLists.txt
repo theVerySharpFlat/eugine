@@ -1,0 +1,1 @@
+target_sources(eugine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/linuxWindow.cpp)
