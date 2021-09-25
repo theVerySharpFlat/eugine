@@ -5,11 +5,11 @@
 #ifndef EUGINE_IMGUILAYER_H
 #define EUGINE_IMGUILAYER_H
 
-#include <eugine/layer.h>
-#include <eugine/event/event.h>
-#include <eugine/event/keyEvent.h>
-#include <eugine/event/mouseEvent.h>
-#include <eugine/event/applicationEvent.h>
+#include <eugine/core/layer.h>
+#include <eugine/events/event.h>
+#include <eugine/events/keyEvent.h>
+#include <eugine/events/mouseEvent.h>
+#include <eugine/events/applicationEvent.h>
 
 namespace eg {
 

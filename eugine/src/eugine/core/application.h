@@ -5,10 +5,10 @@
 #ifndef EUGINE_APPLICATION_H
 #define EUGINE_APPLICATION_H
 
-#include <eugine/event/applicationEvent.h>
-#include "core.h"
-#include "window.h"
-#include "layerStack.h"
+#include <eugine/events/applicationEvent.h>
+#include "eugine/core/core.h"
+#include "eugine/core/window.h"
+#include "eugine/core/layerStack.h"
 
 namespace eg {
     class EG_API Application {

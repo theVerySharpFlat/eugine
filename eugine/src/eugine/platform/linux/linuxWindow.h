@@ -6,9 +6,9 @@
 #define EUGINE_LINUXWINDOW_H
 
 #include <GLFW/glfw3.h>
-#include <eugine/core.h>
-#include <eugine/window.h>
-#include <eugine/event/event.h>
+#include <eugine/core/core.h>
+#include <eugine/core/window.h>
+#include <eugine/events/event.h>
 
 namespace eg {
 
@@ -29,6 +29,8 @@ namespace eg {
         void setVSync(bool enabled) override;
 
         bool isVSync() override;
+
+        void *getNativeWindow() const override;
 
     private:
         void init(const WindowProps& props);

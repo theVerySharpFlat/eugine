@@ -6,7 +6,7 @@
 #define EUGINE_LOG_H
 
 
-#include "core.h"
+#include "eugine/core/core.h"
 #include <spdlog/spdlog.h>
 
 namespace eg {

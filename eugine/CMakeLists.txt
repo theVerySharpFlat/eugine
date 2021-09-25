@@ -1,13 +1,18 @@
 project(eugine-engine)
 
-set(SHARED_OR_STATIC "SHARED")
+if(NOT EG_BUILD_TYPE)
+    set(EG_BUILD_TYPE SHARED)
+endif()
 
+add_library(eugine ${EG_BUILD_TYPE})
 
-add_library(eugine ${SHARED_OR_STATIC})
+if(EG_BUILD_TYPE STREQUAL SHARED)
+    target_compile_definitions(eugine PRIVATE EG_BUILD_TYPE_SHARED)
 
-
-
-target_compile_definitions(eugine PRIVATE EG_BUILD_SHARED_LIB)
+else()
+    target_compile_definitions(eugine PRIVATE EG_BUILD_TYPE_STATIC)
+endif()
+target_compile_definitions(eugine PRIVATE EG_BUILDING_SHARED_LIB)
 
 add_subdirectory(vendor)
 

@@ -5,7 +5,7 @@
 #ifndef EUGINE_LAYERSTACK_H
 #define EUGINE_LAYERSTACK_H
 
-#include "layer.h"
+#include "eugine/core/layer.h"
 
 namespace eg {
 

@@ -2,7 +2,7 @@
 // Created by aiden on 9/3/21.
 //
 
-#include <eugine/application.h>
+#include <eugine/core/application.h>
 #include "imguiLayer.h"
 #include "eugine/platform/OpenGL/imguiOpenGLRenderer.h"
 #include "GLFW/glfw3.h"
@@ -96,7 +96,7 @@ namespace eg {
         ImGuiIO& io = ImGui::GetIO();
         Application& app = Application::get();
         //EG_CORE_TRACE("window size: ({0}, {1})", app.getWindow().getWidth(), app.getWindow().getHeight());
-        std::cout << app.getWindow().getWidth() << " " << app.getWindow().getHeight() << std::endl;
+        //std::cout << app.getWindow().getWidth() << " " << app.getWindow().getHeight() << std::endl;
         io.DisplaySize = ImVec2((float)app.getWindow().getWidth(), (float)app.getWindow().getHeight());
 
         ImGui_ImplOpenGL3_NewFrame();

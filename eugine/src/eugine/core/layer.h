@@ -5,8 +5,8 @@
 #ifndef EUGINE_LAYER_H
 #define EUGINE_LAYER_H
 
-#include "eugine/core.h"
-#include "eugine/event/event.h"
+#include "eugine/core/core.h"
+#include "eugine/events/event.h"
 
 
 namespace eg {

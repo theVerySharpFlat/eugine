@@ -4,8 +4,9 @@
 
 
 #include "application.h"
-#include <eugine/event/applicationEvent.h>
-#include <eugine/event/mouseEvent.h>
+#include <eugine/events/applicationEvent.h>
+#include <eugine/events/mouseEvent.h>
+#include <eugine/core/input.h>
 
 #include <glad/glad.h>
 
@@ -28,11 +29,13 @@ eg::Application::~Application() {
 
 void eg::Application::run() {
     while (m_running){
-        glClearColor(1,0,1,1);
+        glClearColor(1,1,0,1);
         glClear(GL_COLOR_BUFFER_BIT);
         for(Layer* layer : m_layerStack){
             layer -> onUpdate();
         }
+
+
         m_window -> onUpdate();
     }
 }

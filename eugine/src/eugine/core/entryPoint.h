@@ -5,7 +5,7 @@
 #ifndef EUGINE_ENTRYPOINT_H
 #define EUGINE_ENTRYPOINT_H
 
-#include "log.h"
+#include "eugine/core/log.h"
 
 extern eg::Application* eg::createApplication();
 

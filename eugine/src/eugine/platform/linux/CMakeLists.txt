@@ -1,1 +1,1 @@
-target_sources(eugine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/linuxWindow.cpp)
+target_sources(eugine PUBLIC linuxWindow.cpp linuxInput.cpp)

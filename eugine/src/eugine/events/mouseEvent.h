@@ -5,7 +5,7 @@
 #ifndef EUGINE_MOUSEEVENT_H
 #define EUGINE_MOUSEEVENT_H
 
-#include <eugine/event/event.h>
+#include <eugine/events/event.h>
 
 namespace eg {
     class EG_API MouseMovedEvent : public Event {

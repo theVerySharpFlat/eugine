@@ -8,13 +8,15 @@
 
 #if defined(EG_PLATFORM_WINDOWS)
 
-    #ifdef EG_BUILD_SHARED_LIB
-        #define EG_API __declspec(dllexport)
-    #else
-        #define EG_API __declspec(dllimport)
+    #ifdef EG_BUILD_TYPE_SHARED
+        #ifdef EG_BUILDING_LIB
+            #define EG_API __declspec(dllexport)
+        #else
+            #define EG_API __declspec(dllimport)
+        #endif
     #endif
 #elif defined(EG_PLATFORM_LINUX)
-    #ifdef EG_BUILD_SHARED_LIB
+    #ifdef EG_BUILD_TYPE_SHARED
         #define EG_API __attribute__((visibility("default")))
     #else
         #define EG_API
@@ -26,7 +28,7 @@
     #endif
 #endif
 
-#include "log.h"
+#include "eugine/core/log.h"
 
 #ifdef EG_PLATFORM_WINDOWS
     #define EG_DEBUG_BREAK __debugbreak()

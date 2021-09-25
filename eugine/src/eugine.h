@@ -7,20 +7,20 @@
 
 //for use by eugine applications
 
-#include "eugine/application.h"
-#include "eugine/entryPoint.h"
+#include "eugine/core/application.h"
+#include "eugine/core/entryPoint.h"
 
 //events
-#include "eugine/event/event.h"
-#include "eugine/event/keyEvent.h"
-#include "eugine/event/mouseEvent.h"
-#include "eugine/event/applicationEvent.h"
+#include "eugine/events/event.h"
+#include "eugine/events/keyEvent.h"
+#include "eugine/events/mouseEvent.h"
+#include "eugine/events/applicationEvent.h"
 
 //window
-#include "eugine/window.h"
+#include "eugine/core/window.h"
 
 //layer
-#include "eugine/layer.h"
+#include "eugine/core/layer.h"
 
 //imgui
 #include "eugine/imgui/imguiLayer.h"

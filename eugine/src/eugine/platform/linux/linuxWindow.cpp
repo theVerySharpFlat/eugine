@@ -4,9 +4,9 @@
 
 #include "linuxWindow.h"
 
-#include <eugine/event/mouseEvent.h>
-#include <eugine/event/applicationEvent.h>
-#include <eugine/event/keyEvent.h>
+#include <eugine/events/mouseEvent.h>
+#include <eugine/events/applicationEvent.h>
+#include <eugine/events/keyEvent.h>
 
 #include <glad/glad.h>
 
@@ -171,6 +171,10 @@ namespace eg {
 
     bool LinuxWindow::isVSync() {
         return m_data.vSync;
+    }
+
+    void *LinuxWindow::getNativeWindow() const {
+        return m_window;
     }
 
 }

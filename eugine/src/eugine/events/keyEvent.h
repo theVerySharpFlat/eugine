@@ -5,7 +5,7 @@
 #ifndef EUGINE_KEYEVENT_H
 #define EUGINE_KEYEVENT_H
 
-#include <eugine/event/event.h>
+#include <eugine/events/event.h>
 
 namespace eg {
     class EG_API KeyEvent : public Event {

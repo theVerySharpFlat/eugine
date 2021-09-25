@@ -5,8 +5,8 @@
 #ifndef EUGINE_WINDOW_H
 #define EUGINE_WINDOW_H
 
-#include <eugine/core.h>
-#include <eugine/event/event.h>
+#include <eugine/core/core.h>
+#include <eugine/events/event.h>
 
 namespace eg{
     struct WindowProps{
@@ -35,6 +35,8 @@ namespace eg{
         virtual bool isVSync() = 0;
 
         static Window* create(const WindowProps& props = WindowProps());
+
+        virtual void* getNativeWindow() const = 0;
     };
 }
 
