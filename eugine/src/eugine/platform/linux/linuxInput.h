@@ -14,6 +14,8 @@ namespace eg {
     private:
         bool isKeyPressedImpl(int keyCode) override;
 
+        bool isMouseButtonPressedImpl(int mouseCode) override;
+
         float getMouseXImpl() override;
 
         float getMouseYImpl() override;

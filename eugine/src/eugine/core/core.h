@@ -23,9 +23,17 @@
     #endif
 #elif defined(EG_PLATFORM_DARWIN)
     //pray this works
-    #ifdef EG_BUILD_SHARED_LIB
-        #define EG_API __attribute__((visibility("default")))
+    #ifdef EG_BUILDING_LIB
+        #ifdef EG_BUILD_TYPE_SHARED
+            #define EG_API __attribute__((visibility("default")))
+        #else
+            #define EG_API
+        #endif
+    #else
+        #define EG_API
     #endif
+
+
 #endif
 
 #include "eugine/core/log.h"

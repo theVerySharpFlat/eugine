@@ -39,7 +39,7 @@ namespace eg {
         bool scrollCallback(MouseScrolledEvent& e);
         bool keyPressedCallback(KeyPressedEvent& e);
         bool keyReleasedCallback(KeyReleasedEvent& e);
-        bool onKeyTypedEvent(KeyTypedEvent& e);
+        bool keyTypedEvent(KeyTypedEvent& e);
         bool windowResizeCallback(WindowResizeEvent& e);
     };
 

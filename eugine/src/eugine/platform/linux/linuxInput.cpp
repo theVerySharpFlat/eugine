@@ -19,6 +19,13 @@ namespace eg{
         return ((state == GLFW_PRESS) || (state == GLFW_REPEAT));
     }
 
+    bool LinuxInput::isMouseButtonPressedImpl(int mouseCode) {
+        auto window = static_cast<GLFWwindow*>(Application::get().getWindow().getNativeWindow());
+        auto state = glfwGetMouseButton(window, mouseCode);
+
+        return ((state == GLFW_PRESS) || (state == GLFW_REPEAT));
+    }
+
     float LinuxInput::getMouseXImpl() {
 
         auto[x,y] = getMousePosImpl();

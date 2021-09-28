@@ -26,6 +26,7 @@ public:
 
     void onUpdate() override {
         //EG_INFO("TestLayer -> ON UPDATE");
+
     }
 
     void onEvent(eg::Event& event) override {

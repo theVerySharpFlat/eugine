@@ -12,13 +12,13 @@ if(EG_BUILD_TYPE STREQUAL SHARED)
 else()
     target_compile_definitions(eugine PRIVATE EG_BUILD_TYPE_STATIC)
 endif()
-target_compile_definitions(eugine PRIVATE EG_BUILDING_SHARED_LIB)
+target_compile_definitions(eugine PRIVATE EG_BUILDING_LIB)
 
 add_subdirectory(vendor)
 
 find_package(OpenGL REQUIRED)
 
-target_link_libraries(eugine PUBLIC spdlog glad)
+target_link_libraries(eugine PUBLIC spdlog glad glm::glm)
 
 
 target_link_libraries(eugine PRIVATE OpenGL::GL glfw imgui)

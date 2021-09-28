@@ -8,6 +8,7 @@
 
 #include "eugine/core/core.h"
 #include <spdlog/spdlog.h>
+#include "glm/gtc/matrix_transform.hpp"
 
 namespace eg {
 
@@ -29,12 +30,12 @@ namespace eg {
 
 
 //core log
+
 #define EG_CORE_TRACE(...) ::eg::Log::getCoreLogger()->trace(__VA_ARGS__)
 #define EG_CORE_INFO(...)  ::eg::Log::getCoreLogger()->info(__VA_ARGS__)
 #define EG_CORE_WARN(...)  ::eg::Log::getCoreLogger()->warn(__VA_ARGS__)
 #define EG_CORE_ERROR(...) ::eg::Log::getCoreLogger()->error(__VA_ARGS__)
 #define EG_CORE_FATAL(...) ::eg::Log::getCoreLogger()->critical(__VA_ARGS__)
-
 
 //client logger
 #define EG_TRACE(...) ::eg::Log::getClientLogger()->trace(__VA_ARGS__)

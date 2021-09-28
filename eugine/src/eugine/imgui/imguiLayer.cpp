@@ -121,6 +121,8 @@ namespace eg {
         dispatcher.dispatch<KeyReleasedEvent>(EG_BIND_EVENT_FN(ImGuiLayer::keyReleasedCallback));
         dispatcher.dispatch<MouseMovedEvent>(EG_BIND_EVENT_FN(ImGuiLayer::mouseMovedCallback));
         dispatcher.dispatch<WindowResizeEvent>(EG_BIND_EVENT_FN(ImGuiLayer::windowResizeCallback));
+        dispatcher.dispatch<KeyTypedEvent>(EG_BIND_EVENT_FN(ImGuiLayer::keyTypedEvent));
+        
 
     }
 
@@ -186,7 +188,13 @@ namespace eg {
         return false;
     }
 
-    bool ImGuiLayer::onKeyTypedEvent(KeyTypedEvent &e) {
+    bool ImGuiLayer::keyTypedEvent(KeyTypedEvent & e) {
+        ImGuiIO& io = ImGui::GetIO();
+        int keycode = e.getKeyCode();
+
+        if(keycode > 0 && keycode < 0x10000)
+            io.AddInputCharacter((unsigned short)keycode);
+
         return false;
     }
 }
