@@ -39,6 +39,7 @@ namespace eg {
         std::string toString() const override {
             std::stringstream ss;
             ss << "MouseScrolledEvent: "<<m_yOffset<<", "<<m_yOffset;
+            return ss.str();
         }
 
         EVENT_CLASS_TYPE(MOUSE_SCROLLED)
