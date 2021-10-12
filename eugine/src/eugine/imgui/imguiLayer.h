@@ -23,9 +23,11 @@ namespace eg {
 
         void onDetach() override;
 
-        void onUpdate() override;
+        void onImGuiRender() override;
 
-        void onEvent(Event &e) override;
+        void begin();
+        void end();
+
 
     private:
         float m_time = 0;
@@ -33,14 +35,6 @@ namespace eg {
         //TODO: window focus callback
         //TODO: cursor enter callback
 
-        bool mouseButtonPressedCallback(MouseButtonPressedEvent& e);
-        bool mouseButtonReleasedCallback(MouseButtonReleasedEvent& e);
-        bool mouseMovedCallback(MouseMovedEvent& e);
-        bool scrollCallback(MouseScrolledEvent& e);
-        bool keyPressedCallback(KeyPressedEvent& e);
-        bool keyReleasedCallback(KeyReleasedEvent& e);
-        bool keyTypedEvent(KeyTypedEvent& e);
-        bool windowResizeCallback(WindowResizeEvent& e);
     };
 
 }

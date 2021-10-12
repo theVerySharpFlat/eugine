@@ -6,6 +6,7 @@
 #define EUGINE_APPLICATION_H
 
 #include <eugine/events/applicationEvent.h>
+#include <eugine/imgui/imguiLayer.h>
 #include "eugine/core/core.h"
 #include "eugine/core/window.h"
 #include "eugine/core/layerStack.h"
@@ -31,6 +32,7 @@ namespace eg {
         static Application& get();
     private:
         std::unique_ptr<Window>  m_window;
+        ImGuiLayer* m_imGuiLayer;
         bool m_running = true;
 
         LayerStack m_layerStack;

@@ -25,7 +25,7 @@ namespace eg {
 
     private:
         std::vector<Layer*> m_layers;
-        std::vector<Layer*>::iterator  m_layerInsert;
+        int m_layerInsertIndex = 0;
     };
 
 }

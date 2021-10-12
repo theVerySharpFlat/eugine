@@ -21,6 +21,9 @@ eg::Application::Application() {
 
     m_window = std::unique_ptr<Window>(Window::create());
     m_window ->setEventCallback(BIND_EVENT_FN(Application::onEvent));
+
+    m_imGuiLayer = new ImGuiLayer();
+    pushOverlay(m_imGuiLayer);
 }
 
 eg::Application::~Application() {
@@ -35,7 +38,10 @@ void eg::Application::run() {
             layer -> onUpdate();
         }
 
-
+        m_imGuiLayer->begin();
+        for(Layer* layer : m_layerStack)
+            layer -> onImGuiRender();
+        m_imGuiLayer->end();
         m_window -> onUpdate();
     }
 }
@@ -55,10 +61,12 @@ void eg::Application::onEvent(eg::Event &e) {
 
 void eg::Application::pushOverlay(eg::Layer *layer) {
     m_layerStack.pushOverlay(layer);
+    layer -> onAttach();
 }
 
 void eg::Application::pushLayer(eg::Layer *layer) {
     m_layerStack.pushLayer(layer);
+    layer -> onAttach();
 }
 
 bool eg::Application::onWindowClose(eg::WindowCloseEvent &e) {

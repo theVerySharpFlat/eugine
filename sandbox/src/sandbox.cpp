@@ -4,6 +4,7 @@
 
 #include <eugine.h>
 #include <iostream>
+#include <imgui/imgui.h>
 
 class TestLayer : public eg::Layer {
 
@@ -33,6 +34,12 @@ public:
         //EG_TRACE("{0}", event);
     }
 
+    void onImGuiRender() override {
+        ImGui::Begin("test");
+        ImGui::Text("hello world");
+        ImGui::End();
+    }
+
 };
 
 
@@ -43,7 +50,6 @@ public:
 
     void init() override {
         pushLayer(new TestLayer);
-        pushOverlay(new eg::ImGuiLayer);
     }
 
     ~Sandbox(){

@@ -7,7 +7,7 @@
 namespace eg {
 
     LayerStack::LayerStack() {
-        m_layerInsert = m_layers.begin();
+
     }
 
     LayerStack::~LayerStack() {
@@ -18,7 +18,8 @@ namespace eg {
 
     void LayerStack::pushLayer(Layer *layer) {
         //EG_CORE_TRACE("{0}", std::distance(m_layers.begin(), m_layerInsert));
-        m_layerInsert = m_layers.emplace(m_layerInsert, layer);
+        m_layers.emplace(m_layers.begin() + m_layerInsertIndex, layer);
+        m_layerInsertIndex++;
     }
 
     void LayerStack::pushOverlay(Layer *overlay) {
@@ -30,7 +31,7 @@ namespace eg {
 
         if(it != m_layers.end()){
             m_layers.erase(it);
-            m_layerInsert--;
+            m_layerInsertIndex--;
         }
     }
 
