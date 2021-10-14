@@ -1,1 +1,1 @@
-target_sources(eugine PUBLIC linuxWindow.cpp linuxInput.cpp)
+target_sources(eugine PRIVATE linuxWindow.cpp linuxInput.cpp)
