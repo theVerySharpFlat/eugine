@@ -5,7 +5,7 @@ target_include_directories(eugine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_SOU
 
 target_precompile_headers(eugine PUBLIC egpch.h)
 
-if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+if(${EG_ENABLE_ASSERTIONS})
     target_compile_definitions(eugine PUBLIC EG_ENABLE_ASSERTIONS)
 endif()
 
