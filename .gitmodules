@@ -4,9 +4,6 @@
 [submodule "eugine/vendor/glfw"]
 	path = eugine/vendor/glfw
 	url = https://github.com/glfw/glfw
-[submodule "eugine/vendor/imgui"]
-	path = eugine/vendor/imgui
-	url = https://github.com/ocornut/imgui
 [submodule "eugine/vendor/glm"]
 	path = eugine/vendor/glm
 	url = https://github.com/g-truc/glm
