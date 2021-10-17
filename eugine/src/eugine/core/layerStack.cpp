@@ -17,7 +17,6 @@ namespace eg {
     };
 
     void LayerStack::pushLayer(Layer *layer) {
-        //EG_CORE_TRACE("{0}", std::distance(m_layers.begin(), m_layerInsert));
         m_layers.emplace(m_layers.begin() + m_layerInsertIndex, layer);
         m_layerInsertIndex++;
     }

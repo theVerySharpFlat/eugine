@@ -31,7 +31,7 @@ public:
     }
 
     void onEvent(eg::Event& event) override {
-        //EG_TRACE("{0}", event);
+        eg::trace(event);
     }
 
     void onImGuiRender() override {

@@ -53,7 +53,7 @@ namespace eg {
     }
 
     void ImGuiLayer::onAttach() {
-        EG_CORE_TRACE("setting up imgui layer");
+        eg::trace("setting up imgui layer");
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();

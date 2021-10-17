@@ -13,7 +13,7 @@
 namespace eg {
 
     static void GLFWErrorCallback(int error, const char* description){
-        EG_CORE_ERROR("GLFW erorr ({0}): {1}", error, description);
+        eg::error("GLFW erorr ({0}): {1}", error, description);
     }
 
     static bool s_GLFWInitialized = false;
@@ -32,7 +32,7 @@ namespace eg {
         m_data.width  = props.width;
         m_data.height = props.height;
 
-        EG_CORE_INFO("Creating window \"{0}\" ({1}, {2})", m_data.title, m_data.width, m_data.height);
+        eg::info("Creating window \"{0}\" ({1}, {2})", m_data.title, m_data.width, m_data.height);
 
         if(!s_GLFWInitialized){
             int success = glfwInit();

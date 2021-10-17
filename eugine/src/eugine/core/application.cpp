@@ -16,12 +16,18 @@ eg::Application* eg::Application::s_instance = nullptr;
 
 eg::Application::Application() {
 
+    //initialize log
+    Log::init();
+
+    //singleton
     EG_CORE_ASSERT(!s_instance, "application already exists")
     s_instance = this;
 
+    //windowing and events
     m_window = std::unique_ptr<Window>(Window::create());
     m_window ->setEventCallback(BIND_EVENT_FN(Application::onEvent));
 
+    //imgui
     m_imGuiLayer = new ImGuiLayer();
     pushOverlay(m_imGuiLayer);
 }

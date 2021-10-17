@@ -41,13 +41,13 @@
 #ifdef EG_PLATFORM_WINDOWS
     #define EG_DEBUG_BREAK __debugbreak()
 #else
-    #include <signal.h>
+    #include <csignal>
     #define EG_DEBUG_BREAK raise(SIGTRAP)
 #endif
 
 #ifdef EG_ENABLE_ASSERTIONS
-    #define EG_ASSERT(x, ...) { if(!(x)) { EG_ERROR("Assertion Failed: {0}", __VA_ARGS__); EG_DEBUG_BREAK; } }
-    #define EG_CORE_ASSERT(x, ...) { if(!(x)) { EG_CORE_ERROR("Assertion Failed: {0}", __VA_ARGS__); EG_DEBUG_BREAK; } }
+    #define EG_ASSERT(x, ...) { if(!(x)) { eg::fatal("Assertion Failed: {0}", __VA_ARGS__); EG_DEBUG_BREAK; } }
+    #define EG_CORE_ASSERT(x, ...) { if(!(x)) { eg::fatal("Assertion Failed: {0}", __VA_ARGS__); EG_DEBUG_BREAK; } }
 #else
     #define EG_ASSERT(x, ...)
     #define EG_CORE_ASSERT(x, ...)

@@ -25,25 +25,57 @@ namespace eg {
 
     };
 
+#ifdef EG_BUILDING_LIB
+    template<typename ... Args>
+    void trace(const Args&... args) {
+        ::eg::Log::getCoreLogger()->trace(args...);
+    }
+
+    template<typename ... Args>
+    void info(const Args&... args) {
+        ::eg::Log::getCoreLogger()->info(args...);
+    }
+
+    template<typename ... Args>
+    void warn(const Args&... args) {
+        ::eg::Log::getCoreLogger()->warn(args...);
+    }
+
+    template<typename ... Args>
+    void error(const Args&... args) {
+        ::eg::Log::getCoreLogger()->error(args...);
+    }
+
+    template<typename ... Args>
+    void fatal(const Args&... args) {
+        ::eg::Log::getCoreLogger()->critical(args...);
+    }
+#else
+    template<typename ... Args>
+    void trace(const Args&... args) {
+        ::eg::Log::getClientLogger()->trace(args...);
+    }
+    
+    template<typename ... Args>
+    void info(const Args&... args) {
+        ::eg::Log::getClientLogger()->info(args...);
+    }
+    
+    template<typename ... Args>
+    void warn(const Args&... args) {
+        ::eg::Log::getClientLogger()->warn(args...);
+    }
+    
+    template<typename ... Args>
+    void error(const Args&... args) {
+        ::eg::Log::getClientLogger()->error(args...);
+    }
+    
+    template<typename ... Args>
+    void fatal(const Args&... args) {
+        ::eg::Log::getClientLogger()->critical(args...);
+    }
+#endif
 }
-
-
-
-//core log
-
-#define EG_CORE_TRACE(...) ::eg::Log::getCoreLogger()->trace(__VA_ARGS__)
-#define EG_CORE_INFO(...)  ::eg::Log::getCoreLogger()->info(__VA_ARGS__)
-#define EG_CORE_WARN(...)  ::eg::Log::getCoreLogger()->warn(__VA_ARGS__)
-#define EG_CORE_ERROR(...) ::eg::Log::getCoreLogger()->error(__VA_ARGS__)
-#define EG_CORE_FATAL(...) ::eg::Log::getCoreLogger()->critical(__VA_ARGS__)
-
-//client logger
-#define EG_TRACE(...) ::eg::Log::getClientLogger()->trace(__VA_ARGS__)
-#define EG_INFO(...)  ::eg::Log::getClientLogger()->info(__VA_ARGS__)
-#define EG_WARN(...)  ::eg::Log::getClientLogger()->warn(__VA_ARGS__)
-#define EG_ERROR(...) ::eg::Log::getClientLogger()->error(__VA_ARGS__)
-#define EG_FATAL(...) ::eg::Log::getClientLogger()->critical(__VA_ARGS__)
-
-
 
 #endif //EUGINE_LOG_H

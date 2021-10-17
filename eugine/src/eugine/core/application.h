@@ -31,14 +31,19 @@ namespace eg {
 
         static Application& get();
     private:
-        std::unique_ptr<Window>  m_window;
-        ImGuiLayer* m_imGuiLayer;
-        bool m_running = true;
 
+        //windowing
+        std::unique_ptr<Window>  m_window;
+
+        //layers
+        ImGuiLayer* m_imGuiLayer;
         LayerStack m_layerStack;
 
+        //event handling
         bool onWindowClose(WindowCloseEvent& e);
+        bool m_running = true;
 
+        //singleton class
         static Application* s_instance;
     };
 
