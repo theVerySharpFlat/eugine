@@ -17,7 +17,7 @@ eg::Application* eg::Application::s_instance = nullptr;
 eg::Application::Application() {
 
     //initialize log
-    Log::init();
+    Logger::init();
 
     //singleton
     EG_CORE_ASSERT(!s_instance, "application already exists")

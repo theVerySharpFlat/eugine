@@ -6,10 +6,10 @@
 
 namespace eg{
 
-    std::shared_ptr<spdlog::logger> Log::s_coreLogger;
-    std::shared_ptr<spdlog::logger> Log::s_clientLogger;
+    std::shared_ptr<spdlog::logger> Logger::s_coreLogger;
+    std::shared_ptr<spdlog::logger> Logger::s_clientLogger;
 
-    void Log::init() {
+    void Logger::init() {
         spdlog::set_pattern("[%T] [%=8!l] %n: %^%v%$");
         s_coreLogger = spdlog::stdout_color_mt("EUGINE");
         s_coreLogger->set_level(spdlog::level::trace);

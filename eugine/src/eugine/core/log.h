@@ -8,16 +8,20 @@
 
 #include "eugine/core/core.h"
 #include <spdlog/spdlog.h>
-#include "glm/gtc/matrix_transform.hpp"
 
 namespace eg {
 
-    class EG_API Log {
+    class EG_API Logger {
     public:
         static void init();
 
         inline static std::shared_ptr<spdlog::logger>& getCoreLogger() { return s_coreLogger;}
         inline static std::shared_ptr<spdlog::logger>& getClientLogger() { return s_clientLogger; }
+
+        template<typename ... Args>
+        void trace(const Args&... args) const{
+            ::eg::Logger::getClientLogger()->trace(args...);
+        }
 
     private:
         static std::shared_ptr<spdlog::logger> s_coreLogger;
@@ -25,55 +29,57 @@ namespace eg {
 
     };
 
+    extern const ::eg::Logger* log;
+
 #ifdef EG_BUILDING_LIB
     template<typename ... Args>
     void trace(const Args&... args) {
-        ::eg::Log::getCoreLogger()->trace(args...);
+        ::eg::Logger::getCoreLogger()->trace(args...);
     }
 
     template<typename ... Args>
     void info(const Args&... args) {
-        ::eg::Log::getCoreLogger()->info(args...);
+        ::eg::Logger::getCoreLogger()->info(args...);
     }
 
     template<typename ... Args>
     void warn(const Args&... args) {
-        ::eg::Log::getCoreLogger()->warn(args...);
+        ::eg::Logger::getCoreLogger()->warn(args...);
     }
 
     template<typename ... Args>
     void error(const Args&... args) {
-        ::eg::Log::getCoreLogger()->error(args...);
+        ::eg::Logger::getCoreLogger()->error(args...);
     }
 
     template<typename ... Args>
     void fatal(const Args&... args) {
-        ::eg::Log::getCoreLogger()->critical(args...);
+        ::eg::Logger::getCoreLogger()->critical(args...);
     }
 #else
     template<typename ... Args>
     void trace(const Args&... args) {
-        ::eg::Log::getClientLogger()->trace(args...);
+        ::eg::Logger::getClientLogger()->trace(args...);
     }
     
     template<typename ... Args>
     void info(const Args&... args) {
-        ::eg::Log::getClientLogger()->info(args...);
+        ::eg::Logger::getClientLogger()->info(args...);
     }
     
     template<typename ... Args>
     void warn(const Args&... args) {
-        ::eg::Log::getClientLogger()->warn(args...);
+        ::eg::Logger::getClientLogger()->warn(args...);
     }
     
     template<typename ... Args>
     void error(const Args&... args) {
-        ::eg::Log::getClientLogger()->error(args...);
+        ::eg::Logger::getClientLogger()->error(args...);
     }
     
     template<typename ... Args>
     void fatal(const Args&... args) {
-        ::eg::Log::getClientLogger()->critical(args...);
+        ::eg::Logger::getClientLogger()->critical(args...);
     }
 #endif
 }
