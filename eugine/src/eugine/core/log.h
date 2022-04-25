@@ -61,22 +61,22 @@ namespace eg {
     void trace(const Args&... args) {
         ::eg::Logger::getClientLogger()->trace(args...);
     }
-    
+
     template<typename ... Args>
     void info(const Args&... args) {
         ::eg::Logger::getClientLogger()->info(args...);
     }
-    
+
     template<typename ... Args>
     void warn(const Args&... args) {
         ::eg::Logger::getClientLogger()->warn(args...);
     }
-    
+
     template<typename ... Args>
     void error(const Args&... args) {
         ::eg::Logger::getClientLogger()->error(args...);
     }
-    
+
     template<typename ... Args>
     void fatal(const Args&... args) {
         ::eg::Logger::getClientLogger()->critical(args...);

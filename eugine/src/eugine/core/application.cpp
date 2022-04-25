@@ -27,6 +27,19 @@ eg::Application::Application() {
     m_window = std::unique_ptr<Window>(Window::create());
     m_window ->setEventCallback(BIND_EVENT_FN(Application::onEvent));
 
+    m_shader = std::make_unique<GLWrapper::Shader>(m_shaderProgramSource);
+
+    m_vbo = std::make_unique<GLWrapper::VertexBuffer>(m_vertices, sizeof(m_vertices));
+
+    m_vao = std::make_unique<GLWrapper::VertexArray>();
+
+    GLWrapper::VertexBufferLayout vboLayout(1);
+    vboLayout.setAttribute(0, {
+       GL_FLOAT,
+       3
+    });
+    m_vao->setBuffer(*m_vbo, vboLayout);
+
     //imgui
     m_imGuiLayer = new ImGuiLayer();
     pushOverlay(m_imGuiLayer);
@@ -43,6 +56,8 @@ void eg::Application::run() {
         for(Layer* layer : m_layerStack){
             layer -> onUpdate();
         }
+
+        m_renderer.draw(*m_vao, *m_shader);
 
         m_imGuiLayer->begin();
         for(Layer* layer : m_layerStack)

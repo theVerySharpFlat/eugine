@@ -3,7 +3,6 @@
 //
 
 #include <eugine.h>
-#include <iostream>
 #include <imgui/imgui.h>
 
 class TestLayer : public eg::Layer {
@@ -31,7 +30,7 @@ public:
     }
 
     void onEvent(eg::Event& event) override {
-        eg::trace(event);
+        // eg::trace(event);
     }
 
     void onImGuiRender() override {

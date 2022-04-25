@@ -9,6 +9,9 @@
 #include "eugine/core/application.h"
 #include "eugine/core/entryPoint.h"
 
+// Number types
+#include "eugine/core/types.h"
+
 //keyCodes
 #include "eugine/core/keyCodes.h"
 #include "eugine/core/mouseCodes.h"
