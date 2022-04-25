@@ -9,6 +9,7 @@ namespace eg::GLWrapper {
     class IndexBuffer {
     public:
         IndexBuffer(u32 *data, u32 size);
+        ~IndexBuffer();
 
         u32 elementCount() const { return m_elementCount; }
 

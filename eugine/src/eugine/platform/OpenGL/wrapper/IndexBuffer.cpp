@@ -23,4 +23,8 @@ namespace eg::GLWrapper {
     void IndexBuffer::unBind() const {
         GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
     }
+
+    IndexBuffer::~IndexBuffer() {
+        GLCall(glDeleteBuffers(1, &m_ID));
+    }
 }
