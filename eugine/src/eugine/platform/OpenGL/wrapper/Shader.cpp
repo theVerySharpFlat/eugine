@@ -7,7 +7,7 @@
 namespace eg {
     namespace GLWrapper {
 
-        static void compileShader(u32& shader, GLenum type, ShaderUnitSource source) {
+        static void compileShader(u32 &shader, GLenum type, ShaderUnitSource source) {
             GLCall(shader = glCreateShader(type));
             GLCall(glShaderSource(shader, 1, &source.data, NULL));
             GLCall(glCompileShader(shader));
@@ -16,23 +16,23 @@ namespace eg {
             char infoLog[512];
 
             GLCall(glGetShaderiv(shader, GL_COMPILE_STATUS, &success));
-            if(!success) {
+            if (!success) {
                 GLCall(glGetShaderInfoLog(shader, 512, NULL, infoLog));
-                eg::error("SHADER COMPILATION ERROR (type = {0:x})", (int)type);
+                eg::error("SHADER COMPILATION ERROR (type = {0:x})", (int) type);
                 eg::error("LOG: \n{}", infoLog);
             }
 
             EG_ASSERT(success, "failed to compile shader");
         }
 
-        static void linkProgram(const u32& program) {
+        static void linkProgram(const u32 &program) {
             GLCall(glLinkProgram(program));
 
             i32 success;
             char infoLog[512];
 
             GLCall(glGetProgramiv(program, GL_LINK_STATUS, &success))
-            if(!success) {
+            if (!success) {
                 GLCall(glGetProgramInfoLog(program, 512, NULL, infoLog));
                 eg::error("SHADER LINKING FAILED: ");
                 eg::error("LOG: \n{}", infoLog);
@@ -58,16 +58,16 @@ namespace eg {
             GLCall(glDeleteShader(fragmentShader));
         }
 
-        void Shader::bind() {
+        void Shader::bind() const {
             GLCall(glUseProgram(m_ID));
         }
 
-        void Shader::unBind() {
+        void Shader::unBind() const {
             GLCall(glUseProgram(0));
         }
 
         Shader::~Shader() {
-           GLCall(glDeleteProgram(m_ID));
+            GLCall(glDeleteProgram(m_ID));
         }
     }
 } // namespace eg

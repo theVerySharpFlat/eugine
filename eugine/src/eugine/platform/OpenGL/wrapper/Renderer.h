@@ -7,6 +7,7 @@
 
 #include "VertexArray.h"
 #include "Shader.h"
+#include "IndexBuffer.h"
 
 namespace eg {
     namespace GLWrapper {
@@ -15,7 +16,7 @@ namespace eg {
             Renderer();
             ~Renderer();
 
-            void draw(const VertexArray& vertexArray, Shader& shader);
+            void draw(const VertexArray& vertexArray, const IndexBuffer& indexBuffer, const Shader& shader);
         private:
         };
     }

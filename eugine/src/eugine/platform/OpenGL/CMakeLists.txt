@@ -5,4 +5,5 @@ target_sources(eugine PRIVATE
         wrapper/VertexArray.cpp
         wrapper/VertexBufferLayout.cpp
         wrapper/Renderer.cpp
+        wrapper/IndexBuffer.cpp
         )

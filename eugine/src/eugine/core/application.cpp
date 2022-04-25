@@ -27,11 +27,14 @@ eg::Application::Application() {
     m_window = std::unique_ptr<Window>(Window::create());
     m_window ->setEventCallback(BIND_EVENT_FN(Application::onEvent));
 
+    // OpenGL testing
     m_shader = std::make_unique<GLWrapper::Shader>(m_shaderProgramSource);
 
     m_vbo = std::make_unique<GLWrapper::VertexBuffer>(m_vertices, sizeof(m_vertices));
 
     m_vao = std::make_unique<GLWrapper::VertexArray>();
+
+    m_ibo = std::make_unique<GLWrapper::IndexBuffer>(m_indices, sizeof(m_indices));
 
     GLWrapper::VertexBufferLayout vboLayout(1);
     vboLayout.setAttribute(0, {
@@ -57,7 +60,7 @@ void eg::Application::run() {
             layer -> onUpdate();
         }
 
-        m_renderer.draw(*m_vao, *m_shader);
+        m_renderer.draw(*m_vao, *m_ibo, *m_shader);
 
         m_imGuiLayer->begin();
         for(Layer* layer : m_layerStack)

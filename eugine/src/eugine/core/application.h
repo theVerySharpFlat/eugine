@@ -22,31 +22,34 @@ namespace eg {
 
         void run();
 
-        void onEvent(Event& e);
+        void onEvent(Event &e);
 
-        virtual void init() {  };
+        virtual void init() {};
 
-        void pushOverlay(Layer* layer);
-        void pushLayer(Layer* layer);
+        void pushOverlay(Layer *layer);
 
-        inline Window& getWindow() { return *m_window; }
+        void pushLayer(Layer *layer);
 
-        static Application& get();
+        inline Window &getWindow() { return *m_window; }
+
+        static Application &get();
+
     private:
 
         //windowing
-        std::unique_ptr<Window>  m_window;
+        std::unique_ptr<Window> m_window;
 
         //layers
-        ImGuiLayer* m_imGuiLayer;
+        ImGuiLayer *m_imGuiLayer;
         LayerStack m_layerStack;
 
         //event handling
-        bool onWindowClose(WindowCloseEvent& e);
+        bool onWindowClose(WindowCloseEvent &e);
+
         bool m_running = true;
 
         //singleton class
-        static Application* s_instance;
+        static Application *s_instance;
 
         const char *vertexShaderSource = "#version 330 core\n"
                                          "layout (location = 0) in vec3 aPos;\n"
@@ -75,20 +78,29 @@ namespace eg {
 
         std::unique_ptr<GLWrapper::Shader> m_shader = nullptr;
 
-        float m_vertices[9] = {
-                -0.5f, -0.5f, 0.0f,
-                0.5f, -0.5f, 0.0f,
-                0.0f,  0.5f, 0.0f
+        float m_vertices[12] = {
+                0.5f, 0.5f, 0.0f,  // top right
+                0.5f, -0.5f, 0.0f,  // bottom right
+                -0.5f, -0.5f, 0.0f,  // bottom left
+                -0.5f, 0.5f, 0.0f   // top left
         };
+
+        u32 m_indices[6] = {
+                0, 1, 3,   // first triangle
+                1, 2, 3    // second triangle
+        };
+
         std::unique_ptr<GLWrapper::VertexBuffer> m_vbo = nullptr;
 
         std::unique_ptr<GLWrapper::VertexArray> m_vao = nullptr;
+
+        std::unique_ptr<GLWrapper::IndexBuffer> m_ibo = nullptr;
 
         GLWrapper::Renderer m_renderer = {};
 
     };
 
-    Application* createApplication();
+    Application *createApplication();
 }
 
 #endif //EUGINE_APPLICATION_H

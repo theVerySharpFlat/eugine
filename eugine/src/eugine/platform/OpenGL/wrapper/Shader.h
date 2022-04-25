@@ -22,9 +22,9 @@ namespace eg {
 
             ~Shader();
 
-            void bind();
+            void bind() const;
 
-            void unBind();
+            void unBind() const;
 
         private:
 
