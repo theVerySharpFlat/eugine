@@ -1,1 +1,1 @@
-target_sources(eugine PUBLIC filesystem.cpp)
+target_sources(eugine PRIVATE filesystem.cpp)

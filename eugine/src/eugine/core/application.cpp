@@ -4,6 +4,7 @@
 
 
 #include "application.h"
+#include "eugine/util/filesystem.h"
 #include <eugine/events/applicationEvent.h>
 #include <eugine/events/mouseEvent.h>
 #include <eugine/core/input.h>
@@ -22,6 +23,9 @@ eg::Application::Application() {
     //singleton
     EG_CORE_ASSERT(!s_instance, "application already exists")
     s_instance = this;
+
+    // go to project root
+    filesystem::gotoProjectRoot();
 
     //windowing and events
     m_window = std::unique_ptr<Window>(Window::create());

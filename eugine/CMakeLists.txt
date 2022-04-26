@@ -20,7 +20,7 @@ target_link_libraries(eugine PUBLIC spdlog glad glm::glm imgui ghc_filesystem)
 
 target_include_directories(eugine PRIVATE vendor/glfw/include)
 
-target_link_libraries(eugine PRIVATE glfw OpenGL::GL)
+target_link_libraries(eugine PRIVATE glfw OpenGL::GL wai)
 
 add_subdirectory(src)
 add_subdirectory(vendor)

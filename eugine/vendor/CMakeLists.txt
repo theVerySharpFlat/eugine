@@ -12,5 +12,6 @@ target_include_directories(eugine PRIVATE glfw/include)
 add_subdirectory(imgui)
 add_subdirectory(glm)
 add_subdirectory(filesystem)
+add_subdirectory(whereami)
 
 #target_include_directories(eugine PUBLIC glm)

@@ -14,3 +14,6 @@
 [submodule "eugine/vendor/filesystem"]
 	path = eugine/vendor/filesystem
 	url = https://github.com/gulrak/filesystem.git
+[submodule "eugine/vendor/whereami/whereami"]
+	path = eugine/vendor/whereami/whereami
+	url = https://github.com/gpakosz/whereami.git
