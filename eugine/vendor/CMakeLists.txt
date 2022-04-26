@@ -13,5 +13,6 @@ add_subdirectory(imgui)
 add_subdirectory(glm)
 add_subdirectory(filesystem)
 add_subdirectory(whereami)
+add_subdirectory(stbi)
 
 #target_include_directories(eugine PUBLIC glm)
