@@ -11,3 +11,6 @@
 	path = eugine/vendor/imgui/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
+[submodule "eugine/vendor/filesystem"]
+	path = eugine/vendor/filesystem
+	url = https://github.com/gulrak/filesystem.git

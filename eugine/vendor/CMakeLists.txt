@@ -11,5 +11,6 @@ target_include_directories(eugine PRIVATE glfw/include)
 #target_include_directories(eugine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory(imgui)
 add_subdirectory(glm)
+add_subdirectory(filesystem)
 
 #target_include_directories(eugine PUBLIC glm)

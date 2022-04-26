@@ -14,6 +14,12 @@
 #include <eugine/core/log.h>
 #include <eugine/core/types.h>
 
+#include <ghc/filesystem.hpp>
+
+namespace eg {
+    namespace fs = ghc::filesystem;
+}
+
 #ifdef EG_PLATFORM_WINDOWS
     #include <Windows.h>
 #endif
