@@ -41,7 +41,7 @@ namespace eg {
             EG_ASSERT(success, "failed to compile shader");
         }
 
-        Shader::Shader(const ShaderProgramSource &source) {
+        Shader::Shader(const ShaderProgramSource source) {
             GLCall(m_ID = glCreateProgram());
 
             u32 vertexShader;

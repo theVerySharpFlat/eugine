@@ -8,17 +8,17 @@ namespace eg {
 
         struct ShaderUnitSource {
             const char *data;
-            u32 size;
+            u64 size;
         };
 
         struct ShaderProgramSource {
-            const ShaderUnitSource &vs;
-            const ShaderUnitSource &fs;
+            const ShaderUnitSource vs;
+            const ShaderUnitSource fs;
         };
 
         class EG_API Shader {
         public:
-            Shader(const ShaderProgramSource &source);
+            Shader(const ShaderProgramSource source);
 
             ~Shader();
 

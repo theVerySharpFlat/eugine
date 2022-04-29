@@ -12,6 +12,7 @@
 #include "eugine/core/layerStack.h"
 
 #include "eugine/platform/OpenGL/wrapper/Renderer.h"
+#include "eugine/platform/OpenGL/wrapper/Texture.h"
 
 namespace eg {
     class EG_API Application {
@@ -51,38 +52,16 @@ namespace eg {
         //singleton class
         static Application *s_instance;
 
-        const char *vertexShaderSource = "#version 330 core\n"
-                                         "layout (location = 0) in vec3 aPos;\n"
-                                         "void main()\n"
-                                         "{\n"
-                                         "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-                                         "}\0";
-        const char *fragmentShaderSource = "#version 330 core\n"
-                                           "out vec4 FragColor;\n"
-                                           "void main()\n"
-                                           "{\n"
-                                           "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-                                           "}\n\0";
-        GLWrapper::ShaderUnitSource vertexUnitSource = {
-                vertexShaderSource,
-                sizeof(vertexShaderSource)
-        };
-        GLWrapper::ShaderUnitSource fragmentUnitSource = {
-                fragmentShaderSource,
-                sizeof(fragmentShaderSource)
-        };
-        GLWrapper::ShaderProgramSource m_shaderProgramSource = {
-                vertexUnitSource,
-                fragmentUnitSource
-        };
 
         std::unique_ptr<GLWrapper::Shader> m_shader = nullptr;
 
-        float m_vertices[12] = {
-                0.5f, 0.5f, 0.0f,  // top right
-                0.5f, -0.5f, 0.0f,  // bottom right
-                -0.5f, -0.5f, 0.0f,  // bottom left
-                -0.5f, 0.5f, 0.0f   // top left
+
+        float m_vertices[32] = {
+            // positions          // colors           // texture coords
+            0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+            0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+            -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+            -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
         };
 
         u32 m_indices[6] = {
@@ -95,6 +74,8 @@ namespace eg {
         std::unique_ptr<GLWrapper::VertexArray> m_vao = nullptr;
 
         std::unique_ptr<GLWrapper::IndexBuffer> m_ibo = nullptr;
+
+        std::unique_ptr<GLWrapper::Texture> m_tex = nullptr;
 
         GLWrapper::Renderer m_renderer = {};
 

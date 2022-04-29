@@ -6,4 +6,5 @@ target_sources(eugine PRIVATE
         wrapper/VertexBufferLayout.cpp
         wrapper/Renderer.cpp
         wrapper/IndexBuffer.cpp
+        wrapper/Texture.cpp
         )

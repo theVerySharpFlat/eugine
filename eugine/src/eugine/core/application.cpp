@@ -4,6 +4,8 @@
 
 
 #include "application.h"
+#include "eugine/platform/OpenGL/wrapper/Texture.h"
+#include "eugine/platform/OpenGL/wrapper/Shader.h"
 #include "eugine/util/filesystem.h"
 #include <eugine/events/applicationEvent.h>
 #include <eugine/events/mouseEvent.h>
@@ -32,7 +34,24 @@ eg::Application::Application() {
     m_window ->setEventCallback(BIND_EVENT_FN(Application::onEvent));
 
     // OpenGL testing
-    m_shader = std::make_unique<GLWrapper::Shader>(m_shaderProgramSource);
+    std::string vsData = filesystem::getFileContents("res/shaders/simple.vs");
+    std::string fsData = filesystem::getFileContents("res/shaders/simple.fs");
+
+
+    GLWrapper::ShaderProgramSource shaderSource = {
+        {
+            vsData.c_str(),
+            vsData.size() + 1
+        },
+        {
+            fsData.c_str(),
+            fsData.size() + 1
+        }
+    };
+
+    m_tex = std::make_unique<GLWrapper::Texture>("res/textures/brick.jpg");
+
+    m_shader = std::make_unique<GLWrapper::Shader>(shaderSource);
 
     m_vbo = std::make_unique<GLWrapper::VertexBuffer>(m_vertices, sizeof(m_vertices));
 
@@ -40,10 +59,18 @@ eg::Application::Application() {
 
     m_ibo = std::make_unique<GLWrapper::IndexBuffer>(m_indices, sizeof(m_indices));
 
-    GLWrapper::VertexBufferLayout vboLayout(1);
+    GLWrapper::VertexBufferLayout vboLayout(3);
     vboLayout.setAttribute(0, {
        GL_FLOAT,
        3
+    });
+    vboLayout.setAttribute(1, {
+        GL_FLOAT,
+        3
+    });
+    vboLayout.setAttribute(2, {
+        GL_FLOAT,
+        2
     });
     m_vao->setBuffer(*m_vbo, vboLayout);
 
@@ -64,6 +91,7 @@ void eg::Application::run() {
             layer -> onUpdate();
         }
 
+        m_tex->bind();
         m_renderer.draw(*m_vao, *m_ibo, *m_shader);
 
         m_imGuiLayer->begin();
