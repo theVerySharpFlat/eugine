@@ -9,6 +9,9 @@ namespace eg::filesystem {
         try {
             fs::ifstream ifs(name, std::ios::in | std::ios::binary | std::ios::ate);
 
+            if(!ifs.is_open())
+                eg::error("failed to open file \"{}\"", name.c_str());
+
             fs::ifstream::pos_type fileSize = ifs.tellg();
             ifs.seekg(0, std::ios::beg);
 
