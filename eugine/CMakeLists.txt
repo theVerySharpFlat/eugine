@@ -16,11 +16,9 @@ target_compile_definitions(eugine PRIVATE EG_BUILDING_LIB)
 
 find_package(OpenGL REQUIRED)
 
-target_link_libraries(eugine PUBLIC spdlog glad glm::glm imgui ghc_filesystem)
+target_link_libraries(eugine PUBLIC spdlog glm::glm imgui ghc_filesystem)
 
-target_include_directories(eugine PRIVATE vendor/glfw/include)
-
-target_link_libraries(eugine PRIVATE glfw OpenGL::GL wai stbi)
+target_link_libraries(eugine PRIVATE glfw OpenGL::GL wai stbi glad)
 
 add_subdirectory(src)
 add_subdirectory(vendor)
