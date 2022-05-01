@@ -4,6 +4,8 @@
 
 #include <eugine/core/log.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
 namespace eg {
     namespace GLWrapper {
 
@@ -64,6 +66,103 @@ namespace eg {
 
         void Shader::unBind() const {
             GLCall(glUseProgram(0));
+        }
+
+        void Shader::setMat4(const char *name, const glm::mat4& mat) {
+            GLCall(glUseProgram(m_ID));
+            GLCall(glUniformMatrix4fv(
+                    glGetUniformLocation(m_ID, name),
+                    1,
+                    GL_FALSE,
+                    glm::value_ptr(mat)
+                    ));
+        }
+
+        void Shader::setMat3(const char *name, const glm::mat3& mat) {
+            GLCall(glUseProgram(m_ID));
+            GLCall(glUniformMatrix3fv(
+                    glGetUniformLocation(m_ID, name),
+                    1,
+                    GL_FALSE,
+                    glm::value_ptr(mat)
+            ));
+        }
+
+        void Shader::setMat2(const char *name, const glm::mat2& mat) {
+            GLCall(glUseProgram(m_ID));
+            GLCall(glUniformMatrix2fv(
+                    glGetUniformLocation(m_ID, name),
+                    1,
+                    GL_FALSE,
+                    glm::value_ptr(mat)
+            ));
+        }
+
+        void Shader::setVec4(const char *name, const glm::vec4& vec) {
+            GLCall(glUseProgram(m_ID));
+            GLCall(glUniform4fv(
+                    glGetUniformLocation(m_ID, name),
+                    1,
+                    glm::value_ptr(vec)
+                    ));
+        }
+
+        void Shader::setVec3(const char *name, const glm::vec3& vec) {
+            GLCall(glUseProgram(m_ID));
+            GLCall(glUniform3fv(
+                    glGetUniformLocation(m_ID, name),
+                    1,
+                    glm::value_ptr(vec)
+            ));
+        }
+
+        void Shader::setVec2(const char *name, const glm::vec2& vec) {
+            GLCall(glUseProgram(m_ID));
+            GLCall(glUniform2fv(
+                    glGetUniformLocation(m_ID, name),
+                    1,
+                    glm::value_ptr(vec)
+            ));
+        }
+
+        void Shader::setBool(const char *name, const bool& value) {
+            GLCall(glUseProgram(m_ID));
+            GLCall(glUniform1i(
+                    glGetUniformLocation(m_ID, name),
+                    (i32)value
+                    ));
+        }
+
+        void Shader::setInt(const char *name, const i32& value) {
+            GLCall(glUseProgram(m_ID));
+            GLCall(glUniform1i(
+                    glGetUniformLocation(m_ID, name),
+                    (i32)value
+            ));
+        }
+
+        void Shader::setUint(const char *name, const u32& value) {
+            GLCall(glUseProgram(m_ID));
+            GLCall(glUniform1ui(
+                    glGetUniformLocation(m_ID, name),
+                    value
+                    ));
+        }
+
+        void Shader::setFloat(const char *name, const float& value) {
+            GLCall(glUseProgram(m_ID));
+            GLCall(glUniform1f(
+                    glGetUniformLocation(m_ID, name),
+                    value
+                    ));
+        }
+
+        void Shader::setDouble(const char *name, const double& value) {
+            GLCall(glUseProgram(m_ID));
+            GLCall(glUniform1d(
+                    glGetUniformLocation(m_ID, name),
+                    value
+                    ));
         }
 
         Shader::~Shader() {

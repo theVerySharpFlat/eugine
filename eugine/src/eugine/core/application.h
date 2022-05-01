@@ -13,6 +13,7 @@
 
 #include "eugine/platform/OpenGL/wrapper/Renderer.h"
 #include "eugine/platform/OpenGL/wrapper/Texture.h"
+#include "eugine/rendering/Camera2D.h"
 
 namespace eg {
     class EG_API Application {
@@ -58,10 +59,15 @@ namespace eg {
 
         float m_vertices[32] = {
             // positions          // colors           // texture coords
-            0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-            0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-            -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-            -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
+            600.0f,  600.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
+            600.0f, 300.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+            200.0f, 300.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
+            200.0f,  600.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
+        };
+
+        rendering::Camera2D m_camera = {
+                glm::vec2(800.0f, 600.0f),
+                glm::vec2(200.0f, 300.0f)
         };
 
         u32 m_indices[6] = {
@@ -78,6 +84,8 @@ namespace eg {
         std::unique_ptr<GLWrapper::Texture> m_tex = nullptr;
 
         GLWrapper::Renderer m_renderer = {};
+
+        bool onKeyEvent(KeyPressedEvent& e);
 
     };
 

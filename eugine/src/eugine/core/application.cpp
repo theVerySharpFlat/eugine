@@ -8,10 +8,14 @@
 #include "eugine/platform/OpenGL/wrapper/Shader.h"
 #include "eugine/util/filesystem.h"
 #include <eugine/events/applicationEvent.h>
+#include <eugine/events/keyEvent.h>
 #include <eugine/events/mouseEvent.h>
 #include <eugine/core/input.h>
+#include <eugine/core/keyCodes.h>
 
 #include <glad/glad.h>
+
+#include <glm/gtc/matrix_transform.hpp>
 
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 
@@ -91,7 +95,23 @@ void eg::Application::run() {
             layer -> onUpdate();
         }
 
+        const float moveSpeed = 2.0f;
+        if(Input::isKeyPressed(EG_KEY_LEFT)) {
+            m_camera.moveCamera({-moveSpeed, 0.0f});
+        }
+        if(Input::isKeyPressed(EG_KEY_RIGHT)) {
+            m_camera.moveCamera({moveSpeed, 0.0f});
+        }
+        if(Input::isKeyPressed(EG_KEY_UP)) {
+            m_camera.moveCamera({0.0f, moveSpeed});
+        }
+        if(Input::isKeyPressed(EG_KEY_DOWN)) {
+            m_camera.moveCamera({0.0f, -moveSpeed});
+        }
+
         m_tex->bind();
+        m_shader->bind();
+        m_shader -> setMat4("projxview", m_camera.getProjectionTimesView());
         m_renderer.draw(*m_vao, *m_ibo, *m_shader);
 
         m_imGuiLayer->begin();
@@ -105,6 +125,7 @@ void eg::Application::run() {
 void eg::Application::onEvent(eg::Event &e) {
     EventDispatcher dispatcher(e);
     dispatcher.dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::onWindowClose));
+    dispatcher.dispatch<KeyPressedEvent>(BIND_EVENT_FN(Application::onKeyEvent));
     for(auto it = m_layerStack.end(); it != m_layerStack.begin(); ) {
 
         (*--it)->onEvent(e);
@@ -127,6 +148,15 @@ void eg::Application::pushLayer(eg::Layer *layer) {
 
 bool eg::Application::onWindowClose(eg::WindowCloseEvent &e) {
     m_running = false;
+    return true;
+}
+
+bool eg::Application::onKeyEvent(eg::KeyPressedEvent &e) {
+//    if(e.getKeyCode() == EG_KEY_RIGHT) {
+//        m_camera.setPosition(m_camera.getPosition() + glm::vec2(0.0, 5.0));
+//    } else if(e.getKeyCode() == EG_KEY_LEFT) {
+//        m_camera.setPosition(m_camera.getPosition() + glm::vec2(0.0, -5.0));
+//    }
     return true;
 }
 
