@@ -17,7 +17,7 @@ namespace eg {
             GLCall(glDeleteVertexArrays(1, &m_ID));
         }
 
-        void VertexArray::setBuffer(const VertexBuffer &vertexBuffer, const VertexBufferLayout &vertexBufferLayout) {
+        void VertexArray::setBuffer(const VertexBuffer &vertexBuffer) {
             bind();
             vertexBuffer.bind();
 

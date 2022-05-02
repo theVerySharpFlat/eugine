@@ -15,7 +15,7 @@ namespace eg {
             VertexArray();
             ~VertexArray();
 
-            void setBuffer(const VertexBuffer& vertexBuffer, const VertexBufferLayout& vertexBufferLayout);
+            void setBuffer(const VertexBuffer& vertexBuffer);
 
             void bind() const;
             void unBind() const;

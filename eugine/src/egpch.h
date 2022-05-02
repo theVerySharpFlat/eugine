@@ -11,6 +11,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
+#include <eugine/core/pointers.h>
 #include <eugine/core/log.h>
 #include <eugine/core/types.h>
 
