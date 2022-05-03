@@ -1,8 +1,12 @@
 #include "VertexBufferLayout.h"
+#include <initializer_list>
 
 namespace eg::rendering {
     VertexBufferLayout::VertexBufferLayout(u32 num)
             : m_numAttributes(num), m_attributes(num) {}
+
+    VertexBufferLayout::VertexBufferLayout(std::initializer_list<VertexAttrib> attributes)
+        : m_numAttributes(attributes.size()), m_attributes(attributes) {}
 
     void VertexBufferLayout::setAttribute(u32 index, VertexAttrib attrib) {
         EG_ASSERT(index >= 0 && index < m_numAttributes, "VertexAttrib out of index!");

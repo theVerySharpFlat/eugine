@@ -2,6 +2,7 @@
 #define EG_RENDERING_VERTEX_BUFFER_LAYOUT
 
 #include "Types.h"
+#include <initializer_list>
 
 namespace eg::rendering {
 
@@ -13,6 +14,7 @@ namespace eg::rendering {
     class VertexBufferLayout {
     public:
         VertexBufferLayout(u32 numAttributes);
+        VertexBufferLayout(std::initializer_list<VertexAttrib> attributes);
         
         void setAttribute(u32 index, VertexAttrib attrib);
 
