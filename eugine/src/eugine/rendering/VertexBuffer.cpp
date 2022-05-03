@@ -3,8 +3,13 @@
 //
 
 #include "VertexBuffer.h"
+#include "eugine/rendering/VertexBufferLayout.h"
 #include <eugine/platform/OpenGL/wrapper/VertexBuffer.h>
 
-eg::Ref<eg::VertexBuffer> eg::VertexBuffer::create(void *data, u32 size) {
-    return createRef<GLWrapper::VertexBuffer>(data, size);
+namespace eg::rendering {
+
+Ref<VertexBuffer> VertexBuffer::create(void *data, u32 size, const VertexBufferLayout& layout) {
+    return createRef<GLWrapper::VertexBuffer>(data, size, layout);
+}
+
 }

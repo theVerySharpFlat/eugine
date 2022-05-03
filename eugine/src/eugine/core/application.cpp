@@ -6,6 +6,8 @@
 #include "application.h"
 #include "eugine/platform/OpenGL/wrapper/Texture.h"
 #include "eugine/platform/OpenGL/wrapper/Shader.h"
+#include "eugine/rendering/Types.h"
+#include "eugine/rendering/VertexBuffer.h"
 #include "eugine/util/filesystem.h"
 #include <eugine/events/applicationEvent.h>
 #include <eugine/events/keyEvent.h>
@@ -57,26 +59,26 @@ eg::Application::Application() {
 
     m_shader = std::make_unique<GLWrapper::Shader>(shaderSource);
 
-    m_vbo = std::make_unique<GLWrapper::VertexBuffer>(m_vertices, sizeof(m_vertices));
 
     m_vao = std::make_unique<GLWrapper::VertexArray>();
 
     m_ibo = std::make_unique<GLWrapper::IndexBuffer>(m_indices, sizeof(m_indices));
 
-    GLWrapper::VertexBufferLayout vboLayout(3);
+    rendering::VertexBufferLayout vboLayout(3);
     vboLayout.setAttribute(0, {
-       GL_FLOAT,
-       3
+       rendering::SHDR_VEC3,
+       1
     });
     vboLayout.setAttribute(1, {
-        GL_FLOAT,
-        3
+        rendering::SHDR_VEC3,
+        1
     });
     vboLayout.setAttribute(2, {
-        GL_FLOAT,
-        2
+        rendering::SHDR_VEC2,
+        1
     });
-    m_vao->setBuffer(*m_vbo, vboLayout);
+    m_vbo = std::make_unique<GLWrapper::VertexBuffer>(m_vertices, sizeof(m_vertices), vboLayout);
+    m_vao->setBuffer(*m_vbo);
 
     //imgui
     m_imGuiLayer = new ImGuiLayer();

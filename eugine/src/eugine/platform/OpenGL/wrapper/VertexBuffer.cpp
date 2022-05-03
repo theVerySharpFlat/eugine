@@ -7,8 +7,8 @@
 namespace eg {
     namespace GLWrapper {
 
-        VertexBuffer::VertexBuffer(const void *data, u32 size, VertexBufferLayout layout)
-            : m_layout(std::move(layout)) {
+        VertexBuffer::VertexBuffer(const void *data, u32 size, rendering::VertexBufferLayout layout)
+            : m_layout(layout) {
             GLCall(glGenBuffers(1, &m_ID));
             GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_ID));
             GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW));

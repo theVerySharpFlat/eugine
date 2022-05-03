@@ -24,10 +24,10 @@ namespace eg {
         }
 
         VertexBufferLayout::VertexBufferLayout(u32 num)
-                : numAttributes(num), m_attributes(num) {}
+                : m_numAttributes(num), m_attributes(num) {}
 
         void VertexBufferLayout::setAttribute(u32 index, VertexAttrib attrib) {
-            EG_ASSERT(index >= 0 && index < numAttributes, "VertexAttrib out of index!");
+            EG_ASSERT(index >= 0 && index < m_numAttributes, "VertexAttrib out of index!");
             EG_ASSERT(getSizeOfType(attrib.type) != 0, "Bad type");
             m_attributes[index] = attrib;
         }

@@ -5,10 +5,12 @@
 #ifndef EUGINE_VERTEXBUFFER_H
 #define EUGINE_VERTEXBUFFER_H
 
-namespace eg {
+#include <eugine/rendering/VertexBufferLayout.h>
+
+namespace eg::rendering {
     class VertexBuffer {
     public:
-        static Ref<VertexBuffer> create(void* data, u32 size);
+        static Ref<VertexBuffer> create(void* data, u32 size, const VertexBufferLayout& layout);
         virtual void bind() const = 0;
         virtual void unBind() const = 0;
         virtual void setData(void* data, u32 size) = 0;

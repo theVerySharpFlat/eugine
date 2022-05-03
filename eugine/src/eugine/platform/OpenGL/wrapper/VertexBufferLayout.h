@@ -26,7 +26,7 @@ namespace eg {
         class VertexBufferLayout {
         public:
             VertexBufferLayout(u32 numAttributes);
-
+            
             void setAttribute(u32 index, VertexAttrib attrib);
 
             u32 getStride() const;
@@ -34,7 +34,7 @@ namespace eg {
             const std::vector<VertexAttrib>& getAttributes() const {return m_attributes;};
 
         private:
-            const u32 numAttributes;
+            u32 m_numAttributes;
 
             std::vector<VertexAttrib> m_attributes;
         };
