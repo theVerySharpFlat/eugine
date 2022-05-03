@@ -5,23 +5,33 @@
 #ifndef EUGINE_VERTEXARRAY_H
 #define EUGINE_VERTEXARRAY_H
 
+#include <eugine/rendering/VertexArray.h>
 #include "VertexBuffer.h"
 #include "VertexBufferLayout.h"
+#include "eugine/rendering/VertexBuffer.h"
 
 namespace eg {
     namespace GLWrapper {
-        class VertexArray {
+        class VertexArray : public ::eg::rendering::VertexArray{
         public:
+
+            static Ref<VertexArray> create();
+
             VertexArray();
+            VertexArray(const ::eg::rendering::VertexBuffer& vertexBuffer);
             ~VertexArray();
 
-            void setBuffer(const VertexBuffer& vertexBuffer);
+            void setBuffer(const ::eg::rendering::VertexBuffer& vertexBuffer) override;
 
-            void bind() const;
-            void unBind() const;
+            void bind() const override;
+            void unBind() const override;
 
         private:
             u32 m_ID;
+
+            // Non-virtual definition of VertexArray::setBuffer because this
+            // will be called in the constructor
+            void _setBuffer(const ::eg::rendering::VertexBuffer& vertexBuffer);
         };
     }
 }

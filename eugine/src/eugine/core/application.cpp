@@ -137,7 +137,6 @@ void eg::Application::onEvent(eg::Event &e) {
 
         (*--it)->onEvent(e);
         if(e.handled){
-
             break;
         }
     }

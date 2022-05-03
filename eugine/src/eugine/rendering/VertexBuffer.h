@@ -11,8 +11,13 @@ namespace eg::rendering {
     class VertexBuffer {
     public:
         static Ref<VertexBuffer> create(void* data, u32 size, const VertexBufferLayout& layout);
+
         virtual void bind() const = 0;
         virtual void unBind() const = 0;
+        
+        virtual void setLayout(const VertexBufferLayout& layout) = 0;
+        virtual const VertexBufferLayout& getLayout() const = 0;
+
         virtual void setData(void* data, u32 size) = 0;
     };
 }

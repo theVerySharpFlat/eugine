@@ -5,11 +5,17 @@
 #include "VertexArray.h"
 #include "error.h"
 #include "eugine/rendering/Types.h"
+#include "eugine/rendering/VertexArray.h"
+#include "eugine/rendering/VertexBuffer.h"
 
 #include <glad/glad.h>
 
 namespace eg {
     namespace GLWrapper {
+
+        Ref<VertexArray> VertexArray::create() {
+            return createRef<VertexArray>();
+        }
 
         static u32 mapShaderTypeToGLType(rendering::ShaderType type) {
             switch(type) {
@@ -52,11 +58,20 @@ namespace eg {
             GLCall(glCreateVertexArrays(1, &m_ID));
         }
 
+        VertexArray::VertexArray(const ::eg::rendering::VertexBuffer& vbo) : VertexArray() {
+            _setBuffer(vbo);
+        }
+
         VertexArray::~VertexArray() {
             GLCall(glDeleteVertexArrays(1, &m_ID));
         }
 
-        void VertexArray::setBuffer(const VertexBuffer &vertexBuffer) {
+        void VertexArray::setBuffer(const ::eg::rendering::VertexBuffer& vertexBuffer) {
+            _setBuffer(vertexBuffer);
+        }
+
+
+        void VertexArray::_setBuffer(const ::eg::rendering::VertexBuffer& vertexBuffer) {
             bind();
             vertexBuffer.bind();
 

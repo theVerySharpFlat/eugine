@@ -18,10 +18,10 @@ public:
 
   void setData(void *data, u32 size) override;
 
-  void setLayout(const rendering::VertexBufferLayout &layout) {
+  void setLayout(const rendering::VertexBufferLayout &layout) override {
     m_layout = layout;
   }
-  rendering::VertexBufferLayout getLayout() const { return m_layout; }
+  const rendering::VertexBufferLayout& getLayout() const override { return m_layout; }
 
 private:
   unsigned int m_ID = 0;
