@@ -17,11 +17,13 @@ namespace eg {
 
         }
 
-        void Renderer::draw(const VertexArray &vertexArray, const IndexBuffer& indexBuffer, const Shader &shader) {
-            vertexArray.bind();
-            shader.bind();
-            indexBuffer.bind();
-            GLCall(glDrawElements(GL_TRIANGLES, indexBuffer.getElementCount(), GL_UNSIGNED_INT, NULL));
+        void Renderer::drawIndexed(Ref<eg::rendering::VertexArray> vertexArray, 
+                                   Ref<eg::rendering::IndexBuffer> indexBuffer, 
+                                   Ref<eg::rendering::Shader> shader) {
+            vertexArray->bind();
+            shader->bind();
+            indexBuffer->bind();
+            GLCall(glDrawElements(GL_TRIANGLES, indexBuffer->getElementCount(), GL_UNSIGNED_INT, NULL));
         }
     }
 }

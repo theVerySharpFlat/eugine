@@ -6,7 +6,10 @@
 #include "application.h"
 #include "eugine/platform/OpenGL/wrapper/Texture.h"
 #include "eugine/platform/OpenGL/wrapper/Shader.h"
+#include "eugine/rendering/IndexBuffer.h"
+#include "eugine/rendering/Texture.h"
 #include "eugine/rendering/Types.h"
+#include "eugine/rendering/VertexArray.h"
 #include "eugine/rendering/VertexBuffer.h"
 #include "eugine/rendering/VertexBufferLayout.h"
 #include "eugine/util/filesystem.h"
@@ -56,17 +59,9 @@ eg::Application::Application() {
             fsData.size() + 1
         }
     };
+    m_shader = rendering::Shader::create(shaderSource);
 
-    m_tex = std::make_unique<GLWrapper::Texture>("res/textures/brick.jpg");
-
-    m_shader = std::make_unique<GLWrapper::Shader>(shaderSource);
-
-
-    m_vao = std::make_unique<GLWrapper::VertexArray>();
-
-    m_ibo = std::make_unique<GLWrapper::IndexBuffer>(m_indices, sizeof(m_indices));
-
-    m_vbo = std::make_unique<GLWrapper::VertexBuffer>(
+    m_vbo = rendering::VertexBuffer::create(
         m_vertices, 
         sizeof(m_vertices), 
         rendering::VertexBufferLayout({
@@ -84,7 +79,12 @@ eg::Application::Application() {
             }
         })
     );
+    m_vao = rendering::VertexArray::create();
     m_vao->setBuffer(*m_vbo);
+
+    m_ibo = rendering::IndexBuffer::create(m_indices, sizeof(m_indices));
+
+    m_texture = rendering::Texture::create("res/textures/brick.jpg");
 
     //imgui
     m_imGuiLayer = new ImGuiLayer();
@@ -117,10 +117,10 @@ void eg::Application::run() {
             m_camera.moveCamera({0.0f, -moveSpeed});
         }
 
-        m_tex->bind();
+        m_texture->bind();
         m_shader->bind();
         m_shader -> setMat4("projxview", m_camera.getProjectionTimesView());
-        m_renderer.draw(*m_vao, *m_ibo, *m_shader);
+        m_renderer->drawIndexed(m_vao, m_ibo, m_shader);
 
         m_imGuiLayer->begin();
         for(Layer* layer : m_layerStack)

@@ -14,6 +14,9 @@
 #include "eugine/platform/OpenGL/wrapper/Renderer.h"
 #include "eugine/platform/OpenGL/wrapper/Texture.h"
 #include "eugine/rendering/Camera2D.h"
+#include "eugine/rendering/IndexBuffer.h"
+#include "eugine/rendering/LowLevelRenderer.h"
+#include "eugine/rendering/Texture.h"
 
 namespace eg {
     class EG_API Application {
@@ -54,7 +57,7 @@ namespace eg {
         static Application *s_instance;
 
 
-        std::unique_ptr<GLWrapper::Shader> m_shader = nullptr;
+        Ref<rendering::Shader> m_shader = nullptr;
 
 
         float m_vertices[32] = {
@@ -75,15 +78,11 @@ namespace eg {
                 1, 2, 3    // second triangle
         };
 
-        std::unique_ptr<GLWrapper::VertexBuffer> m_vbo = nullptr;
-
-        std::unique_ptr<GLWrapper::VertexArray> m_vao = nullptr;
-
-        std::unique_ptr<GLWrapper::IndexBuffer> m_ibo = nullptr;
-
-        std::unique_ptr<GLWrapper::Texture> m_tex = nullptr;
-
-        GLWrapper::Renderer m_renderer = {};
+        Ref<rendering::Texture> m_texture = nullptr;
+        Ref<rendering::VertexBuffer> m_vbo = nullptr;
+        Ref<rendering::VertexArray> m_vao = nullptr;
+        Ref<rendering::IndexBuffer> m_ibo = nullptr;
+        Ref<rendering::LowLevelRenderer> m_renderer = rendering::LowLevelRenderer::create();
 
         bool onKeyEvent(KeyPressedEvent& e);
 

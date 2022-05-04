@@ -13,10 +13,6 @@
 namespace eg {
     namespace GLWrapper {
 
-        Ref<VertexArray> VertexArray::create() {
-            return createRef<VertexArray>();
-        }
-
         static u32 mapShaderTypeToGLType(rendering::ShaderType type) {
             switch(type) {
                 case rendering::SHDR_FLOAT:  return GL_FLOAT;

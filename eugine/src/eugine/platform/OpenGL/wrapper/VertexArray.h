@@ -15,8 +15,6 @@ namespace eg {
         class VertexArray : public ::eg::rendering::VertexArray{
         public:
 
-            static Ref<VertexArray> create();
-
             VertexArray();
             VertexArray(const ::eg::rendering::VertexBuffer& vertexBuffer);
             ~VertexArray();

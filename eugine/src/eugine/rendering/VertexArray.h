@@ -6,6 +6,8 @@
 namespace eg::rendering {
     class VertexArray {
     public:
+        static Ref<VertexArray> create();
+
         virtual void bind() const = 0;
         virtual void unBind() const = 0;
 
