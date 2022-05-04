@@ -15,6 +15,7 @@
 #include <eugine/events/mouseEvent.h>
 #include <eugine/core/input.h>
 #include <eugine/core/keyCodes.h>
+#include <eugine/rendering/Shader.h>
 
 #include <glad/glad.h>
 
@@ -45,7 +46,7 @@ eg::Application::Application() {
     std::string fsData = filesystem::getFileContents("res/shaders/simple.fs");
 
 
-    GLWrapper::ShaderProgramSource shaderSource = {
+    rendering::Shader::ShaderProgramSource shaderSource = {
         {
             vsData.c_str(),
             vsData.size() + 1

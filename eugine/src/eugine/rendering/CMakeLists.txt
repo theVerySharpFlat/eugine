@@ -4,4 +4,5 @@ target_sources(eugine PRIVATE
         VertexBuffer.cpp
         VertexBufferLayout.cpp
         VertexArray.cpp
+        Shader.cpp
         )

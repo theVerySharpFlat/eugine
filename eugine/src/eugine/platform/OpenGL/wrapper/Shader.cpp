@@ -9,7 +9,7 @@
 namespace eg {
     namespace GLWrapper {
 
-        static void compileShader(u32 &shader, GLenum type, ShaderUnitSource source) {
+        static void compileShader(u32 &shader, GLenum type, ::eg::rendering::Shader::ShaderUnitSource source) {
             GLCall(shader = glCreateShader(type));
             GLCall(glShaderSource(shader, 1, &source.data, NULL));
             GLCall(glCompileShader(shader));
@@ -43,7 +43,7 @@ namespace eg {
             EG_ASSERT(success, "failed to compile shader");
         }
 
-        Shader::Shader(const ShaderProgramSource source) {
+        Shader::Shader(const ShaderProgramSource& source) {
             GLCall(m_ID = glCreateProgram());
 
             u32 vertexShader;
