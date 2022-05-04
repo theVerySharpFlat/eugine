@@ -21,7 +21,7 @@ namespace eg {
             vertexArray.bind();
             shader.bind();
             indexBuffer.bind();
-            GLCall(glDrawElements(GL_TRIANGLES, indexBuffer.elementCount(), GL_UNSIGNED_INT, NULL));
+            GLCall(glDrawElements(GL_TRIANGLES, indexBuffer.getElementCount(), GL_UNSIGNED_INT, NULL));
         }
     }
 }
