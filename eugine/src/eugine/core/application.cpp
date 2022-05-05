@@ -19,9 +19,7 @@
 #include <eugine/core/input.h>
 #include <eugine/core/keyCodes.h>
 #include <eugine/rendering/Shader.h>
-
-#include <glad/glad.h>
-
+#include <eugine/rendering/GraphicsAPI.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
@@ -43,8 +41,9 @@ eg::Application::Application() {
     //windowing and events
     m_window = std::unique_ptr<Window>(Window::create());
     m_window ->setEventCallback(BIND_EVENT_FN(Application::onEvent));
+    
+    m_renderAPI = rendering::GraphicsAPI::create();
 
-    // OpenGL testing
     std::string vsData = filesystem::getFileContents("res/shaders/simple.vs");
     std::string fsData = filesystem::getFileContents("res/shaders/simple.fs");
 
@@ -97,8 +96,8 @@ eg::Application::~Application() {
 
 void eg::Application::run() {
     while (m_running){
-        glClearColor(1,1,0,1);
-        glClear(GL_COLOR_BUFFER_BIT);
+        m_renderAPI->setClearColor({1.0, 0.0, 1.0});
+        m_renderAPI->clear();
         for(Layer* layer : m_layerStack){
             layer -> onUpdate();
         }

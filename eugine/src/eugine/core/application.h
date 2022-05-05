@@ -17,6 +17,7 @@
 #include "eugine/rendering/IndexBuffer.h"
 #include "eugine/rendering/LowLevelRenderer.h"
 #include "eugine/rendering/Texture.h"
+#include "eugine/rendering/GraphicsAPI.h"
 
 namespace eg {
     class EG_API Application {
@@ -78,6 +79,7 @@ namespace eg {
                 1, 2, 3    // second triangle
         };
 
+        Ref<rendering::GraphicsAPI> m_renderAPI = nullptr;
         Ref<rendering::Texture> m_texture = nullptr;
         Ref<rendering::VertexBuffer> m_vbo = nullptr;
         Ref<rendering::VertexArray> m_vao = nullptr;

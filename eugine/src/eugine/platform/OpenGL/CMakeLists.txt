@@ -7,4 +7,5 @@ target_sources(eugine PRIVATE
         wrapper/Renderer.cpp
         wrapper/IndexBuffer.cpp
         wrapper/Texture.cpp
+        wrapper/GLAPI.cpp
         )
