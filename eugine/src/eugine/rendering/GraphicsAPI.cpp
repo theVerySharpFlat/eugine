@@ -2,7 +2,7 @@
 #include "eugine/rendering/GraphicsAPI.h"
 
 namespace eg::rendering {
-    Ref<GraphicsAPI> GraphicsAPI::create() {
-        return createRef<GLWrapper::OGLAPI>();
+    Ref<GraphicsAPI> GraphicsAPI::create(Window& window) {
+        return createRef<GLWrapper::OGLAPI>(window);
     }
 }

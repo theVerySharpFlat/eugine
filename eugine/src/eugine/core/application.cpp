@@ -42,7 +42,9 @@ eg::Application::Application() {
     m_window = std::unique_ptr<Window>(Window::create());
     m_window ->setEventCallback(BIND_EVENT_FN(Application::onEvent));
     
-    m_renderAPI = rendering::GraphicsAPI::create();
+    m_renderAPI = rendering::GraphicsAPI::create(*m_window);
+
+    m_window->setVSync(true);
 
     std::string vsData = filesystem::getFileContents("res/shaders/simple.vs");
     std::string fsData = filesystem::getFileContents("res/shaders/simple.fs");
@@ -126,6 +128,7 @@ void eg::Application::run() {
             layer -> onImGuiRender();
         m_imGuiLayer->end();
         m_window -> onUpdate();
+        m_renderAPI->swapBuffers();
     }
 }
 

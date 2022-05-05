@@ -47,14 +47,14 @@ namespace eg {
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         m_window = glfwCreateWindow((int)m_data.width, (int)m_data.height, m_data.title.c_str(), nullptr, nullptr);
-        glfwMakeContextCurrent(m_window);
+        // glfwMakeContextCurrent(m_window);
 
-        int status = gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
-        EG_CORE_ASSERT(status, "Failed to initialize Glad");
+        // int status = gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+        // EG_CORE_ASSERT(status, "Failed to initialize Glad");
 
         glfwSetWindowUserPointer(m_window, &m_data);
 
-        setVSync(true);
+        // setVSync(true);
 
        //std::cout << glGetString(GL_VERSION) << std::endl;
 
@@ -151,7 +151,7 @@ namespace eg {
 
     void LinuxWindow::onUpdate() {
         glfwPollEvents();
-        glfwSwapBuffers(m_window);
+        // glfwSwapBuffers(m_window);
     }
 
     unsigned int LinuxWindow::getWidth() const {
