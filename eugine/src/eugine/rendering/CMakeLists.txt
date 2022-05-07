@@ -9,4 +9,5 @@ target_sources(eugine PRIVATE
         IndexBuffer.cpp
         LowLevelRenderer.cpp
         GraphicsAPI.cpp
+        Renderer2D.cpp
         )

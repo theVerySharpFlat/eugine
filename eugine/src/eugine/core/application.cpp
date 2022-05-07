@@ -104,7 +104,7 @@ void eg::Application::run() {
             layer -> onUpdate();
         }
 
-        const float moveSpeed = 2.0f;
+        const float moveSpeed = 3.0f;
         if(Input::isKeyPressed(EG_KEY_LEFT)) {
             m_camera.moveCamera({-moveSpeed, 0.0f});
         }
