@@ -14,5 +14,6 @@ add_subdirectory(glm)
 add_subdirectory(filesystem)
 add_subdirectory(whereami)
 add_subdirectory(stbi)
+add_subdirectory(incbin)
 
 #target_include_directories(eugine PUBLIC glm)
