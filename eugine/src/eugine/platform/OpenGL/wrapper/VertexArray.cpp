@@ -29,6 +29,8 @@ namespace eg {
                 case rendering::SHDR_MAT3:   return GL_FLOAT;
                 case rendering::SHDR_MAT4:   return GL_FLOAT;
             }
+	    error("unknown shader type: {}", (i32)type);
+	    return 0;
         }
 
        static u32 mapShaderTypeToGLTypeCount(rendering::ShaderType type) {
@@ -47,6 +49,8 @@ namespace eg {
                 case rendering::SHDR_MAT3:   return 3 * 3;
                 case rendering::SHDR_MAT4:   return 4 * 4;
             }
+	    error("unknown shader type: {}", (i32)type);
+	    return 0;
         }
 
 
