@@ -34,6 +34,8 @@ namespace eg::rendering {
             case SHDR_MAT3:   return 4 * 3 * 3;
             case SHDR_MAT4:   return 4 * 4 * 4;
         }
+	error("unknown shader type: {}", (i32)type);
+	return 0;
     }
 }
 
