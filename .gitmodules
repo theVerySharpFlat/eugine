@@ -17,6 +17,3 @@
 [submodule "eugine/vendor/whereami/whereami"]
 	path = eugine/vendor/whereami/whereami
 	url = https://github.com/gpakosz/whereami.git
-[submodule "eugine/vendor/incbin/incbin"]
-	path = eugine/vendor/incbin/incbin
-	url = https://github.com/graphitemaster/incbin.git
