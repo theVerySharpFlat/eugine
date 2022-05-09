@@ -19,60 +19,62 @@ namespace eg::rendering {
         m_frameData.indexDataptr = m_renderData.indices;
         m_frameData.quadCount = 0;
         m_frameData.vertexCount = 0;
+        m_frameData.indexCount = 0;
     }
 
-    void Renderer2D::submitQuad(glm::vec2 position, glm::vec2 dimensions, Ref<Texture> texture) {
+    void Renderer2D::submitQuad(glm::vec2 position, glm::vec2 dimensions, glm::vec3 color, Ref<Texture> texture) {
         m_frameData.vertexDataPtr[0] = position.x - dimensions.x / 2; // top left
         m_frameData.vertexDataPtr[1] = position.y + dimensions.y / 2;
-        m_frameData.vertexDataPtr[2] = 1.0f;
-        m_frameData.vertexDataPtr[3] = 1.0f;
-        m_frameData.vertexDataPtr[4] = 1.0f;
+        m_frameData.vertexDataPtr[2] = color.r;
+        m_frameData.vertexDataPtr[3] = color.g;
+        m_frameData.vertexDataPtr[4] = color.b;
         m_frameData.vertexDataPtr[5] = 1.0f;
         m_frameData.vertexDataPtr += 6;
 
         m_frameData.vertexDataPtr[0] = position.x - dimensions.x / 2; // bottom left
         m_frameData.vertexDataPtr[1] = position.y - dimensions.y / 2;
-        m_frameData.vertexDataPtr[2] = 1.0f;
-        m_frameData.vertexDataPtr[3] = 1.0f;
-        m_frameData.vertexDataPtr[4] = 1.0f;
+        m_frameData.vertexDataPtr[2] = color.r;
+        m_frameData.vertexDataPtr[3] = color.g;
+        m_frameData.vertexDataPtr[4] = color.b;
         m_frameData.vertexDataPtr[5] = 1.0f;
         m_frameData.vertexDataPtr += 6;
 
         m_frameData.vertexDataPtr[0] = position.x + dimensions.x / 2; // bottom right
         m_frameData.vertexDataPtr[1] = position.y - dimensions.y / 2;
-        m_frameData.vertexDataPtr[2] = 1.0f;
-        m_frameData.vertexDataPtr[3] = 1.0f;
-        m_frameData.vertexDataPtr[4] = 1.0f;
+        m_frameData.vertexDataPtr[2] = color.r;
+        m_frameData.vertexDataPtr[3] = color.g;
+        m_frameData.vertexDataPtr[4] = color.b;
         m_frameData.vertexDataPtr[5] = 1.0f;
         m_frameData.vertexDataPtr += 6;
 
         m_frameData.vertexDataPtr[0] = position.x + dimensions.x / 2; // top right
         m_frameData.vertexDataPtr[1] = position.y + dimensions.y / 2;
-        m_frameData.vertexDataPtr[2] = 1.0f;
-        m_frameData.vertexDataPtr[3] = 1.0f;
-        m_frameData.vertexDataPtr[4] = 1.0f;
+        m_frameData.vertexDataPtr[2] = color.r;
+        m_frameData.vertexDataPtr[3] = color.g;
+        m_frameData.vertexDataPtr[4] = color.b;
         m_frameData.vertexDataPtr[5] = 1.0f;
         m_frameData.vertexDataPtr += 6;
 
-        m_frameData.indexDataptr[m_frameData.vertexCount + 0] = m_frameData.vertexCount + 0; // top left
-        m_frameData.indexDataptr[m_frameData.vertexCount + 1] = m_frameData.vertexCount + 1; // bottom left
-        m_frameData.indexDataptr[m_frameData.vertexCount + 2] = m_frameData.vertexCount + 2; // bottom right
-        m_frameData.indexDataptr[m_frameData.vertexCount + 3] = m_frameData.vertexCount + 0; // top left
-        m_frameData.indexDataptr[m_frameData.vertexCount + 4] = m_frameData.vertexCount + 3; // top right
-        m_frameData.indexDataptr[m_frameData.vertexCount + 5] = m_frameData.vertexCount + 2; // bottom right
+        m_frameData.indexDataptr[0] = m_frameData.vertexCount + 0; // top left
+        m_frameData.indexDataptr[1] = m_frameData.vertexCount + 1; // bottom left
+        m_frameData.indexDataptr[2] = m_frameData.vertexCount + 2; // bottom right
+        m_frameData.indexDataptr[3] = m_frameData.vertexCount + 0; // top left
+        m_frameData.indexDataptr[4] = m_frameData.vertexCount + 3; // top right
+        m_frameData.indexDataptr[5] = m_frameData.vertexCount + 2; // bottom right
         m_frameData.indexDataptr += 6;
 
         m_frameData.quadCount += 1;
         m_frameData.vertexCount += 4;
+        m_frameData.indexCount += 6;
     }
 
     void Renderer2D::end() {
+        trace("vertice pointer diff: {}", (uint8_t*)m_frameData.vertexDataPtr - (uint8_t*)m_renderData.vertices);
         m_renderData.shader->bind();
         m_renderData.vbo->setData(m_renderData.vertices, ((uint8_t*)m_frameData.vertexDataPtr - (uint8_t*)m_renderData.vertices));
         m_renderData.ibo->setData(m_renderData.indices, ((uint8_t*)m_frameData.indexDataptr - (uint8_t*)m_renderData.indices));
         m_renderData.vao->setBuffer(*m_renderData.vbo);
         m_renderData.ibo->setElementCount(m_frameData.indexDataptr - m_renderData.indices);
-        trace("element count: {}", m_frameData.indexDataptr - m_renderData.indices);
         m_lowLevelRenderer->drawIndexed(m_renderData.vao, m_renderData.ibo, m_renderData.shader);
     }
 
@@ -101,10 +103,12 @@ namespace eg::rendering {
 
         m_renderData.maxVertexCount = settings.maxQuads * 4;
         m_renderData.verticesByteSize = layout.getStride() * m_renderData.maxVertexCount;
+        trace("verticesByteSize: {}", m_renderData.verticesByteSize);
         m_renderData.vertices = (float*)malloc(m_renderData.verticesByteSize);
 
         m_renderData.maxIndexCount = settings.maxQuads * 6;
         m_renderData.indicesByteSize = sizeof(u32) * m_renderData.maxIndexCount;
+        trace("indicesByteSize: {}", m_renderData.indicesByteSize);
         m_renderData.indices  = (u32*)malloc(m_renderData.indicesByteSize);
 
         m_renderData.vbo = VertexBuffer::create(m_renderData.vertices, m_renderData.verticesByteSize, layout);

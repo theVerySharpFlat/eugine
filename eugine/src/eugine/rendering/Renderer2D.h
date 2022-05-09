@@ -20,7 +20,7 @@ namespace eg::rendering {
         static Ref<Renderer2D> create(const Settings& settings);
 
         void begin(Ref<Camera2D> camera);
-        void submitQuad(glm::vec2 position, glm::vec2 dimensions, Ref<Texture> texture);
+        void submitQuad(glm::vec2 position, glm::vec2 dimensions, glm::vec3 color, Ref<Texture> texture);
         void end();
 
         ~Renderer2D();
@@ -49,6 +49,7 @@ namespace eg::rendering {
 
             u32 quadCount;
             u32 vertexCount;
+            u32 indexCount;
         };
         FrameData m_frameData = {};
 

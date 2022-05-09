@@ -126,7 +126,20 @@ void eg::Application::run() {
         m_renderer->drawIndexed(m_vao, m_ibo, m_shader);
 
         m_renderer2->begin(m_camera);
-        m_renderer2->submitQuad({0.0, 0.0}, {100.0f, 100.0f}, m_texture);
+        for(int i = 0; i < 2; i++) {
+            for(int j = 0; j < 5; j++) {
+                m_renderer2->submitQuad(
+                        {j * 100, i * 100},
+                        {100, 100},
+                        {
+                            (i + j) % 2 ? 1.0 : 0.0,
+                            (i + j) % 2 ? 1.0 : 0.0,
+                            (i + j) % 2 ? 1.0 : 0.0
+                        },
+                        m_texture
+                        );
+            }
+        }
         m_renderer2->end();
 
         m_imGuiLayer->begin();
