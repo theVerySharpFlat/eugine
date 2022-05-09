@@ -27,4 +27,9 @@ namespace eg::GLWrapper {
     IndexBuffer::~IndexBuffer() {
         GLCall(glDeleteBuffers(1, &m_ID));
     }
+
+    void IndexBuffer::setData(u32 *data, u32 size) {
+        GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ID));
+        GLCall(glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, size, data));
+    }
 }

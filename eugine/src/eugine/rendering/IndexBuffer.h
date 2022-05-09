@@ -9,7 +9,10 @@ namespace eg::rendering {
         virtual void bind() const = 0;
         virtual void unBind() const = 0;
 
+        virtual void setData(u32* data, u32 size) = 0;
+
         virtual u32 getElementCount() const = 0;
+        virtual void setElementCount(u32 count) = 0;
     };
 }
 

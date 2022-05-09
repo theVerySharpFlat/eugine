@@ -18,6 +18,7 @@
 #include "eugine/rendering/LowLevelRenderer.h"
 #include "eugine/rendering/Texture.h"
 #include "eugine/rendering/GraphicsAPI.h"
+#include "eugine/rendering/Renderer2D.h"
 
 namespace eg {
     class EG_API Application {
@@ -69,10 +70,11 @@ namespace eg {
             200.0f,  600.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
         };
 
-        rendering::Camera2D m_camera = {
-                glm::vec2(800.0f, 600.0f),
-                glm::vec2(200.0f, 300.0f)
-        };
+        Ref<rendering::Camera2D> m_camera = createRef<rendering::Camera2D>(
+                glm::vec2(1280.0f, 720.0f),
+                glm::vec2(0.0f, 0.0f)
+        );
+
 
         u32 m_indices[6] = {
                 0, 1, 3,   // first triangle
@@ -85,6 +87,8 @@ namespace eg {
         Ref<rendering::VertexArray> m_vao = nullptr;
         Ref<rendering::IndexBuffer> m_ibo = nullptr;
         Ref<rendering::LowLevelRenderer> m_renderer = rendering::LowLevelRenderer::create();
+
+        Ref<rendering::Renderer2D> m_renderer2;
 
         bool onKeyEvent(KeyPressedEvent& e);
 

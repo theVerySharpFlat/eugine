@@ -76,7 +76,7 @@ namespace eg {
             vertexBuffer.bind();
 
             const auto vertexBufferLayout = vertexBuffer.getLayout();
-            trace("stride: {}", vertexBufferLayout.getStride());
+            // trace("stride: {}", vertexBufferLayout.getStride());
 
             u64 offset = 0;
             const auto &attributes = vertexBufferLayout.getAttributes();

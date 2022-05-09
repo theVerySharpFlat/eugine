@@ -16,7 +16,7 @@ namespace eg {
 
         void VertexBuffer::setData(void *data, u32 size) {
             GLCall(glBindBuffer(GL_ARRAY_BUFFER, m_ID));
-            GLCall(glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW));
+            GLCall(glBufferSubData(GL_ARRAY_BUFFER, 0, size, data));
         }
 
         VertexBuffer::~VertexBuffer() { GLCall(glDeleteBuffers(1, &m_ID)); }

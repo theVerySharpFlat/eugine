@@ -14,10 +14,12 @@ namespace eg::GLWrapper {
         ~IndexBuffer();
 
         u32 getElementCount() const override { return m_elementCount; }
+        void setElementCount(u32 count) override { m_elementCount = count; }
 
         void bind() const override;
-
         void unBind() const override;
+
+        void setData(u32 *data, u32 size) override;
 
     private:
         u32 m_elementCount = 0;

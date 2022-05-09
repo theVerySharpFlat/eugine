@@ -35,11 +35,23 @@ namespace eg::rendering {
             u32 indicesByteSize;
             u32 maxIndexCount;
 
+            Ref<Shader> shader;
+
             Ref<VertexBuffer> vbo;
             Ref<IndexBuffer> ibo;
             Ref<VertexArray> vao;
         };
         RenderData m_renderData = {};
+
+        struct FrameData {
+            float* vertexDataPtr;
+            u32* indexDataptr;
+
+            u32 quadCount;
+            u32 vertexCount;
+        };
+        FrameData m_frameData = {};
+
 
         Ref<LowLevelRenderer> m_lowLevelRenderer;
     };

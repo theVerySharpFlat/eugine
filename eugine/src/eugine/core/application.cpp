@@ -87,6 +87,8 @@ eg::Application::Application() {
 
     m_texture = rendering::Texture::create("res/textures/brick.jpg");
 
+    m_renderer2 = rendering::Renderer2D::create({10});
+
     //imgui
     m_imGuiLayer = new ImGuiLayer();
     pushOverlay(m_imGuiLayer);
@@ -106,22 +108,26 @@ void eg::Application::run() {
 
         const float moveSpeed = 3.0f;
         if(Input::isKeyPressed(EG_KEY_LEFT)) {
-            m_camera.moveCamera({-moveSpeed, 0.0f});
+            m_camera->moveCamera({-moveSpeed, 0.0f});
         }
         if(Input::isKeyPressed(EG_KEY_RIGHT)) {
-            m_camera.moveCamera({moveSpeed, 0.0f});
+            m_camera->moveCamera({moveSpeed, 0.0f});
         }
         if(Input::isKeyPressed(EG_KEY_UP)) {
-            m_camera.moveCamera({0.0f, moveSpeed});
+            m_camera->moveCamera({0.0f, moveSpeed});
         }
         if(Input::isKeyPressed(EG_KEY_DOWN)) {
-            m_camera.moveCamera({0.0f, -moveSpeed});
+            m_camera->moveCamera({0.0f, -moveSpeed});
         }
 
         m_texture->bind();
         m_shader->bind();
-        m_shader -> setMat4("projxview", m_camera.getProjectionTimesView());
+        m_shader -> setMat4("projxview", m_camera->getProjectionTimesView());
         m_renderer->drawIndexed(m_vao, m_ibo, m_shader);
+
+        m_renderer2->begin(m_camera);
+        m_renderer2->submitQuad({0.0, 0.0}, {100.0f, 100.0f}, m_texture);
+        m_renderer2->end();
 
         m_imGuiLayer->begin();
         for(Layer* layer : m_layerStack)
