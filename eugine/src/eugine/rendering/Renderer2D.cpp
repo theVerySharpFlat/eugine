@@ -69,7 +69,7 @@ namespace eg::rendering {
     }
 
     void Renderer2D::end() {
-        trace("vertice pointer diff: {}", (uint8_t*)m_frameData.vertexDataPtr - (uint8_t*)m_renderData.vertices);
+        // trace("vertice pointer diff: {}", (uint8_t*)m_frameData.vertexDataPtr - (uint8_t*)m_renderData.vertices);
         m_renderData.shader->bind();
         m_renderData.vbo->setData(m_renderData.vertices, ((uint8_t*)m_frameData.vertexDataPtr - (uint8_t*)m_renderData.vertices));
         m_renderData.ibo->setData(m_renderData.indices, ((uint8_t*)m_frameData.indexDataptr - (uint8_t*)m_renderData.indices));

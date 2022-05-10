@@ -43,6 +43,7 @@ eg::Application::Application() {
     m_window ->setEventCallback(BIND_EVENT_FN(Application::onEvent));
     
     m_renderAPI = rendering::GraphicsAPI::create(*m_window);
+    info("Max Textures Per Shader: {}", m_renderAPI->getMaxTexturesPerShader());
 
     m_window->setVSync(true);
 

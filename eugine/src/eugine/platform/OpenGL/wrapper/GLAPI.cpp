@@ -31,4 +31,10 @@ namespace eg::GLWrapper {
     void OGLAPI::clear() {
         GLCall(glClear(GL_COLOR_BUFFER_BIT));
     }
+
+    i32 OGLAPI::getMaxTexturesPerShader() const {
+        i32 count;
+        GLCall(glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &count));
+        return count;
+    }
 }
