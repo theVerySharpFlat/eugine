@@ -4,6 +4,8 @@
 
 #include "Renderer2D.h"
 #include <incbin.h>
+#include <imgui/imgui.h>
+#include <iostream>
 
 INCTXT(VertexShader, "eugine/rendering/shaders/Renderer2D/shader.vert");
 INCTXT(FragmentShader, "eugine/rendering/shaders/Renderer2D/shader.frag");
@@ -14,68 +16,98 @@ namespace eg::rendering {
     }
 
     void Renderer2D::begin(eg::Ref<Camera2D> camera) {
-        m_renderData.shader->setMat4("projxview", camera->getProjectionTimesView());
-        m_frameData.vertexDataPtr = m_renderData.vertices;
-        m_frameData.indexDataptr = m_renderData.indices;
-        m_frameData.quadCount = 0;
-        m_frameData.vertexCount = 0;
+        m_batchData.camera = camera;
+        m_renderData.shader->setMat4("projxview", m_batchData.camera->getProjectionTimesView());
+
+        m_frameData.batchCount = 0;
         m_frameData.indexCount = 0;
+        m_frameData.vertexCount = 0;
+        m_frameData.quadCount = 0;
+        batchReset();
+    }
+    
+    void Renderer2D::batchReset() {
+        m_batchData.vertexDataPtr = m_renderData.vertices;
+        m_batchData.indexDataptr = m_renderData.indices;
+        m_batchData.quadCount = 0;
+        m_batchData.vertexCount = 0;
+        m_batchData.indexCount = 0;
     }
 
     void Renderer2D::submitQuad(glm::vec2 position, glm::vec2 dimensions, glm::vec3 color, Ref<Texture> texture) {
-        m_frameData.vertexDataPtr[0] = position.x - dimensions.x / 2; // top left
-        m_frameData.vertexDataPtr[1] = position.y + dimensions.y / 2;
-        m_frameData.vertexDataPtr[2] = color.r;
-        m_frameData.vertexDataPtr[3] = color.g;
-        m_frameData.vertexDataPtr[4] = color.b;
-        m_frameData.vertexDataPtr[5] = 1.0f;
-        m_frameData.vertexDataPtr += 6;
+        if(
+            (((u8*)m_batchData.vertexDataPtr - (u8*)m_renderData.vertices) / m_renderData.vbo->getLayout().getStride()) 
+            >= m_renderData.maxVertexCount
+        ) {
+            flush();
+        }
 
-        m_frameData.vertexDataPtr[0] = position.x - dimensions.x / 2; // bottom left
-        m_frameData.vertexDataPtr[1] = position.y - dimensions.y / 2;
-        m_frameData.vertexDataPtr[2] = color.r;
-        m_frameData.vertexDataPtr[3] = color.g;
-        m_frameData.vertexDataPtr[4] = color.b;
-        m_frameData.vertexDataPtr[5] = 1.0f;
-        m_frameData.vertexDataPtr += 6;
+        m_batchData.vertexDataPtr[0] = position.x - dimensions.x / 2; // top left
+        m_batchData.vertexDataPtr[1] = position.y + dimensions.y / 2;
+        m_batchData.vertexDataPtr[2] = color.r;
+        m_batchData.vertexDataPtr[3] = color.g;
+        m_batchData.vertexDataPtr[4] = color.b;
+        m_batchData.vertexDataPtr[5] = 1.0f;
+        m_batchData.vertexDataPtr += 6;
 
-        m_frameData.vertexDataPtr[0] = position.x + dimensions.x / 2; // bottom right
-        m_frameData.vertexDataPtr[1] = position.y - dimensions.y / 2;
-        m_frameData.vertexDataPtr[2] = color.r;
-        m_frameData.vertexDataPtr[3] = color.g;
-        m_frameData.vertexDataPtr[4] = color.b;
-        m_frameData.vertexDataPtr[5] = 1.0f;
-        m_frameData.vertexDataPtr += 6;
+        m_batchData.vertexDataPtr[0] = position.x - dimensions.x / 2; // bottom left
+        m_batchData.vertexDataPtr[1] = position.y - dimensions.y / 2;
+        m_batchData.vertexDataPtr[2] = color.r;
+        m_batchData.vertexDataPtr[3] = color.g;
+        m_batchData.vertexDataPtr[4] = color.b;
+        m_batchData.vertexDataPtr[5] = 1.0f;
+        m_batchData.vertexDataPtr += 6;
 
-        m_frameData.vertexDataPtr[0] = position.x + dimensions.x / 2; // top right
-        m_frameData.vertexDataPtr[1] = position.y + dimensions.y / 2;
-        m_frameData.vertexDataPtr[2] = color.r;
-        m_frameData.vertexDataPtr[3] = color.g;
-        m_frameData.vertexDataPtr[4] = color.b;
-        m_frameData.vertexDataPtr[5] = 1.0f;
-        m_frameData.vertexDataPtr += 6;
+        m_batchData.vertexDataPtr[0] = position.x + dimensions.x / 2; // bottom right
+        m_batchData.vertexDataPtr[1] = position.y - dimensions.y / 2;
+        m_batchData.vertexDataPtr[2] = color.r;
+        m_batchData.vertexDataPtr[3] = color.g;
+        m_batchData.vertexDataPtr[4] = color.b;
+        m_batchData.vertexDataPtr[5] = 1.0f;
+        m_batchData.vertexDataPtr += 6;
 
-        m_frameData.indexDataptr[0] = m_frameData.vertexCount + 0; // top left
-        m_frameData.indexDataptr[1] = m_frameData.vertexCount + 1; // bottom left
-        m_frameData.indexDataptr[2] = m_frameData.vertexCount + 2; // bottom right
-        m_frameData.indexDataptr[3] = m_frameData.vertexCount + 0; // top left
-        m_frameData.indexDataptr[4] = m_frameData.vertexCount + 3; // top right
-        m_frameData.indexDataptr[5] = m_frameData.vertexCount + 2; // bottom right
-        m_frameData.indexDataptr += 6;
+        m_batchData.vertexDataPtr[0] = position.x + dimensions.x / 2; // top right
+        m_batchData.vertexDataPtr[1] = position.y + dimensions.y / 2;
+        m_batchData.vertexDataPtr[2] = color.r;
+        m_batchData.vertexDataPtr[3] = color.g;
+        m_batchData.vertexDataPtr[4] = color.b;
+        m_batchData.vertexDataPtr[5] = 1.0f;
+        m_batchData.vertexDataPtr += 6;
 
-        m_frameData.quadCount += 1;
-        m_frameData.vertexCount += 4;
-        m_frameData.indexCount += 6;
+        m_batchData.indexDataptr[0] = m_batchData.vertexCount + 0; // top left
+        m_batchData.indexDataptr[1] = m_batchData.vertexCount + 1; // bottom left
+        m_batchData.indexDataptr[2] = m_batchData.vertexCount + 2; // bottom right
+        m_batchData.indexDataptr[3] = m_batchData.vertexCount + 0; // top left
+        m_batchData.indexDataptr[4] = m_batchData.vertexCount + 3; // top right
+        m_batchData.indexDataptr[5] = m_batchData.vertexCount + 2; // bottom right
+        m_batchData.indexDataptr += 6;
+
+        m_batchData.quadCount += 1;
+        m_batchData.vertexCount += 4;
+        m_batchData.indexCount += 6;
     }
 
     void Renderer2D::end() {
-        // trace("vertice pointer diff: {}", (uint8_t*)m_frameData.vertexDataPtr - (uint8_t*)m_renderData.vertices);
+        if(m_batchData.quadCount)
+            flush();
+        
+        m_prevFrameData = m_frameData;
+    }
+    
+    void Renderer2D::flush() {
         m_renderData.shader->bind();
-        m_renderData.vbo->setData(m_renderData.vertices, ((uint8_t*)m_frameData.vertexDataPtr - (uint8_t*)m_renderData.vertices));
-        m_renderData.ibo->setData(m_renderData.indices, ((uint8_t*)m_frameData.indexDataptr - (uint8_t*)m_renderData.indices));
+        m_renderData.vbo->setData(m_renderData.vertices, ((uint8_t*)m_batchData.vertexDataPtr - (uint8_t*)m_renderData.vertices));
+        m_renderData.ibo->setData(m_renderData.indices, ((uint8_t*)m_batchData.indexDataptr - (uint8_t*)m_renderData.indices));
         m_renderData.vao->setBuffer(*m_renderData.vbo);
-        m_renderData.ibo->setElementCount(m_frameData.indexDataptr - m_renderData.indices);
+        m_renderData.ibo->setElementCount(m_batchData.indexDataptr - m_renderData.indices);
         m_lowLevelRenderer->drawIndexed(m_renderData.vao, m_renderData.ibo, m_renderData.shader);
+        
+        m_frameData.batchCount++;
+        m_frameData.indexCount += m_batchData.indexCount;
+        m_frameData.quadCount += m_batchData.quadCount;
+        m_frameData.vertexCount += m_batchData.vertexCount;
+
+        batchReset();
     }
 
     Renderer2D::~Renderer2D() {
@@ -127,5 +159,13 @@ namespace eg::rendering {
                                                          gFragmentShaderSize
                                                      }
         });
+    }
+    
+    void Renderer2D::imguiDbg() {
+        ImGui::Begin("renderer");
+        ImGui::Text("%d batches", m_prevFrameData.batchCount);
+        ImGui::Text("%d vertices", m_prevFrameData.vertexCount);
+        ImGui::Text("%d indices", m_prevFrameData.indexCount);
+        ImGui::End();
     }
 }

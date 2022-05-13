@@ -127,8 +127,8 @@ void eg::Application::run() {
         m_renderer->drawIndexed(m_vao, m_ibo, m_shader);
 
         m_renderer2->begin(m_camera);
-        for(int i = 0; i < 2; i++) {
-            for(int j = 0; j < 5; j++) {
+        for(int i = 0; i < 10; i++) {
+            for(int j = 0; j < 3; j++) {
                 m_renderer2->submitQuad(
                         {j * 100, i * 100},
                         {100, 100},
@@ -146,6 +146,9 @@ void eg::Application::run() {
         m_imGuiLayer->begin();
         for(Layer* layer : m_layerStack)
             layer -> onImGuiRender();
+
+        //m_renderer2->imguiDbg();
+
         m_imGuiLayer->end();
         m_window -> onUpdate();
         m_renderAPI->swapBuffers();
