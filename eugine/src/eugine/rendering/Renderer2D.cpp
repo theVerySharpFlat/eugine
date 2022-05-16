@@ -206,7 +206,7 @@ namespace eg::rendering {
                                              });
 
         m_renderData.maxTextures = settings.maxTextures;
-//        m_renderData.textures = (Ref <Texture> *) malloc(sizeof(Ref < Texture > ) * settings.maxTextures);
+        m_renderData.textures = std::vector<Ref<Texture>>(settings.maxTextures);
     }
 
     void Renderer2D::imguiDbg() {
