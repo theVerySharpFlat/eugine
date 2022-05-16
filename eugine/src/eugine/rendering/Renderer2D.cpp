@@ -33,10 +33,6 @@ namespace eg::rendering {
         m_batchData.vertexCount = 0;
         m_batchData.indexCount = 0;
         m_batchData.texIndex = 0;
-
-        /*for(i32 i = 0; i < m_renderdata.maxtextures; i++) {
-            m_renderdata.textures[i] = nullptr;
-        }*/
     }
 
     void Renderer2D::submitQuad(glm::vec2 position, glm::vec2 dimensions, glm::vec3 color, const Ref<Texture>& texture) {
