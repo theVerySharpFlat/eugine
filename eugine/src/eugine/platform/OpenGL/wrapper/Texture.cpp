@@ -36,7 +36,7 @@ namespace eg::GLWrapper {
     void Texture::bind(u32 slot) const {
         trace("texture bind texture {} to slot {}", m_ID, slot);
         GLCall(glActiveTexture(GL_TEXTURE0 + slot))
-      GLCall(glBindTexture(GL_TEXTURE_2D, m_ID));
+        GLCall(glBindTexture(GL_TEXTURE_2D, m_ID));
         //GLCall(glBindTextureUnit(slot, m_ID));
     }
 

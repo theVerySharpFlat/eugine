@@ -18,6 +18,10 @@ namespace eg::GLWrapper {
         info("up and running with OpenGL {}.{}", OGL_MAJOR_VERSION, OGL_MINOR_VERSION);
         GLCall(info("RENDERER: {}", glGetString(GL_RENDERER)));
         GLCall(info("VENDOR: {}", glGetString(GL_VENDOR)));
+        
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     void OGLAPI::swapBuffers() {

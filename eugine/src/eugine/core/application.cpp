@@ -114,7 +114,7 @@ eg::Application::Application() {
         m_textures[i] = rendering::Texture::create(textureNames[i]);
     }
 
-    m_renderer2 = rendering::Renderer2D::create({10, m_renderAPI->getMaxTexturesPerShader()});
+    m_renderer2 = rendering::Renderer2D::create({500, m_renderAPI->getMaxTexturesPerShader()});
 
     //imgui
     m_imGuiLayer = new ImGuiLayer();
@@ -149,7 +149,7 @@ void eg::Application::run() {
 
         m_renderer2->begin(m_camera);
         for(int i = 0; i < 10; i++) {
-            for(int j = 0; j < 3; j++) {
+            for(int j = 0; j < 30; j++) {
                 m_renderer2->submitQuad(
                         {j * 100, i * 100},
                         {100, 100},
@@ -160,10 +160,12 @@ void eg::Application::run() {
                         },
                             m_textures[(i * 3 + j) % 56]
                         );
-                // trace("texIndex: {}", (i * 3 + j) % 56);
+                trace("texIndex: {}", (i * 3 + j) % 56);
             }
         }
         m_renderer2->end();
+        trace("hereeee");
+        exit(0);
 
         m_imGuiLayer->begin();
         for(Layer* layer : m_layerStack)

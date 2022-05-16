@@ -29,12 +29,17 @@ namespace eg::rendering {
     }
 
     void Renderer2D::batchReset() {
+        trace("batch reset");
         m_batchData.vertexDataPtr = m_renderData.vertices;
         m_batchData.indexDataptr = m_renderData.indices;
         m_batchData.quadCount = 0;
         m_batchData.vertexCount = 0;
         m_batchData.indexCount = 0;
         m_batchData.texIndex = 0;
+
+        for(i32 i = 0; i < m_renderData.maxTextures; i++) {
+            m_renderData.textures[i] = nullptr;
+        }
     }
 
     void Renderer2D::submitQuad(glm::vec2 position, glm::vec2 dimensions, glm::vec3 color, const Ref<Texture>& texture) {
@@ -43,7 +48,7 @@ namespace eg::rendering {
             flush();
         }
 
-        if(m_batchData.texIndex > m_renderData.maxTextures) {
+        if(m_batchData.texIndex >= m_renderData.maxTextures) {
             flush();
         }
 
@@ -61,7 +66,7 @@ namespace eg::rendering {
             m_batchData.texIndex++;
         }
 
-        //trace("index: {}", index);
+        trace("index: {}", index);
 
         m_batchData.vertexDataPtr[0] = position.x - dimensions.x / 2; // top left
         m_batchData.vertexDataPtr[1] = position.y + dimensions.y / 2;
@@ -125,15 +130,18 @@ namespace eg::rendering {
 
     void Renderer2D::flush() {
         m_renderData.shader->bind();
-
+        
+        m_renderData.shader->bind();
         i32* samplers = (i32*)alloca(sizeof(i32) * m_renderData.maxTextures);
         for(int i = 0; i < m_renderData.maxTextures; i++) {
             samplers[i] = i;
         }
+        
         for(int i = 0; i < m_batchData.texIndex; i++) {
             m_renderData.textures[i]->bind(i);
         }
-        //m_renderData.shader->setIntArray("u_textures", samplers, m_batchData.texIndex);
+        m_renderData.shader->setIntArray("samplers", samplers, m_renderData.maxTextures);
+       // 
 
         m_renderData.vbo->setData(m_renderData.vertices,
                                   ((uint8_t *) m_batchData.vertexDataPtr - (uint8_t *) m_renderData.vertices));
