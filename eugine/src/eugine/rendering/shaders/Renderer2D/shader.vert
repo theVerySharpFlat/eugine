@@ -1,13 +1,18 @@
 #version 330 core
 layout (location = 0) in vec2 aPos;
 layout (location = 1) in vec3 aColor;
-layout (location = 2) in float texIndex;
+layout (location = 2) in vec2 atexCoords;
+layout (location = 3) in float atexIndex;
 
+out vec2 texCoords;
 out vec3 ourColor;
+out float texIndex;
 
 uniform mat4 projxview;
 
 void main() {
-	gl_Position = projxview * vec4(aPos, 0.0, 1.0);
 	ourColor = aColor;
+	texCoords = atexCoords;
+	texIndex = atexIndex;
+	gl_Position = projxview * vec4(aPos, 0.0, 1.0);
 }

@@ -165,8 +165,18 @@ namespace eg {
                     ));
         }
 
+        void Shader::setIntArray(const char *name, const i32 *value, u32 count) {
+            GLCall(glUseProgram(m_ID));
+            GLCall(glUniform1iv(
+                    glGetUniformLocation(m_ID, name),
+                    count,
+                    value
+                    ));
+        }
+
         Shader::~Shader() {
             GLCall(glDeleteProgram(m_ID));
         }
+
     }
 } // namespace eg

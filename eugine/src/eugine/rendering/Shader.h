@@ -34,6 +34,8 @@ namespace eg::rendering {
         virtual void setUint(const char* name, const u32& value) = 0;
         virtual void setFloat(const char* name, const float& value) = 0;
         virtual void setDouble(const char* name, const double& value) = 0;
+
+        virtual void setIntArray(const char* name, const i32* value, u32 count) = 0;
     };
 }
 

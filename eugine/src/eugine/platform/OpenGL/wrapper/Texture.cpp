@@ -15,6 +15,7 @@ namespace eg::GLWrapper {
         GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
         i32 width, height, nrChannels;
+        stbi_set_flip_vertically_on_load(true);
         const unsigned char* img = stbi_load_from_memory((uint8_t*)data.c_str(), data.size(), &width, &height, &nrChannels, 0);
 
         GLenum imageType;
@@ -32,8 +33,11 @@ namespace eg::GLWrapper {
         stbi_image_free((void*)img);
     }
     
-    void Texture::bind() const {
-        GLCall(glBindTexture(GL_TEXTURE_2D, m_ID));
+    void Texture::bind(u32 slot) const {
+        trace("texture bind texture {} to slot {}", m_ID, slot);
+        GLCall(glActiveTexture(GL_TEXTURE0 + slot))
+      GLCall(glBindTexture(GL_TEXTURE_2D, m_ID));
+        //GLCall(glBindTextureUnit(slot, m_ID));
     }
 
     void Texture::unBind() const {

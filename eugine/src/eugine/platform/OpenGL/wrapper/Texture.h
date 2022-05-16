@@ -9,7 +9,7 @@ namespace eg::GLWrapper {
         Texture(const fs::path& path);
         ~Texture();
         
-        void bind() const override;
+        void bind(u32 slot) const override;
         void unBind() const override;
 
     private:

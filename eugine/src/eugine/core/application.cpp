@@ -50,45 +50,71 @@ eg::Application::Application() {
     std::string vsData = filesystem::getFileContents("res/shaders/simple.vs");
     std::string fsData = filesystem::getFileContents("res/shaders/simple.fs");
 
-
-    rendering::Shader::ShaderProgramSource shaderSource = {
-        {
-            vsData.c_str(),
-            vsData.size() + 1
-        },
-        {
-            fsData.c_str(),
-            fsData.size() + 1
-        }
-    };
-    m_shader = rendering::Shader::create(shaderSource);
-
-    m_vbo = rendering::VertexBuffer::create(
-        m_vertices, 
-        sizeof(m_vertices), 
-        rendering::VertexBufferLayout({
-            {
-                rendering::SHDR_VEC3,
-                1
-            },
-            {
-                rendering::SHDR_VEC3,
-                1
-            },
-            {
-                rendering::SHDR_VEC2,
-                1
-            }
-        })
-    );
-    m_vao = rendering::VertexArray::create();
-    m_vao->setBuffer(*m_vbo);
-
-    m_ibo = rendering::IndexBuffer::create(m_indices, sizeof(m_indices));
-
     m_texture = rendering::Texture::create("res/textures/brick.jpg");
 
-    m_renderer2 = rendering::Renderer2D::create({10});
+    const char* textureNames[56] = {
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_back.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_clubs_02.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_clubs_03.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_clubs_04.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_clubs_05.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_clubs_06.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_clubs_07.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_clubs_08.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_clubs_09.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_clubs_10.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_clubs_A.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_clubs_J.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_clubs_K.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_clubs_Q.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_diamonds_02.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_diamonds_03.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_diamonds_04.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_diamonds_05.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_diamonds_06.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_diamonds_07.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_diamonds_08.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_diamonds_09.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_diamonds_10.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_diamonds_A.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_diamonds_J.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_diamonds_K.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_diamonds_Q.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_empty.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_hearts_02.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_hearts_03.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_hearts_04.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_hearts_05.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_hearts_06.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_hearts_07.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_hearts_08.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_hearts_09.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_hearts_10.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_hearts_A.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_hearts_J.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_hearts_K.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_hearts_Q.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_joker_black.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_joker_red.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_02.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_03.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_04.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_05.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_06.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_07.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_08.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_09.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_10.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_A.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_J.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_K.png",
+            "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_Q.png"
+    };
+    for(int i = 0; i < m_textures.size(); i++) {
+        m_textures[i] = rendering::Texture::create(textureNames[i]);
+    }
+
+    m_renderer2 = rendering::Renderer2D::create({10, m_renderAPI->getMaxTexturesPerShader()});
 
     //imgui
     m_imGuiLayer = new ImGuiLayer();
@@ -121,11 +147,6 @@ void eg::Application::run() {
             m_camera->moveCamera({0.0f, -moveSpeed});
         }
 
-        m_texture->bind();
-        m_shader->bind();
-        m_shader -> setMat4("projxview", m_camera->getProjectionTimesView());
-        m_renderer->drawIndexed(m_vao, m_ibo, m_shader);
-
         m_renderer2->begin(m_camera);
         for(int i = 0; i < 10; i++) {
             for(int j = 0; j < 3; j++) {
@@ -137,8 +158,9 @@ void eg::Application::run() {
                             (i + j) % 2 ? 1.0 : 0.0,
                             (i + j) % 2 ? 1.0 : 0.0
                         },
-                        m_texture
+                            m_textures[(i * 3 + j) % 56]
                         );
+                // trace("texIndex: {}", (i * 3 + j) % 56);
             }
         }
         m_renderer2->end();
@@ -147,7 +169,7 @@ void eg::Application::run() {
         for(Layer* layer : m_layerStack)
             layer -> onImGuiRender();
 
-        //m_renderer2->imguiDbg();
+        m_renderer2->imguiDbg();
 
         m_imGuiLayer->end();
         m_window -> onUpdate();

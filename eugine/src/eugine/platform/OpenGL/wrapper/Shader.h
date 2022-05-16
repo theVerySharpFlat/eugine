@@ -30,6 +30,8 @@ namespace eg {
             void setFloat(const char* name, const float& value) override;
             void setDouble(const char* name, const double& value) override;
 
+            void setIntArray(const char *name, const i32 *value, u32 count) override;
+
         private:
 
             u32 m_ID;

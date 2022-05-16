@@ -58,35 +58,15 @@ namespace eg {
         //singleton class
         static Application *s_instance;
 
-
-        Ref<rendering::Shader> m_shader = nullptr;
-
-
-        float m_vertices[32] = {
-            // positions          // colors           // texture coords
-            600.0f,  600.0f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-            600.0f, 300.0f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-            200.0f, 300.0f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-            200.0f,  600.0f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
-        };
-
         Ref<rendering::Camera2D> m_camera = createRef<rendering::Camera2D>(
                 glm::vec2(1280.0f, 720.0f),
                 glm::vec2(0.0f, 0.0f)
         );
 
-
-        u32 m_indices[6] = {
-                0, 1, 3,   // first triangle
-                1, 2, 3    // second triangle
-        };
+        std::array<Ref<rendering::Texture>, 56> m_textures;
 
         Ref<rendering::GraphicsAPI> m_renderAPI = nullptr;
         Ref<rendering::Texture> m_texture = nullptr;
-        Ref<rendering::VertexBuffer> m_vbo = nullptr;
-        Ref<rendering::VertexArray> m_vao = nullptr;
-        Ref<rendering::IndexBuffer> m_ibo = nullptr;
-        Ref<rendering::LowLevelRenderer> m_renderer = rendering::LowLevelRenderer::create();
 
         Ref<rendering::Renderer2D> m_renderer2;
 

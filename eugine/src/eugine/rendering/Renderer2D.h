@@ -17,11 +17,12 @@ namespace eg::rendering {
     public:
         struct Settings {
             u32 maxQuads;
+            i32 maxTextures;
         };
         static Ref<Renderer2D> create(const Settings& settings);
 
         void begin(Ref<Camera2D> camera);
-        void submitQuad(glm::vec2 position, glm::vec2 dimensions, glm::vec3 color, Ref<Texture> texture);
+        void submitQuad(glm::vec2 position, glm::vec2 dimensions, glm::vec3 color, const Ref<Texture>& texture);
         void flush();
         void end();
         
@@ -44,12 +45,18 @@ namespace eg::rendering {
             Ref<VertexBuffer> vbo;
             Ref<IndexBuffer> ibo;
             Ref<VertexArray> vao;
+
+            u32 maxTextures;
+            std::array<Ref<Texture>, 32> textures;
+
         };
         RenderData m_renderData = {};
 
         struct BatchData {
             float* vertexDataPtr;
             u32* indexDataptr;
+
+            u32 texIndex;
 
             u32 quadCount;
             u32 vertexCount;
