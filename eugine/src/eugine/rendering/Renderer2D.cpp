@@ -16,8 +16,6 @@ namespace eg::rendering {
     }
 
     void Renderer2D::begin(eg::Ref<Camera2D> camera) {
-        trace("begin");
-        trace("batch 0");
         m_batchData.camera = camera;
         m_renderData.shader->setMat4("projxview", m_batchData.camera->getProjectionTimesView());
 
@@ -29,7 +27,6 @@ namespace eg::rendering {
     }
 
     void Renderer2D::batchReset() {
-        trace("batch reset");
         m_batchData.vertexDataPtr = m_renderData.vertices;
         m_batchData.indexDataptr = m_renderData.indices;
         m_batchData.quadCount = 0;
@@ -65,8 +62,6 @@ namespace eg::rendering {
             index = (float)m_batchData.texIndex;
             m_batchData.texIndex++;
         }
-
-        trace("index: {}", index);
 
         m_batchData.vertexDataPtr[0] = position.x - dimensions.x / 2; // top left
         m_batchData.vertexDataPtr[1] = position.y + dimensions.y / 2;
@@ -156,7 +151,6 @@ namespace eg::rendering {
         m_frameData.quadCount += m_batchData.quadCount;
         m_frameData.vertexCount += m_batchData.vertexCount;
 
-        trace("batch {}", m_frameData.batchCount);
         batchReset();
     }
 
@@ -203,8 +197,6 @@ namespace eg::rendering {
         m_renderData.vao = VertexArray::create();
 
         m_renderData.vao->setBuffer(*m_renderData.vbo);
-
-        printf("%.*s",gFragmentShaderSize, gFragmentShaderData);
 
         m_renderData.shader = Shader::create({
                                                      {

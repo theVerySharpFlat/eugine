@@ -158,14 +158,12 @@ void eg::Application::run() {
                             (i + j) % 2 ? 1.0 : 0.0,
                             (i + j) % 2 ? 1.0 : 0.0
                         },
-                            m_textures[(i * 3 + j) % 56]
+                            m_textures[(i * 30 + j) % 56]
                         );
-                trace("texIndex: {}", (i * 3 + j) % 56);
             }
         }
         m_renderer2->end();
-        trace("hereeee");
-        exit(0);
+        // exit(0);
 
         m_imGuiLayer->begin();
         for(Layer* layer : m_layerStack)
