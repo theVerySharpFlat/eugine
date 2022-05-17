@@ -122,22 +122,27 @@ namespace eg::rendering {
     void Renderer2D::flush() {
         m_renderData.shader->bind();
         
+        // set samplers
         i32* samplers = (i32*)alloca(sizeof(i32) * m_renderData.maxTextures);
         for(int i = 0; i < m_renderData.maxTextures; i++) {
             samplers[i] = i;
         }
         m_renderData.shader->setIntArray("samplers", samplers, m_renderData.maxTextures);
         
+        // set textures
         for(int i = 0; i < m_batchData.texIndex; i++) {
             m_renderData.textures[i]->bind(i);
         }
 
+        // load vertices and indices into buffers
         m_renderData.vbo->setData(m_renderData.vertices,
-                                  ((uint8_t *) m_batchData.vertexDataPtr - (uint8_t *) m_renderData.vertices));
+                                  ((u8*) m_batchData.vertexDataPtr - (u8*) m_renderData.vertices));
         m_renderData.ibo->setData(m_renderData.indices,
-                                  ((uint8_t *) m_batchData.indexDataptr - (uint8_t *) m_renderData.indices));
+                                  ((u8*) m_batchData.indexDataptr - (u8*) m_renderData.indices));
+        
         m_renderData.vao->setBuffer(*m_renderData.vbo);
         m_renderData.ibo->setElementCount(m_batchData.indexDataptr - m_renderData.indices);
+
         m_lowLevelRenderer->drawIndexed(m_renderData.vao, m_renderData.ibo, m_renderData.shader);
 
         m_frameData.batchCount++;
@@ -151,7 +156,6 @@ namespace eg::rendering {
     Renderer2D::~Renderer2D() {
         free(m_renderData.vertices);
         free(m_renderData.indices);
-//        free(m_renderData.textures);
     }
 
     Renderer2D::Renderer2D(const Settings &settings) {
@@ -178,13 +182,11 @@ namespace eg::rendering {
 
         m_renderData.maxVertexCount = settings.maxQuads * 4;
         m_renderData.verticesByteSize = layout.getStride() * m_renderData.maxVertexCount;
-        trace("verticesByteSize: {}", m_renderData.verticesByteSize);
-        m_renderData.vertices = (float *) malloc(m_renderData.verticesByteSize);
+        m_renderData.vertices = (float *)malloc(m_renderData.verticesByteSize);
 
         m_renderData.maxIndexCount = settings.maxQuads * 6;
         m_renderData.indicesByteSize = sizeof(u32) * m_renderData.maxIndexCount;
-        trace("indicesByteSize: {}", m_renderData.indicesByteSize);
-        m_renderData.indices = (u32 *) malloc(m_renderData.indicesByteSize);
+        m_renderData.indices = (u32 *)malloc(m_renderData.indicesByteSize);
 
         m_renderData.vbo = VertexBuffer::create(m_renderData.vertices, m_renderData.verticesByteSize, layout);
         m_renderData.ibo = IndexBuffer::create(m_renderData.indices, m_renderData.indicesByteSize);
