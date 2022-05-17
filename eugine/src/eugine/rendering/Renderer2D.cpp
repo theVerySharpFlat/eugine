@@ -122,7 +122,6 @@ namespace eg::rendering {
     void Renderer2D::flush() {
         m_renderData.shader->bind();
         
-        m_renderData.shader->bind();
         i32* samplers = (i32*)alloca(sizeof(i32) * m_renderData.maxTextures);
         for(int i = 0; i < m_renderData.maxTextures; i++) {
             samplers[i] = i;
