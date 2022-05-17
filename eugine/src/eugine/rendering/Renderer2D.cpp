@@ -126,11 +126,11 @@ namespace eg::rendering {
         for(int i = 0; i < m_renderData.maxTextures; i++) {
             samplers[i] = i;
         }
+        m_renderData.shader->setIntArray("samplers", samplers, m_renderData.maxTextures);
         
         for(int i = 0; i < m_batchData.texIndex; i++) {
             m_renderData.textures[i]->bind(i);
         }
-        m_renderData.shader->setIntArray("samplers", samplers, m_renderData.maxTextures);
 
         m_renderData.vbo->setData(m_renderData.vertices,
                                   ((uint8_t *) m_batchData.vertexDataPtr - (uint8_t *) m_renderData.vertices));
