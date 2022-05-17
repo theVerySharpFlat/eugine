@@ -156,6 +156,7 @@ namespace eg::rendering {
     Renderer2D::~Renderer2D() {
         free(m_renderData.vertices);
         free(m_renderData.indices);
+        delete[] m_renderData.vertices;
     }
 
     Renderer2D::Renderer2D(const Settings &settings) {
@@ -206,7 +207,7 @@ namespace eg::rendering {
                                              });
 
         m_renderData.maxTextures = settings.maxTextures;
-        m_renderData.textures = std::vector<Ref<Texture>>(settings.maxTextures);
+        m_renderData.textures = new Ref<Texture>[settings.maxTextures];
     }
 
     void Renderer2D::imguiDbg() {

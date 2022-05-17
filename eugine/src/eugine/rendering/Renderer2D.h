@@ -48,7 +48,8 @@ namespace eg::rendering {
 
             u32 maxTextures;
             // std::array<Ref<Texture>, 32> textures;
-            std::vector<Ref<Texture>> textures;
+            // std::vector<Ref<Texture>> textures;
+            Ref<Texture>* textures;
 
         };
         RenderData m_renderData = {};
