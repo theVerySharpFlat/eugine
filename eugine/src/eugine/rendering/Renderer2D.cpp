@@ -183,11 +183,11 @@ namespace eg::rendering {
 
         m_renderData.maxVertexCount = settings.maxQuads * 4;
         m_renderData.verticesByteSize = layout.getStride() * m_renderData.maxVertexCount;
-        m_renderData.vertices = (float *)malloc(m_renderData.verticesByteSize);
+        m_renderData.vertices = (float*)malloc(m_renderData.verticesByteSize);
 
         m_renderData.maxIndexCount = settings.maxQuads * 6;
         m_renderData.indicesByteSize = sizeof(u32) * m_renderData.maxIndexCount;
-        m_renderData.indices = (u32 *)malloc(m_renderData.indicesByteSize);
+        m_renderData.indices = (u32*)malloc(m_renderData.indicesByteSize);
 
         m_renderData.vbo = VertexBuffer::create(m_renderData.vertices, m_renderData.verticesByteSize, layout);
         m_renderData.ibo = IndexBuffer::create(m_renderData.indices, m_renderData.indicesByteSize);
