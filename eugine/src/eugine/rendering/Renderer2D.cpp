@@ -156,7 +156,7 @@ namespace eg::rendering {
     Renderer2D::~Renderer2D() {
         free(m_renderData.vertices);
         free(m_renderData.indices);
-        delete[] m_renderData.vertices;
+        delete[] m_renderData.textures;
     }
 
     Renderer2D::Renderer2D(const Settings &settings) {
