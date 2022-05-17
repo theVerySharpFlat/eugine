@@ -48,7 +48,7 @@ namespace eg::rendering {
         // check if texture is already in the list
         float index = -1.0f;
         for(int i = 0; i < m_batchData.texIndex; i++) {
-            if(m_renderData.textures[i].get() == texture.get()) {
+            if(*m_renderData.textures[i] == *texture) {
                 index = (float)i;
             }
         }
@@ -132,7 +132,6 @@ namespace eg::rendering {
             m_renderData.textures[i]->bind(i);
         }
         m_renderData.shader->setIntArray("samplers", samplers, m_renderData.maxTextures);
-       // 
 
         m_renderData.vbo->setData(m_renderData.vertices,
                                   ((uint8_t *) m_batchData.vertexDataPtr - (uint8_t *) m_renderData.vertices));

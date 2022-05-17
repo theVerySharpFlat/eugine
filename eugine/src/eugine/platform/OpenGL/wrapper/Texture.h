@@ -12,6 +12,8 @@ namespace eg::GLWrapper {
         void bind(u32 slot) const override;
         void unBind() const override;
 
+        bool operator==(const ::eg::rendering::Texture& texture) const override; 
+
     private:
         u32 m_ID = 0;
     };

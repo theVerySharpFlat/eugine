@@ -42,6 +42,10 @@ namespace eg::GLWrapper {
         GLCall(glBindTexture(GL_TEXTURE_2D, 0));
     }
 
+    bool Texture::operator==(const ::eg::rendering::Texture &texture) const {
+        return m_ID == (((const ::eg::GLWrapper::Texture&)texture).m_ID);
+    }
+
     Texture::~Texture() {
         GLCall(glDeleteTextures(1, &m_ID));
     }

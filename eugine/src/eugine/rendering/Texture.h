@@ -8,6 +8,8 @@ namespace eg::rendering {
 
         virtual void bind(u32 slot) const = 0;
         virtual void unBind() const = 0;
+
+        virtual bool operator==(const Texture& texture) const = 0;
     };
 }
 
