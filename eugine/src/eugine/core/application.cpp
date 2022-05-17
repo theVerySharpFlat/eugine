@@ -21,6 +21,7 @@
 #include <eugine/rendering/Shader.h>
 #include <eugine/rendering/GraphicsAPI.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <chrono>
 
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 
@@ -162,6 +163,17 @@ void eg::Application::run() {
                         );
             }
         }
+        auto now = std::chrono::high_resolution_clock::now();
+        auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+        auto value = now_ms.time_since_epoch();
+        double time = value.count();
+
+        glm::vec2 center = {
+            30 * cos(time / 300),
+            30 * sin(time / 300)
+        };
+        m_renderer2->submitQuad(center, {100, 100}, {1.0, 1.0, 1.0}, m_texture);
+
         m_renderer2->end();
         // exit(0);
 
