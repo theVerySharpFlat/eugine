@@ -22,7 +22,7 @@ namespace eg::rendering {
         static Ref<Renderer2D> create(const Settings& settings);
 
         void begin(Ref<Camera2D> camera);
-        void submitQuad(glm::vec2 position, glm::vec2 dimensions, glm::vec3 color, const Ref<Texture>& texture);
+        void submitQuad(glm::vec2 position, glm::vec2 dimensions, glm::vec4 color, const Ref<Texture>& texture);
         void flush();
         void end();
         

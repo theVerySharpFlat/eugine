@@ -155,9 +155,10 @@ void eg::Application::run() {
                         {j * 100, i * 100},
                         {100, 100},
                         {
-                            (i + j) % 2 ? 1.0 : 0.0,
-                            (i + j) % 2 ? 1.0 : 0.0,
-                            (i + j) % 2 ? 1.0 : 0.0
+                            (i + j) % 2 ? 0.0 : 1.0,
+                            (i + j) % 2 ? 0.0 : 1.0,
+                            (i + j) % 2 ? 1.0 : 1.0,
+                            (i + j) % 2 ? 0.1 : 0.0
                         },
                             m_textures[(i * 30 + j) % 56]
                         );
@@ -172,7 +173,7 @@ void eg::Application::run() {
             30 * cos(time / 300),
             30 * sin(time / 300)
         };
-        m_renderer2->submitQuad(center, {100, 100}, {1.0, 1.0, 1.0}, m_texture);
+        m_renderer2->submitQuad(center, {100, 100}, {1.0, 1.0, 1.0, 0.0}, m_texture);
 
         m_renderer2->end();
         // exit(0);

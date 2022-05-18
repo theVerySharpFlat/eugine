@@ -35,7 +35,7 @@ namespace eg::rendering {
         m_batchData.texIndex = 0;
     }
 
-    void Renderer2D::submitQuad(glm::vec2 position, glm::vec2 dimensions, glm::vec3 color, const Ref<Texture>& texture) {
+    void Renderer2D::submitQuad(glm::vec2 position, glm::vec2 dimensions, glm::vec4 color, const Ref<Texture>& texture) {
         if ((((u8 *) m_batchData.vertexDataPtr - (u8 *) m_renderData.vertices) /
              m_renderData.vbo->getLayout().getStride()) >= m_renderData.maxVertexCount) {
             flush();
@@ -64,40 +64,44 @@ namespace eg::rendering {
         m_batchData.vertexDataPtr[2] = color.r;
         m_batchData.vertexDataPtr[3] = color.g;
         m_batchData.vertexDataPtr[4] = color.b;
-        m_batchData.vertexDataPtr[5] = 0.0f;
-        m_batchData.vertexDataPtr[6] = 1.0f;
-        m_batchData.vertexDataPtr[7] = (float) index;
-        m_batchData.vertexDataPtr += 8;
+        m_batchData.vertexDataPtr[5] = color.a;
+        m_batchData.vertexDataPtr[6] = 0.0f;
+        m_batchData.vertexDataPtr[7] = 1.0f;
+        m_batchData.vertexDataPtr[8] = (float) index;
+        m_batchData.vertexDataPtr += 9;
 
         m_batchData.vertexDataPtr[0] = position.x - dimensions.x / 2; // bottom left
         m_batchData.vertexDataPtr[1] = position.y - dimensions.y / 2;
         m_batchData.vertexDataPtr[2] = color.r;
         m_batchData.vertexDataPtr[3] = color.g;
         m_batchData.vertexDataPtr[4] = color.b;
-        m_batchData.vertexDataPtr[5] = 0.0f;
+        m_batchData.vertexDataPtr[5] = color.a;
         m_batchData.vertexDataPtr[6] = 0.0f;
-        m_batchData.vertexDataPtr[7] = (float) index;
-        m_batchData.vertexDataPtr += 8;
+        m_batchData.vertexDataPtr[7] = 0.0f;
+        m_batchData.vertexDataPtr[8] = (float) index;
+        m_batchData.vertexDataPtr += 9;
 
         m_batchData.vertexDataPtr[0] = position.x + dimensions.x / 2; // bottom right
         m_batchData.vertexDataPtr[1] = position.y - dimensions.y / 2;
         m_batchData.vertexDataPtr[2] = color.r;
         m_batchData.vertexDataPtr[3] = color.g;
         m_batchData.vertexDataPtr[4] = color.b;
-        m_batchData.vertexDataPtr[5] = 1.0f;
-        m_batchData.vertexDataPtr[6] = 0.0f;
-        m_batchData.vertexDataPtr[7] = (float) index;
-        m_batchData.vertexDataPtr += 8;
+        m_batchData.vertexDataPtr[5] = color.a;
+        m_batchData.vertexDataPtr[6] = 1.0f;
+        m_batchData.vertexDataPtr[7] = 0.0f;
+        m_batchData.vertexDataPtr[8] = (float) index;
+        m_batchData.vertexDataPtr += 9;
 
         m_batchData.vertexDataPtr[0] = position.x + dimensions.x / 2; // top right
         m_batchData.vertexDataPtr[1] = position.y + dimensions.y / 2;
         m_batchData.vertexDataPtr[2] = color.r;
         m_batchData.vertexDataPtr[3] = color.g;
         m_batchData.vertexDataPtr[4] = color.b;
-        m_batchData.vertexDataPtr[5] = 1.0f;
+        m_batchData.vertexDataPtr[5] = color.a;
         m_batchData.vertexDataPtr[6] = 1.0f;
-        m_batchData.vertexDataPtr[7] = (float) index;
-        m_batchData.vertexDataPtr += 8;
+        m_batchData.vertexDataPtr[7] = 1.0f;
+        m_batchData.vertexDataPtr[8] = (float) index;
+        m_batchData.vertexDataPtr += 9;
 
         m_batchData.indexDataptr[0] = m_batchData.vertexCount + 0; // top left
         m_batchData.indexDataptr[1] = m_batchData.vertexCount + 1; // bottom left
@@ -169,7 +173,7 @@ namespace eg::rendering {
                 },
                 { // color
                         SHDR_FLOAT,
-                        3
+                        4
                 },
                 { // texture coords
                         SHDR_FLOAT,

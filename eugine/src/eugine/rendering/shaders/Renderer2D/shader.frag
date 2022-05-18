@@ -3,7 +3,7 @@ out vec4 FragColor;
 
 in vec2 texCoords;
 in float texIndex;
-in vec3 ourColor;
+in vec4 ourColor;
 
 uniform sampler2D samplers[32];
 
@@ -42,4 +42,13 @@ void main() {
 		case 30: FragColor = texture(samplers[30], texCoords); break;
 		case 31: FragColor = texture(samplers[31], texCoords); break;
 	}
+	// vec3 color = FragColor.xyz * ourColor.xyz;
+	// FragColor = vec4(color, FragColor.a);
+
+	float alpha = FragColor.a;
+	FragColor = mix(FragColor, ourColor, ourColor.a);
+	FragColor.a = alpha;
+
+	// out = alpha * new + (1 - alpha) * old
+	// vec3 out = ourColor.a * ourColor.
 }
