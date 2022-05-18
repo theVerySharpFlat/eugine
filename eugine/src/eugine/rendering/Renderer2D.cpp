@@ -46,17 +46,20 @@ namespace eg::rendering {
         }
 
         // check if texture is already in the list
+        // -1.0f means solid color
         float index = -1.0f;
-        for(int i = 0; i < m_batchData.texIndex; i++) {
-            if(*m_renderData.textures[i] == *texture) {
-                index = (float)i;
+        if(texture != nullptr) {
+            for(int i = 0; i < m_batchData.texIndex; i++) {
+                if(*m_renderData.textures[i] == *texture) {
+                    index = (float)i;
+                }
             }
-        }
 
-        if(index == -1.0f) {
-            m_renderData.textures[m_batchData.texIndex] = texture;
-            index = (float)m_batchData.texIndex;
-            m_batchData.texIndex++;
+            if(index == -1.0f) {
+                m_renderData.textures[m_batchData.texIndex] = texture;
+                index = (float)m_batchData.texIndex;
+                m_batchData.texIndex++;
+            }
         }
 
         m_batchData.vertexDataPtr[0] = position.x - dimensions.x / 2; // top left

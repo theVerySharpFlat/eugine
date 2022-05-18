@@ -9,6 +9,7 @@ uniform sampler2D samplers[32];
 
 void main() {
 	switch(int(texIndex)) {
+		case -1: FragColor = vec4(0.0, 0.0, 0.0, ourColor.a); break;
 		case 0: FragColor = texture(samplers[0], texCoords); break;
 		case 1: FragColor = texture(samplers[1], texCoords); break;
 		case 2: FragColor = texture(samplers[2], texCoords); break;
@@ -42,13 +43,8 @@ void main() {
 		case 30: FragColor = texture(samplers[30], texCoords); break;
 		case 31: FragColor = texture(samplers[31], texCoords); break;
 	}
-	// vec3 color = FragColor.xyz * ourColor.xyz;
-	// FragColor = vec4(color, FragColor.a);
 
 	float alpha = FragColor.a;
 	FragColor = mix(FragColor, ourColor, ourColor.a);
 	FragColor.a = alpha;
-
-	// out = alpha * new + (1 - alpha) * old
-	// vec3 out = ourColor.a * ourColor.
 }

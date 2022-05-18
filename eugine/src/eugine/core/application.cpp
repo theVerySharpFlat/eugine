@@ -175,6 +175,8 @@ void eg::Application::run() {
         };
         m_renderer2->submitQuad(center, {100, 100}, {1.0, 1.0, 1.0, 0.0}, m_texture);
 
+        m_renderer2->submitQuad({-100, -100}, {100, 100}, {0.0, 0.0, 1.0, 0.5}, nullptr);
+
         m_renderer2->end();
         // exit(0);
 
