@@ -6,6 +6,7 @@
 #define EUGINE_APPLICATIONEVENT_H
 
 #include <eugine/events/event.h>
+#include <sstream>
 
 namespace eg {
     class EG_API WindowResizeEvent : public Event {

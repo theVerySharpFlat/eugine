@@ -10,7 +10,7 @@
 extern eg::Application* eg::createApplication();
 
 
-int main(int argc, char** argv) {
+int main() {
     auto app = eg::createApplication();
     app -> init();
     app -> run();

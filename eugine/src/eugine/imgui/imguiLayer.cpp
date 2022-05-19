@@ -9,6 +9,7 @@
 #include "imgui/backends/imgui_impl_opengl3.h"
 
 #include "GLFW/glfw3.h"
+#include <cstring>
 
 enum GlfwClientApi
         {
@@ -62,6 +63,7 @@ namespace eg {
         //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+        io.ConfigDockingWithShift = true;
         //io.ConfigViewportsNoAutoMerge = true;
         //io.ConfigViewportsNoTaskBarIcon = true;
 

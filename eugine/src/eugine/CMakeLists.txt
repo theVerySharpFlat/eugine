@@ -1,3 +1,5 @@
 add_subdirectory(core)
 add_subdirectory(imgui)
 add_subdirectory(platform)
+add_subdirectory(util)
+add_subdirectory(rendering)
