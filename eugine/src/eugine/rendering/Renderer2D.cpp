@@ -3,6 +3,7 @@
 //
 
 #include "Renderer2D.h"
+#include "glm/ext/matrix_transform.hpp"
 #include <incbin.h>
 #include <imgui/imgui.h>
 #include <iostream>
@@ -35,7 +36,7 @@ namespace eg::rendering {
         m_batchData.texIndex = 0;
     }
 
-    void Renderer2D::submitQuad(glm::vec2 position, glm::vec2 dimensions, glm::vec4 color, const Ref<Texture>& texture) {
+    void Renderer2D::submitQuad(glm::vec2 position, glm::vec2 dimensions, float rotation, glm::vec4 color, const Ref<Texture>& texture) {
         if ((((u8 *) m_batchData.vertexDataPtr - (u8 *) m_renderData.vertices) /
              m_renderData.vbo->getLayout().getStride()) >= m_renderData.maxVertexCount) {
             flush();
@@ -62,8 +63,19 @@ namespace eg::rendering {
             }
         }
 
-        m_batchData.vertexDataPtr[0] = position.x - dimensions.x / 2; // top left
-        m_batchData.vertexDataPtr[1] = position.y + dimensions.y / 2;
+        glm::mat2 transform{
+            cosf(rotation), -sinf(rotation),
+            sin(rotation), cos(rotation)
+        };
+
+        glm::vec2 vertex = {
+            -dimensions.x / 2,
+            +dimensions.y / 2
+        };
+
+        vertex = transform * vertex + position;
+        m_batchData.vertexDataPtr[0] = vertex.x; // top left
+        m_batchData.vertexDataPtr[1] = vertex.y;
         m_batchData.vertexDataPtr[2] = color.r;
         m_batchData.vertexDataPtr[3] = color.g;
         m_batchData.vertexDataPtr[4] = color.b;
@@ -73,8 +85,14 @@ namespace eg::rendering {
         m_batchData.vertexDataPtr[8] = (float) index;
         m_batchData.vertexDataPtr += 9;
 
-        m_batchData.vertexDataPtr[0] = position.x - dimensions.x / 2; // bottom left
-        m_batchData.vertexDataPtr[1] = position.y - dimensions.y / 2;
+
+        vertex = {
+            -dimensions.x / 2,
+            -dimensions.y / 2
+        };
+        vertex = transform * vertex + position;
+        m_batchData.vertexDataPtr[0] = vertex.x; // bottom left
+        m_batchData.vertexDataPtr[1] = vertex.y;
         m_batchData.vertexDataPtr[2] = color.r;
         m_batchData.vertexDataPtr[3] = color.g;
         m_batchData.vertexDataPtr[4] = color.b;
@@ -84,8 +102,13 @@ namespace eg::rendering {
         m_batchData.vertexDataPtr[8] = (float) index;
         m_batchData.vertexDataPtr += 9;
 
-        m_batchData.vertexDataPtr[0] = position.x + dimensions.x / 2; // bottom right
-        m_batchData.vertexDataPtr[1] = position.y - dimensions.y / 2;
+        vertex = {
+            +dimensions.x / 2,
+            -dimensions.y / 2
+        };
+        vertex = transform * vertex + position;
+        m_batchData.vertexDataPtr[0] = vertex.x; // bottom right
+        m_batchData.vertexDataPtr[1] = vertex.y;
         m_batchData.vertexDataPtr[2] = color.r;
         m_batchData.vertexDataPtr[3] = color.g;
         m_batchData.vertexDataPtr[4] = color.b;
@@ -95,8 +118,14 @@ namespace eg::rendering {
         m_batchData.vertexDataPtr[8] = (float) index;
         m_batchData.vertexDataPtr += 9;
 
-        m_batchData.vertexDataPtr[0] = position.x + dimensions.x / 2; // top right
-        m_batchData.vertexDataPtr[1] = position.y + dimensions.y / 2;
+
+        vertex = {
+            +dimensions.x / 2,
+            +dimensions.y / 2
+        };
+        vertex = transform * vertex + position;
+        m_batchData.vertexDataPtr[0] = vertex.x; // top right
+        m_batchData.vertexDataPtr[1] = vertex.y;
         m_batchData.vertexDataPtr[2] = color.r;
         m_batchData.vertexDataPtr[3] = color.g;
         m_batchData.vertexDataPtr[4] = color.b;

@@ -13,6 +13,7 @@
 #include "eugine/rendering/VertexBuffer.h"
 #include "eugine/rendering/VertexBufferLayout.h"
 #include "eugine/util/filesystem.h"
+#include <cmath>
 #include <eugine/events/applicationEvent.h>
 #include <eugine/events/keyEvent.h>
 #include <eugine/events/mouseEvent.h>
@@ -122,9 +123,7 @@ eg::Application::Application() {
     pushOverlay(m_imGuiLayer);
 }
 
-eg::Application::~Application() {
-
-}
+eg::Application::~Application() {}
 
 void eg::Application::run() {
     while (m_running){
@@ -149,11 +148,30 @@ void eg::Application::run() {
         }
 
         m_renderer2->begin(m_camera);
+
+        auto now = std::chrono::high_resolution_clock::now();
+        auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+        auto value = now_ms.time_since_epoch();
+        double time = value.count();
+
+        static double lastTime = time;
+
+        glm::vec2 center = {
+            30 * cos(time / 300),
+            30 * sin(time / 300)
+        };
+        m_renderer2->submitQuad(center, {100, 100}, 0.0f, {1.0, 1.0, 1.0, 0.0}, m_texture);
+
+
+        m_renderer2->submitQuad({-100, 100}, {100, 100}, 2 * M_PI * (time - lastTime) / 1000, {1.0f, 0.0f, 0.0f, 1.0f}, nullptr);
+        m_renderer2->submitQuad({-100, 100}, {10, 10}, 0.0f, {0.0f, 0.0f, 1.0f, 1.0f}, nullptr);
+
         for(int i = 0; i < 10; i++) {
             for(int j = 0; j < 30; j++) {
                 m_renderer2->submitQuad(
                         {j * 100, i * 100},
                         {100, 100},
+                        2 * M_PI * (time - lastTime) / 2000,
                         {
                             (i + j) % 2 ? 0.0 : 1.0,
                             (i + j) % 2 ? 0.0 : 1.0,
@@ -164,18 +182,8 @@ void eg::Application::run() {
                         );
             }
         }
-        auto now = std::chrono::high_resolution_clock::now();
-        auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-        auto value = now_ms.time_since_epoch();
-        double time = value.count();
 
-        glm::vec2 center = {
-            30 * cos(time / 300),
-            30 * sin(time / 300)
-        };
-        m_renderer2->submitQuad(center, {100, 100}, {1.0, 1.0, 1.0, 0.0}, m_texture);
-
-        m_renderer2->submitQuad({-100, -100}, {100, 100}, {0.0, 0.0, 1.0, 0.5}, nullptr);
+        m_renderer2->submitQuad({200, 200}, {400, 400}, 0.0f, {0.0, 0.0, 1.0, 0.5}, nullptr);
 
         m_renderer2->end();
         // exit(0);
