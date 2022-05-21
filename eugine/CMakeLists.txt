@@ -18,7 +18,7 @@ find_package(OpenGL REQUIRED)
 
 target_link_libraries(eugine PUBLIC spdlog glm::glm imgui ghc_filesystem)
 
-target_link_libraries(eugine PRIVATE glfw OpenGL::GL wai stbi glad incbin)
+target_link_libraries(eugine PRIVATE glfw OpenGL::GL wai stbi volk glad incbin)
 
 add_subdirectory(src)
 add_subdirectory(vendor)
