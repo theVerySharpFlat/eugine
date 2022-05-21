@@ -20,3 +20,6 @@
 [submodule "eugine/vendor/incbin/incbin"]
 	path = eugine/vendor/incbin/incbin
 	url = https://github.com/graphitemaster/incbin.git
+[submodule "eugine/vendor/volk"]
+	path = eugine/vendor/volk
+	url = https://github.com/zeux/volk.git
