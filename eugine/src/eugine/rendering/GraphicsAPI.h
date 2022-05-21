@@ -5,6 +5,13 @@
 #include <glm/glm.hpp>
 
 namespace eg::rendering {
+
+    enum GraphicsAPIID {
+        EG_API_OGL = 0,
+        EG_API_VK
+    };
+    GraphicsAPIID getPreferredGraphicsAPI();
+
     class GraphicsAPI {
     public:
         static Ref<GraphicsAPI> create(Window& window);
