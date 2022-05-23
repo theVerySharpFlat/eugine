@@ -10,6 +10,8 @@
 
 #include <glad/glad.h>
 
+#include <eugine/rendering/GraphicsAPI.h>
+
 namespace eg {
 
     static void GLFWErrorCallback(int error, const char* description){
@@ -41,10 +43,16 @@ namespace eg {
             s_GLFWInitialized = true;
         }
 
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        rendering::GraphicsAPIID api = rendering::getPreferredGraphicsAPI();
+        if(api == rendering::EG_API_OGL) {
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        } else if(api == rendering::EG_API_VK) {
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+            glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+        }
 
         m_window = glfwCreateWindow((int)m_data.width, (int)m_data.height, m_data.title.c_str(), nullptr, nullptr);
         // glfwMakeContextCurrent(m_window);

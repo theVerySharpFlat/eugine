@@ -16,5 +16,5 @@ add_subdirectory(whereami)
 add_subdirectory(stbi)
 add_subdirectory(incbin)
 add_subdirectory(volk)
-
+set_property(TARGET volk PROPERTY POSITION_INDEPENDENT_CODE ON)
 #target_include_directories(eugine PUBLIC glm)

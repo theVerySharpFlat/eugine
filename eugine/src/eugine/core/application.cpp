@@ -52,7 +52,7 @@ eg::Application::Application() {
     std::string vsData = filesystem::getFileContents("res/shaders/simple.vs");
     std::string fsData = filesystem::getFileContents("res/shaders/simple.fs");
 
-    m_texture = rendering::Texture::create("res/textures/brick.jpg");
+    // m_texture = rendering::Texture::create("res/textures/brick.jpg");
 
     const char* textureNames[56] = {
             "res/textures/playing-cards-pack/PNG/Cards (large)/card_back.png",
@@ -112,7 +112,7 @@ eg::Application::Application() {
             "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_K.png",
             "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_Q.png"
     };
-    for(int i = 0; i < m_textures.size(); i++) {
+    /* for(int i = 0; i < m_textures.size(); i++) {
         m_textures[i] = rendering::Texture::create(textureNames[i]);
     }
 
@@ -120,14 +120,14 @@ eg::Application::Application() {
 
     //imgui
     m_imGuiLayer = new ImGuiLayer();
-    pushOverlay(m_imGuiLayer);
+    pushOverlay(m_imGuiLayer);*/
 }
 
 eg::Application::~Application() {}
 
 void eg::Application::run() {
     while (m_running){
-        m_renderAPI->setClearColor({1.0, 0.0, 1.0});
+        /* m_renderAPI->setClearColor({1.0, 0.0, 1.0});
         m_renderAPI->clear();
         for(Layer* layer : m_layerStack){
             layer -> onUpdate();
@@ -195,8 +195,8 @@ void eg::Application::run() {
         m_renderer2->imguiDbg();
 
         m_imGuiLayer->end();
+        m_renderAPI->swapBuffers();*/
         m_window -> onUpdate();
-        m_renderAPI->swapBuffers();
     }
 }
 
