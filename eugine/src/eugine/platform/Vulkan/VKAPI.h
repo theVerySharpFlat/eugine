@@ -19,12 +19,13 @@ namespace eg::rendering::VKWrapper {
         void setClearColor(glm::vec3 color) override {}
         void clear() override {}
         void swapBuffers() override {}
-        i32 getMaxTexturesPerShader() const override { return 0; }
+        i32 getMaxTexturesPerShader() const override;
 
     private:
         Window& m_window;
 
         VkInstance m_instance;
+        VkPhysicalDevice m_physicalDevice;
 
 #ifdef NDEBUG
         const bool enableValidationLayers = false;
@@ -43,9 +44,22 @@ namespace eg::rendering::VKWrapper {
         void setupDebugMessenger();
         void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
         VkDebugUtilsMessengerEXT m_debugMessenger;
+
 #endif
+        void initializePhysicalDevice();
+
+        struct QueueFamilyIndices {
+            std::optional<u32> graphicsFamily;
+
+            inline bool isAcceptable() const {
+                return graphicsFamily.has_value();
+            }
+        };
+        QueueFamilyIndices findQueueFamilyIndices(VkPhysicalDevice device);
+        bool isDeviceSuitable(VkPhysicalDevice device);
 
         std::vector<const char*> getRequiredInstanceExtensions();
+
     };
 }
 

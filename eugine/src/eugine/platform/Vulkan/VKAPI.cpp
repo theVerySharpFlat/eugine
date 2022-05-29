@@ -13,14 +13,14 @@ namespace eg::rendering::VKWrapper {
             const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
             void *pUserData
     ) {
-        if(severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-            ::eg::error("Vulkan validation layer: {}", pCallbackData->pMessage);
-        else if(severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-            ::eg::warn("Vulkan validation layer: {}", pCallbackData->pMessage);
-        else if(severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
-            ::eg::info("Vulkan validation layer: {}", pCallbackData->pMessage);
+        if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+            ::eg::error("Vulkan: {}", pCallbackData->pMessage);
+        else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+            ::eg::warn("Vulkan: {}", pCallbackData->pMessage);
+        else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
+            ::eg::info("Vulkan: {}", pCallbackData->pMessage);
         else
-            ::eg::trace("Vulkan validation layer: {}", pCallbackData->pMessage);
+            ::eg::trace("Vulkan: {}", pCallbackData->pMessage);
 
         return VK_FALSE;
     }
@@ -48,7 +48,14 @@ namespace eg::rendering::VKWrapper {
         }
     }
 
-    VKAPI::VKAPI(Window &window) : m_window(window) {
+    i32 VKAPI::getMaxTexturesPerShader() const {
+        VkPhysicalDeviceProperties props;
+        vkGetPhysicalDeviceProperties(m_physicalDevice, &props);
+        return (i32) props.limits.maxPerStageDescriptorSamplers;
+    }
+
+    VKAPI::VKAPI(Window &window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE),
+                                   m_physicalDevice(VK_NULL_HANDLE) {
 
         EG_ASSERT(volkInitialize() == VK_SUCCESS, "failed to initialize volk!!!");
 
@@ -59,12 +66,11 @@ namespace eg::rendering::VKWrapper {
         appInfo.pEngineName = "Eugine";
         appInfo.apiVersion = VK_API_VERSION_1_0;
 
-        confirmValidationLayerSupport();
-
         std::vector<const char *> extensions = getRequiredInstanceExtensions();
 
+        confirmValidationLayerSupport();
         VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{};
-        if(enableValidationLayers) {
+        if (enableValidationLayers) {
             populateDebugMessengerCreateInfo(debugUtilsMessengerCreateInfo);
         }
 
@@ -80,17 +86,62 @@ namespace eg::rendering::VKWrapper {
                   "Failed to create instance!");
         volkLoadInstance(m_instance);
 
-        u32 extensionCount = 0;
-        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-        auto properties = (VkExtensionProperties *) alloca(sizeof(VkExtensionProperties) * extensionCount);
-        vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, properties);
+        setupDebugMessenger();
 
-        info("{} vulkan extensions:", extensionCount);
-        for (int i = 0; i < extensionCount; i++) {
-            info("\t{}", properties[i].extensionName);
+        initializePhysicalDevice();
+    }
+
+    bool VKAPI::isDeviceSuitable(VkPhysicalDevice device) {
+        VkPhysicalDeviceProperties deviceProperties;
+        vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+        // implement device ranking system when I get a discrete GPU
+        info("VULKAN DEVICE: {}", deviceProperties.deviceName);
+        info("VULKAN API VERSION: {}.{}", VK_API_VERSION_MAJOR(deviceProperties.apiVersion), VK_API_VERSION_MINOR(deviceProperties.apiVersion));
+
+        QueueFamilyIndices indices = findQueueFamilyIndices(device);
+        return indices.isAcceptable();
+    }
+
+    void VKAPI::initializePhysicalDevice() {
+        u32 deviceCount = 0;
+        vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
+        if(deviceCount == 0) {
+            eg::fatal("failed to find a Vulkan-capable GPU!!!");
+            return;
+        }
+        auto* devices = (VkPhysicalDevice*)alloca(sizeof(VkPhysicalDevice) * deviceCount);
+        vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices);
+
+        for(u32 i = 0; i < deviceCount; i++) {
+            if(isDeviceSuitable(devices[i])) {
+                m_physicalDevice = devices[i];
+            }
+        }
+        if(m_physicalDevice == VK_NULL_HANDLE) {
+            eg::fatal("failed to find a suitable GPU!!!");
+            return;
         }
 
-        setupDebugMessenger();
+    }
+
+    VKAPI::QueueFamilyIndices VKAPI::findQueueFamilyIndices(VkPhysicalDevice device) {
+        QueueFamilyIndices indices{};
+        u32 queueFamilyCount = 0;
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+        if(!queueFamilyCount) {
+            eg::fatal("vulkan physical device has no queue families!");
+            return QueueFamilyIndices{};
+        }
+        auto queueFamilyProperties = (VkQueueFamilyProperties*)alloca(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
+        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilyProperties);
+
+        for(u32 i = 0; i < queueFamilyCount; i++) {
+            VkQueueFamilyProperties& properties = queueFamilyProperties[i];
+            if(properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+                indices.graphicsFamily = i;
+            }
+        }
     }
 
     void VKAPI::confirmValidationLayerSupport() {
@@ -144,7 +195,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     VKAPI::~VKAPI() {
-        if(enableValidationLayers) {
+        if (enableValidationLayers) {
             destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
         }
         vkDestroyInstance(m_instance, nullptr);
