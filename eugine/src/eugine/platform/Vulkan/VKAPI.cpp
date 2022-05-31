@@ -89,6 +89,7 @@ namespace eg::rendering::VKWrapper {
         setupDebugMessenger();
 
         initializePhysicalDevice();
+        initializeLogicalDevice();
     }
 
     bool VKAPI::isDeviceSuitable(VkPhysicalDevice device) {
@@ -125,6 +126,37 @@ namespace eg::rendering::VKWrapper {
 
     }
 
+    void VKAPI::initializeLogicalDevice() {
+        QueueFamilyIndices queueIndices = findQueueFamilyIndices(m_physicalDevice);
+
+        VkDeviceQueueCreateInfo queueCreateInfo{};
+        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queueCreateInfo.queueFamilyIndex = queueIndices.graphicsFamily.value();
+        queueCreateInfo.queueCount = 1;
+        float queuePriority = 1.0f;
+        queueCreateInfo.pQueuePriorities = &queuePriority;
+
+        VkPhysicalDeviceFeatures deviceFeatures{};
+
+        VkDeviceCreateInfo createInfo{};
+        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+        createInfo.pEnabledFeatures = &deviceFeatures;
+        createInfo.pQueueCreateInfos = &queueCreateInfo;
+        createInfo.queueCreateInfoCount = 1;
+        createInfo.ppEnabledLayerNames = validationLayers;
+        createInfo.enabledLayerCount = validationLayersCount;
+        createInfo.enabledExtensionCount = 0;
+
+        if(vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS) {
+            eg::fatal("failed to create vulkan logical device!!!");
+            return;
+        }
+
+        volkLoadDevice(m_device);
+
+        vkGetDeviceQueue(m_device, queueIndices.graphicsFamily.value(), 0, &m_graphicsQueue);
+    }
+
     VKAPI::QueueFamilyIndices VKAPI::findQueueFamilyIndices(VkPhysicalDevice device) {
         QueueFamilyIndices indices{};
         u32 queueFamilyCount = 0;
@@ -142,6 +174,7 @@ namespace eg::rendering::VKWrapper {
                 indices.graphicsFamily = i;
             }
         }
+        return indices;
     }
 
     void VKAPI::confirmValidationLayerSupport() {
@@ -195,6 +228,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     VKAPI::~VKAPI() {
+        vkDestroyDevice(m_device, nullptr);
         if (enableValidationLayers) {
             destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
         }

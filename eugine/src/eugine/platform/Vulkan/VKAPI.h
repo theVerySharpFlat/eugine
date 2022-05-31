@@ -26,6 +26,10 @@ namespace eg::rendering::VKWrapper {
 
         VkInstance m_instance;
         VkPhysicalDevice m_physicalDevice;
+        VkDevice m_device;
+
+        VkQueue m_graphicsQueue;
+
 
 #ifdef NDEBUG
         const bool enableValidationLayers = false;
@@ -47,6 +51,7 @@ namespace eg::rendering::VKWrapper {
 
 #endif
         void initializePhysicalDevice();
+        void initializeLogicalDevice();
 
         struct QueueFamilyIndices {
             std::optional<u32> graphicsFamily;
