@@ -11,25 +11,31 @@
 #include "volk.h"
 
 namespace eg::rendering::VKWrapper {
-    class VKAPI : public ::eg::rendering::GraphicsAPI{
+    class VKAPI : public ::eg::rendering::GraphicsAPI {
     public:
-        VKAPI(Window& window);
+        VKAPI(Window &window);
+
         ~VKAPI();
 
         void setClearColor(glm::vec3 color) override {}
+
         void clear() override {}
+
         void swapBuffers() override {}
+
         i32 getMaxTexturesPerShader() const override;
 
     private:
-        Window& m_window;
+        Window &m_window;
 
         VkInstance m_instance;
         VkPhysicalDevice m_physicalDevice;
         VkDevice m_device;
 
         VkQueue m_graphicsQueue;
+        VkQueue m_presentQueue;
 
+        VkSurfaceKHR m_surface;
 
 #ifdef NDEBUG
         const bool enableValidationLayers = false;
@@ -40,31 +46,41 @@ namespace eg::rendering::VKWrapper {
 #else
         const bool enableValidationLayers = true;
         static const u32 validationLayersCount = 1;
-        const char* validationLayers[validationLayersCount] = {
+        const char *validationLayers[validationLayersCount] = {
                 "VK_LAYER_KHRONOS_validation"
         };
+
         void confirmValidationLayerSupport();
 
         void setupDebugMessenger();
-        void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+
+        void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+
         VkDebugUtilsMessengerEXT m_debugMessenger;
 
 #endif
+
+        std::vector<const char *> getRequiredInstanceExtensions();
+
         void initializePhysicalDevice();
+
         void initializeLogicalDevice();
 
         struct QueueFamilyIndices {
             std::optional<u32> graphicsFamily;
+            std::optional<u32> presentFamily;
 
             inline bool isAcceptable() const {
-                return graphicsFamily.has_value();
+                return graphicsFamily.has_value() && presentFamily.has_value();
             }
+
         };
+
         QueueFamilyIndices findQueueFamilyIndices(VkPhysicalDevice device);
+
         bool isDeviceSuitable(VkPhysicalDevice device);
 
-        std::vector<const char*> getRequiredInstanceExtensions();
-
+        void createSurface();
     };
 }
 

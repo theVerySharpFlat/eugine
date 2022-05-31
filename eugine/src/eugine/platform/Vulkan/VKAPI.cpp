@@ -2,6 +2,7 @@
 // Created by aiden on 5/20/22.
 //
 
+#include <set>
 #include "VKAPI.h"
 #include "GLFW/glfw3.h"
 
@@ -20,7 +21,8 @@ namespace eg::rendering::VKWrapper {
         else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
             ::eg::info("Vulkan: {}", pCallbackData->pMessage);
         else
-            ::eg::trace("Vulkan: {}", pCallbackData->pMessage);
+            ;
+            // ::eg::trace("Vulkan: {}", pCallbackData->pMessage);
 
         return VK_FALSE;
     }
@@ -88,6 +90,8 @@ namespace eg::rendering::VKWrapper {
 
         setupDebugMessenger();
 
+        createSurface();
+
         initializePhysicalDevice();
         initializeLogicalDevice();
     }
@@ -98,7 +102,8 @@ namespace eg::rendering::VKWrapper {
 
         // implement device ranking system when I get a discrete GPU
         info("VULKAN DEVICE: {}", deviceProperties.deviceName);
-        info("VULKAN API VERSION: {}.{}", VK_API_VERSION_MAJOR(deviceProperties.apiVersion), VK_API_VERSION_MINOR(deviceProperties.apiVersion));
+        info("VULKAN API VERSION: {}.{}", VK_API_VERSION_MAJOR(deviceProperties.apiVersion),
+             VK_API_VERSION_MINOR(deviceProperties.apiVersion));
 
         QueueFamilyIndices indices = findQueueFamilyIndices(device);
         return indices.isAcceptable();
@@ -107,19 +112,19 @@ namespace eg::rendering::VKWrapper {
     void VKAPI::initializePhysicalDevice() {
         u32 deviceCount = 0;
         vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
-        if(deviceCount == 0) {
+        if (deviceCount == 0) {
             eg::fatal("failed to find a Vulkan-capable GPU!!!");
             return;
         }
-        auto* devices = (VkPhysicalDevice*)alloca(sizeof(VkPhysicalDevice) * deviceCount);
+        auto *devices = (VkPhysicalDevice *) alloca(sizeof(VkPhysicalDevice) * deviceCount);
         vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices);
 
-        for(u32 i = 0; i < deviceCount; i++) {
-            if(isDeviceSuitable(devices[i])) {
+        for (u32 i = 0; i < deviceCount; i++) {
+            if (isDeviceSuitable(devices[i])) {
                 m_physicalDevice = devices[i];
             }
         }
-        if(m_physicalDevice == VK_NULL_HANDLE) {
+        if (m_physicalDevice == VK_NULL_HANDLE) {
             eg::fatal("failed to find a suitable GPU!!!");
             return;
         }
@@ -129,25 +134,39 @@ namespace eg::rendering::VKWrapper {
     void VKAPI::initializeLogicalDevice() {
         QueueFamilyIndices queueIndices = findQueueFamilyIndices(m_physicalDevice);
 
-        VkDeviceQueueCreateInfo queueCreateInfo{};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = queueIndices.graphicsFamily.value();
-        queueCreateInfo.queueCount = 1;
+        std::set<u32> uniqueQueues = {
+                queueIndices.presentFamily.value(),
+                queueIndices.graphicsFamily.value()
+        };
+        eg::trace("{} unique queues", uniqueQueues.size());
+
+        auto queueCreateInfos = (VkDeviceQueueCreateInfo *) alloca(
+                sizeof(VkDeviceQueueCreateInfo) * uniqueQueues.size());
         float queuePriority = 1.0f;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
+        {
+            u32 i = 0;
+            for (u32 queue : uniqueQueues) {
+                queueCreateInfos[i] = VkDeviceQueueCreateInfo{};
+                queueCreateInfos[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+                queueCreateInfos[i].queueCount = 1;
+                queueCreateInfos[i].queueFamilyIndex = queue;
+                queueCreateInfos[i].pQueuePriorities = &queuePriority;
+            }
+            i++;
+        }
 
         VkPhysicalDeviceFeatures deviceFeatures{};
 
         VkDeviceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
         createInfo.pEnabledFeatures = &deviceFeatures;
-        createInfo.pQueueCreateInfos = &queueCreateInfo;
-        createInfo.queueCreateInfoCount = 1;
+        createInfo.pQueueCreateInfos = queueCreateInfos;
+        createInfo.queueCreateInfoCount = uniqueQueues.size();
         createInfo.ppEnabledLayerNames = validationLayers;
         createInfo.enabledLayerCount = validationLayersCount;
         createInfo.enabledExtensionCount = 0;
 
-        if(vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS) {
+        if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS) {
             eg::fatal("failed to create vulkan logical device!!!");
             return;
         }
@@ -155,22 +174,32 @@ namespace eg::rendering::VKWrapper {
         volkLoadDevice(m_device);
 
         vkGetDeviceQueue(m_device, queueIndices.graphicsFamily.value(), 0, &m_graphicsQueue);
+        vkGetDeviceQueue(m_device, queueIndices.presentFamily.value(), 0, &m_presentQueue);
     }
 
     VKAPI::QueueFamilyIndices VKAPI::findQueueFamilyIndices(VkPhysicalDevice device) {
         QueueFamilyIndices indices{};
         u32 queueFamilyCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-        if(!queueFamilyCount) {
+        if (!queueFamilyCount) {
             eg::fatal("vulkan physical device has no queue families!");
             return QueueFamilyIndices{};
         }
-        auto queueFamilyProperties = (VkQueueFamilyProperties*)alloca(sizeof(VkQueueFamilyProperties) * queueFamilyCount);
+        auto queueFamilyProperties = (VkQueueFamilyProperties *) alloca(
+                sizeof(VkQueueFamilyProperties) * queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilyProperties);
 
-        for(u32 i = 0; i < queueFamilyCount; i++) {
-            VkQueueFamilyProperties& properties = queueFamilyProperties[i];
-            if(properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+        for (u32 i = 0; i < queueFamilyCount; i++) {
+            VkQueueFamilyProperties &properties = queueFamilyProperties[i];
+
+            VkBool32 presentSupport = false;
+            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &presentSupport);
+
+            if (presentSupport) {
+                indices.presentFamily = i;
+            }
+
+            if (properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
                 indices.graphicsFamily = i;
             }
         }
@@ -227,11 +256,20 @@ namespace eg::rendering::VKWrapper {
         return extensions;
     }
 
+    void VKAPI::createSurface() {
+        GLFWwindow *window = (GLFWwindow *) m_window.getNativeWindow();
+        if (glfwCreateWindowSurface(m_instance, window, nullptr, &m_surface) != VK_SUCCESS) {
+            eg::fatal("failed to create surface!!!");
+            return;
+        }
+    }
+
     VKAPI::~VKAPI() {
         vkDestroyDevice(m_device, nullptr);
         if (enableValidationLayers) {
             destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
         }
+        vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
         vkDestroyInstance(m_instance, nullptr);
     }
 
