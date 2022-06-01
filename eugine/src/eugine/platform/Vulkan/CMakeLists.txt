@@ -1,1 +1,1 @@
-target_sources(eugine PRIVATE VKAPI.cpp)
+target_sources(eugine PRIVATE VKAPI.cpp VkDevice.cpp ValidationLayers.cpp)

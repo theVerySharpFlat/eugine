@@ -5,6 +5,7 @@
 #include <set>
 #include "VKAPI.h"
 #include "GLFW/glfw3.h"
+#include "VkDevice.h"
 
 namespace eg::rendering::VKWrapper {
 
@@ -52,12 +53,11 @@ namespace eg::rendering::VKWrapper {
 
     i32 VKAPI::getMaxTexturesPerShader() const {
         VkPhysicalDeviceProperties props;
-        vkGetPhysicalDeviceProperties(m_physicalDevice, &props);
+        vkGetPhysicalDeviceProperties(m_device.m_physicalDevice, &props);
         return (i32) props.limits.maxPerStageDescriptorSamplers;
     }
 
-    VKAPI::VKAPI(Window &window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE),
-                                   m_physicalDevice(VK_NULL_HANDLE) {
+    VKAPI::VKAPI(Window &window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE), m_device(*this){
 
         EG_ASSERT(volkInitialize() == VK_SUCCESS, "failed to initialize volk!!!");
 
@@ -92,165 +92,10 @@ namespace eg::rendering::VKWrapper {
 
         createSurface();
 
-        initializePhysicalDevice();
-        initializeLogicalDevice();
+        m_device.initialize();
     }
 
-    bool VKAPI::isDeviceSuitable(VkPhysicalDevice device) {
-        VkPhysicalDeviceProperties deviceProperties;
-        vkGetPhysicalDeviceProperties(device, &deviceProperties);
 
-        // implement device ranking system when I get a discrete GPU
-        info("VULKAN DEVICE: {}", deviceProperties.deviceName);
-        info("VULKAN API VERSION: {}.{}", VK_API_VERSION_MAJOR(deviceProperties.apiVersion),
-             VK_API_VERSION_MINOR(deviceProperties.apiVersion));
-
-        QueueFamilyIndices indices = findQueueFamilyIndices(device);
-        return indices.isAcceptable() && deviceSupportsRequiredExtensions(device);
-    }
-
-    bool VKAPI::deviceSupportsRequiredExtensions(VkPhysicalDevice device) {
-        u32 extensionCount = 0;
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-        if(extensionCount == 0) {
-            eg::fatal("failed to retrieve device extensions!");
-            return false;
-        }
-        auto properties = (VkExtensionProperties*) alloca(sizeof(VkExtensionProperties) * extensionCount);
-        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, properties);
-
-        std::set<std::string> requiredExtensions(std::cbegin(deviceExtensions),
-                                                  std::cbegin(deviceExtensions) + deviceExtensionsCount);
-
-        u32 foundCount = 0;
-        for(u32 i = 0; i < extensionCount; i++) {
-            trace("extensions: {}", properties[i].extensionName);
-            const auto iterator = requiredExtensions.find(properties[i].extensionName);
-            if(iterator != requiredExtensions.end()) {
-                eg::trace("found extension {}", *iterator);
-                foundCount++;
-            }
-        }
-
-        return foundCount == requiredExtensions.size();
-    }
-
-    void VKAPI::initializePhysicalDevice() {
-        u32 deviceCount = 0;
-        vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
-        if (deviceCount == 0) {
-            eg::fatal("failed to find a Vulkan-capable GPU!!!");
-            return;
-        }
-        auto *devices = (VkPhysicalDevice *) alloca(sizeof(VkPhysicalDevice) * deviceCount);
-        vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices);
-
-        for (u32 i = 0; i < deviceCount; i++) {
-            if (isDeviceSuitable(devices[i])) {
-                m_physicalDevice = devices[i];
-            }
-        }
-        if (m_physicalDevice == VK_NULL_HANDLE) {
-            eg::fatal("failed to find a suitable GPU!!!");
-            return;
-        }
-
-    }
-
-    void VKAPI::initializeLogicalDevice() {
-        QueueFamilyIndices queueIndices = findQueueFamilyIndices(m_physicalDevice);
-
-        std::set<u32> uniqueQueues = {
-                queueIndices.presentFamily.value(),
-                queueIndices.graphicsFamily.value()
-        };
-        eg::trace("{} unique queues", uniqueQueues.size());
-
-        auto queueCreateInfos = (VkDeviceQueueCreateInfo *) alloca(
-                sizeof(VkDeviceQueueCreateInfo) * uniqueQueues.size());
-        float queuePriority = 1.0f;
-        {
-            u32 i = 0;
-            for (u32 queue : uniqueQueues) {
-                queueCreateInfos[i] = VkDeviceQueueCreateInfo{};
-                queueCreateInfos[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-                queueCreateInfos[i].queueCount = 1;
-                queueCreateInfos[i].queueFamilyIndex = queue;
-                queueCreateInfos[i].pQueuePriorities = &queuePriority;
-                i++;
-            }
-        }
-
-        VkPhysicalDeviceFeatures deviceFeatures{};
-
-        VkDeviceCreateInfo createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.pEnabledFeatures = &deviceFeatures;
-        createInfo.pQueueCreateInfos = queueCreateInfos;
-        createInfo.queueCreateInfoCount = uniqueQueues.size();
-        createInfo.ppEnabledLayerNames = validationLayers;
-        createInfo.enabledLayerCount = validationLayersCount;
-        createInfo.enabledExtensionCount = deviceExtensionsCount;
-        createInfo.ppEnabledExtensionNames = deviceExtensions;
-
-        if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS) {
-            eg::fatal("failed to create vulkan logical device!!!");
-            return;
-        }
-
-        volkLoadDevice(m_device);
-
-        vkGetDeviceQueue(m_device, queueIndices.graphicsFamily.value(), 0, &m_graphicsQueue);
-        vkGetDeviceQueue(m_device, queueIndices.presentFamily.value(), 0, &m_presentQueue);
-    }
-
-    VKAPI::QueueFamilyIndices VKAPI::findQueueFamilyIndices(VkPhysicalDevice device) {
-        QueueFamilyIndices indices{};
-        u32 queueFamilyCount = 0;
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-        if (!queueFamilyCount) {
-            eg::fatal("vulkan physical device has no queue families!");
-            return QueueFamilyIndices{};
-        }
-        auto queueFamilyProperties = (VkQueueFamilyProperties *) alloca(
-                sizeof(VkQueueFamilyProperties) * queueFamilyCount);
-        vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilyProperties);
-
-        for (u32 i = 0; i < queueFamilyCount; i++) {
-            VkQueueFamilyProperties &properties = queueFamilyProperties[i];
-
-            VkBool32 presentSupport = false;
-            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &presentSupport);
-
-            if (presentSupport) {
-                indices.presentFamily = i;
-            }
-
-            if (properties.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-                indices.graphicsFamily = i;
-            }
-        }
-        return indices;
-    }
-
-    void VKAPI::confirmValidationLayerSupport() {
-        u32 layerCount = 0;
-        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-        auto layers = (VkLayerProperties *) alloca(sizeof(VkLayerProperties) * layerCount);
-        vkEnumerateInstanceLayerProperties(&layerCount, layers);
-        for (int i = 0; i < validationLayersCount; i++) {
-            bool layerFound = false;
-
-            for (int j = 0; j < layerCount; j++) {
-
-                if (strcmp(layers[j].layerName, validationLayers[i]) == 0) {
-                    layerFound = true;
-                    break;
-                }
-            }
-            EG_ASSERT(layerFound, "layer \"{}\" not found", validationLayers[i]);
-        }
-    }
 
     void VKAPI::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo) {
         createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -292,7 +137,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     VKAPI::~VKAPI() {
-        vkDestroyDevice(m_device, nullptr);
+        m_device.destruct();
         if (enableValidationLayers) {
             destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
         }
