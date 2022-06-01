@@ -106,7 +106,33 @@ namespace eg::rendering::VKWrapper {
              VK_API_VERSION_MINOR(deviceProperties.apiVersion));
 
         QueueFamilyIndices indices = findQueueFamilyIndices(device);
-        return indices.isAcceptable();
+        return indices.isAcceptable() && deviceSupportsRequiredExtensions(device);
+    }
+
+    bool VKAPI::deviceSupportsRequiredExtensions(VkPhysicalDevice device) {
+        u32 extensionCount = 0;
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+        if(extensionCount == 0) {
+            eg::fatal("failed to retrieve device extensions!");
+            return false;
+        }
+        auto properties = (VkExtensionProperties*) alloca(sizeof(VkExtensionProperties) * extensionCount);
+        vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, properties);
+
+        std::set<std::string> requiredExtensions(std::cbegin(deviceExtensions),
+                                                  std::cbegin(deviceExtensions) + deviceExtensionsCount);
+
+        u32 foundCount = 0;
+        for(u32 i = 0; i < extensionCount; i++) {
+            trace("extensions: {}", properties[i].extensionName);
+            const auto iterator = requiredExtensions.find(properties[i].extensionName);
+            if(iterator != requiredExtensions.end()) {
+                eg::trace("found extension {}", *iterator);
+                foundCount++;
+            }
+        }
+
+        return foundCount == requiredExtensions.size();
     }
 
     void VKAPI::initializePhysicalDevice() {
@@ -151,8 +177,8 @@ namespace eg::rendering::VKWrapper {
                 queueCreateInfos[i].queueCount = 1;
                 queueCreateInfos[i].queueFamilyIndex = queue;
                 queueCreateInfos[i].pQueuePriorities = &queuePriority;
+                i++;
             }
-            i++;
         }
 
         VkPhysicalDeviceFeatures deviceFeatures{};
@@ -164,7 +190,8 @@ namespace eg::rendering::VKWrapper {
         createInfo.queueCreateInfoCount = uniqueQueues.size();
         createInfo.ppEnabledLayerNames = validationLayers;
         createInfo.enabledLayerCount = validationLayersCount;
-        createInfo.enabledExtensionCount = 0;
+        createInfo.enabledExtensionCount = deviceExtensionsCount;
+        createInfo.ppEnabledExtensionNames = deviceExtensions;
 
         if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS) {
             eg::fatal("failed to create vulkan logical device!!!");

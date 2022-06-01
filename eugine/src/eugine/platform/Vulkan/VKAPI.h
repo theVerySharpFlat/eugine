@@ -62,8 +62,11 @@ namespace eg::rendering::VKWrapper {
 
         std::vector<const char *> getRequiredInstanceExtensions();
 
+        const u32 deviceExtensionsCount = 1;
+        const char* deviceExtensions[1] = {
+               VK_KHR_SWAPCHAIN_EXTENSION_NAME
+        };
         void initializePhysicalDevice();
-
         void initializeLogicalDevice();
 
         struct QueueFamilyIndices {
@@ -79,6 +82,7 @@ namespace eg::rendering::VKWrapper {
         QueueFamilyIndices findQueueFamilyIndices(VkPhysicalDevice device);
 
         bool isDeviceSuitable(VkPhysicalDevice device);
+        bool deviceSupportsRequiredExtensions(VkPhysicalDevice device);
 
         void createSurface();
     };
