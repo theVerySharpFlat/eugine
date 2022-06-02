@@ -10,7 +10,7 @@
 
 namespace eg::rendering::VKWrapper {
 
-    VkDevice::VkDevice(VKAPI &vkapi) : m_instance(vkapi.m_instance), m_surface(vkapi.m_surface){}
+    VkDevice::VkDevice(VKAPI &vkapi) : m_instance(vkapi.m_instance), m_surface(vkapi.m_vkWindow.getSurface()){}
 
     VkDevice::~VkDevice() {}
 

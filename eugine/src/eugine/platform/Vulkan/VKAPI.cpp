@@ -12,8 +12,8 @@ namespace eg::rendering::VKWrapper {
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
             VkDebugUtilsMessageSeverityFlagBitsEXT severity,
             VkDebugUtilsMessageTypeFlagsEXT type,
-            const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-            void *pUserData
+            const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+            void* pUserData
     ) {
         if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
             ::eg::error("Vulkan: {}", pCallbackData->pMessage);
@@ -21,18 +21,17 @@ namespace eg::rendering::VKWrapper {
             ::eg::warn("Vulkan: {}", pCallbackData->pMessage);
         else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
             ::eg::info("Vulkan: {}", pCallbackData->pMessage);
-        else
-            ;
-            // ::eg::trace("Vulkan: {}", pCallbackData->pMessage);
+        else;
+        // ::eg::trace("Vulkan: {}", pCallbackData->pMessage);
 
         return VK_FALSE;
     }
 
     static VkResult createDebugUtilsMessengerEXTProxy(VkInstance
                                                       instance,
-                                                      const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
-                                                      const VkAllocationCallbacks *pAllocator,
-                                                      VkDebugUtilsMessengerEXT *pDebugMessenger) {
+                                                      const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+                                                      const VkAllocationCallbacks* pAllocator,
+                                                      VkDebugUtilsMessengerEXT* pDebugMessenger) {
         auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance,
                                                                                "vkCreateDebugUtilsMessengerEXT");
         if (func != nullptr) {
@@ -43,7 +42,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     static void destroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
-                                              const VkAllocationCallbacks *pAllocator) {
+                                              const VkAllocationCallbacks* pAllocator) {
         auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance,
                                                                                 "vkDestroyDebugUtilsMessengerEXT");
         if (func != nullptr) {
@@ -57,7 +56,8 @@ namespace eg::rendering::VKWrapper {
         return (i32) props.limits.maxPerStageDescriptorSamplers;
     }
 
-    VKAPI::VKAPI(Window &window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE), m_device(*this){
+    VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE),
+                                   m_device(*this), m_vkWindow(*this, m_device, m_window) {
 
         EG_ASSERT(volkInitialize() == VK_SUCCESS, "failed to initialize volk!!!");
 
@@ -68,7 +68,7 @@ namespace eg::rendering::VKWrapper {
         appInfo.pEngineName = "Eugine";
         appInfo.apiVersion = VK_API_VERSION_1_0;
 
-        std::vector<const char *> extensions = getRequiredInstanceExtensions();
+        std::vector<const char*> extensions = getRequiredInstanceExtensions();
 
         confirmValidationLayerSupport();
         VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{};
@@ -90,14 +90,12 @@ namespace eg::rendering::VKWrapper {
 
         setupDebugMessenger();
 
-        createSurface();
-
+        m_vkWindow.initialize();
         m_device.initialize();
     }
 
 
-
-    void VKAPI::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo) {
+    void VKAPI::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
         createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
         createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
                                      VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT |
@@ -116,11 +114,11 @@ namespace eg::rendering::VKWrapper {
                   "Failed to set up debug messenger!!!");
     }
 
-    std::vector<const char *> VKAPI::getRequiredInstanceExtensions() {
+    std::vector<const char*> VKAPI::getRequiredInstanceExtensions() {
 
         u32 glfwExtensionCount = 0;
-        const char **glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-        std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+        const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+        std::vector<const char*> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
 
         if (enableValidationLayers)
             extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -128,20 +126,13 @@ namespace eg::rendering::VKWrapper {
         return extensions;
     }
 
-    void VKAPI::createSurface() {
-        GLFWwindow *window = (GLFWwindow *) m_window.getNativeWindow();
-        if (glfwCreateWindowSurface(m_instance, window, nullptr, &m_surface) != VK_SUCCESS) {
-            eg::fatal("failed to create surface!!!");
-            return;
-        }
-    }
 
     VKAPI::~VKAPI() {
         m_device.destruct();
         if (enableValidationLayers) {
             destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
         }
-        vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+        // vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
         vkDestroyInstance(m_instance, nullptr);
     }
 

@@ -12,6 +12,7 @@
 
 #include "volk.h"
 #include "VkDevice.h"
+#include "VkWindow.h"
 
 namespace eg::rendering::VKWrapper {
     class VkDevice;
@@ -32,6 +33,7 @@ namespace eg::rendering::VKWrapper {
 
     private:
         friend class VkDevice;
+        friend class VkWindow;
 
         Window &m_window;
 
@@ -39,8 +41,7 @@ namespace eg::rendering::VKWrapper {
 
         VkDevice m_device;
 
-        VkSurfaceKHR m_surface;
-
+        VkWindow m_vkWindow;
 #ifdef NDEBUG
         void setupDebugMessenger() {}
 #else
@@ -55,8 +56,6 @@ namespace eg::rendering::VKWrapper {
 
         std::vector<const char *> getRequiredInstanceExtensions();
 
-
-        void createSurface();
     };
 }
 
