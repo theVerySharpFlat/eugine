@@ -132,7 +132,7 @@ namespace eg::rendering::VKWrapper {
         if (enableValidationLayers) {
             destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
         }
-        // vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+        m_vkWindow.destruct();
         vkDestroyInstance(m_instance, nullptr);
     }
 
