@@ -20,17 +20,31 @@ namespace eg::rendering::VKWrapper {
         void initialize();
         void destruct();
 
+        void createSwapchain();
+        void destroySwapchain();
+
         ~VkWindow();
 
         VkSurfaceKHR& getSurface() { return m_surface; }
 
     private:
+        VkDevice& m_device;
         VkInstance& m_instance;
-        // VkDevice& m_device;
+
+        VkSurfaceFormatKHR chooseSurfaceFormat(VkSurfaceFormatKHR* formats, u32 count);
+        VkPresentModeKHR   choosePresentMode(VkPresentModeKHR* presentModes, u32 count);
+        VkExtent2D         chooseSwapExtent(VkSurfaceCapabilitiesKHR capabilities);
 
         void* m_window;
 
-        VkSurfaceKHR m_surface;
+        VkSurfaceKHR m_surface = VK_NULL_HANDLE;
+        VkSwapchainKHR m_swapchain = VK_NULL_HANDLE;;
+
+        VkFormat m_swapchainImageFormat;
+        VkExtent2D m_swapchainExtent;
+
+        std::vector<VkImage> m_swapchainImages;
+        std::vector<VkImageView> m_swapchainImageViews;
 
         void createSurface();
     };

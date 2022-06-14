@@ -19,8 +19,24 @@ namespace eg::rendering::VKWrapper {
 
         ~VkDevice();
 
+        VkPhysicalDevice& getPhysicalDevice() { return m_physicalDevice; };
+        ::VkDevice& getDevice() { return m_device; }
+
+        struct QueueFamilyIndices {
+            std::optional<u32> graphicsFamily;
+            std::optional<u32> presentFamily;
+
+            inline bool isAcceptable() const {
+                return graphicsFamily.has_value() && presentFamily.has_value();
+            }
+
+        };
+        QueueFamilyIndices getQueueFamilyIndices() { return m_queueFamilyIndices; }
+
+
     private:
         friend class VKAPI;
+        friend class VkWindow;
 
         void initializePhysicalDevice();
         void initializeLogicalDevice();
@@ -39,16 +55,8 @@ namespace eg::rendering::VKWrapper {
                 VK_KHR_SWAPCHAIN_EXTENSION_NAME
         };
 
-        struct QueueFamilyIndices {
-            std::optional<u32> graphicsFamily;
-            std::optional<u32> presentFamily;
-
-            inline bool isAcceptable() const {
-                return graphicsFamily.has_value() && presentFamily.has_value();
-            }
-
-        };
         QueueFamilyIndices findQueueFamilyIndices(VkPhysicalDevice device);
+        QueueFamilyIndices m_queueFamilyIndices;
 
         bool isDeviceSuitable(VkPhysicalDevice device);
         bool deviceSupportsRequiredExtensions(VkPhysicalDevice device);

@@ -28,6 +28,7 @@ namespace eg::rendering::VKWrapper {
         vkGetPhysicalDeviceProperties(device, &deviceProperties);
 
         // implement device ranking system when I get a discrete GPU
+        info("starting vulkan");
         info("VULKAN DEVICE: {}", deviceProperties.deviceName);
         info("VULKAN API VERSION: {}.{}", VK_API_VERSION_MAJOR(deviceProperties.apiVersion),
              VK_API_VERSION_MINOR(deviceProperties.apiVersion));
@@ -82,6 +83,7 @@ namespace eg::rendering::VKWrapper {
             return;
         }
 
+        m_queueFamilyIndices = findQueueFamilyIndices(m_physicalDevice);
     }
 
     void VkDevice::initializeLogicalDevice() {

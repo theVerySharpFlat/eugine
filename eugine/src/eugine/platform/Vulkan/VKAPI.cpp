@@ -92,6 +92,8 @@ namespace eg::rendering::VKWrapper {
 
         m_vkWindow.initialize();
         m_device.initialize();
+
+        m_vkWindow.createSwapchain();
     }
 
 
@@ -128,6 +130,7 @@ namespace eg::rendering::VKWrapper {
 
 
     VKAPI::~VKAPI() {
+        m_vkWindow.destroySwapchain();
         m_device.destruct();
         if (enableValidationLayers) {
             destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
