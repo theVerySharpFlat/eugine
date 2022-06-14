@@ -1,1 +1,7 @@
-target_sources(eugine PRIVATE VKAPI.cpp VkDevice.cpp ValidationLayers.cpp VkWindow.cpp)
+target_sources(eugine PRIVATE
+        VKAPI.cpp
+        VkDevice.cpp
+        ValidationLayers.cpp
+        VkWindow.cpp
+        VkRenderPass.cpp
+        )

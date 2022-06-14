@@ -28,6 +28,8 @@ namespace eg::rendering::VKWrapper {
         VkSurfaceKHR& getSurface() { return m_surface; }
 
     private:
+        friend class VkRenderPass;
+
         VkDevice& m_device;
         VkInstance& m_instance;
 

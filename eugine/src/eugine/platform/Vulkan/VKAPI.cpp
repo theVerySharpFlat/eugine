@@ -57,7 +57,8 @@ namespace eg::rendering::VKWrapper {
     }
 
     VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE),
-                                   m_device(*this), m_vkWindow(*this, m_device, m_window) {
+                                   m_device(*this), m_vkWindow(*this, m_device, m_window),
+                                   m_renderPass(m_device, m_vkWindow){
 
         EG_ASSERT(volkInitialize() == VK_SUCCESS, "failed to initialize volk!!!");
 
@@ -94,6 +95,8 @@ namespace eg::rendering::VKWrapper {
         m_device.initialize();
 
         m_vkWindow.createSwapchain();
+
+        m_renderPass.init();
     }
 
 
@@ -130,6 +133,7 @@ namespace eg::rendering::VKWrapper {
 
 
     VKAPI::~VKAPI() {
+        m_renderPass.destruct();
         m_vkWindow.destroySwapchain();
         m_device.destruct();
         if (enableValidationLayers) {

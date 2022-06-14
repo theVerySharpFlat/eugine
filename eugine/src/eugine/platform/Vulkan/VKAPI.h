@@ -13,6 +13,7 @@
 #include "volk.h"
 #include "VkDevice.h"
 #include "VkWindow.h"
+#include "VkRenderPass.h"
 
 namespace eg::rendering::VKWrapper {
     class VkDevice;
@@ -42,6 +43,8 @@ namespace eg::rendering::VKWrapper {
         VkDevice m_device;
 
         VkWindow m_vkWindow;
+
+        VkRenderPass m_renderPass;
 #ifdef NDEBUG
         void setupDebugMessenger() {}
 #else
