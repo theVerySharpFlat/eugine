@@ -233,10 +233,12 @@ namespace eg::rendering {
 
         m_renderData.shader = Shader::create({
                                                      {
+                                                             "ashadervert",
                                                              gVertexShaderData,
                                                              gVertexShaderSize
                                                      },
                                                      {
+                                                             "ashaderfrag",
                                                              gFragmentShaderData,
                                                              gFragmentShaderSize
                                                      }

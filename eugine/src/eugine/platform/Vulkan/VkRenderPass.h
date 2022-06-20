@@ -21,6 +21,8 @@ namespace eg::rendering::VKWrapper {
         void destruct();
 
     private:
+        friend class VkShader;
+
         ::VkRenderPass m_renderPass;
 
         VkDevice& m_device;

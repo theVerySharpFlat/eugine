@@ -58,7 +58,7 @@ namespace eg::rendering::VKWrapper {
 
     VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE),
                                    m_device(*this), m_vkWindow(*this, m_device, m_window),
-                                   m_renderPass(m_device, m_vkWindow){
+                                   m_renderPass(m_device, m_vkWindow), m_shader(m_device, m_renderPass, m_vkWindow){
 
         EG_ASSERT(volkInitialize() == VK_SUCCESS, "failed to initialize volk!!!");
 
@@ -97,6 +97,49 @@ namespace eg::rendering::VKWrapper {
         m_vkWindow.createSwapchain();
 
         m_renderPass.init();
+
+        const char* vertexShaderData ="#version 450\n"
+                                      "\n"
+                                      "layout(location = 0) out vec3 fragColor;\n"
+                                      "\n"
+                                      "vec2 positions[3] = vec2[](\n"
+                                      "vec2(0.0, -0.5),\n"
+                                      "vec2(0.5, 0.5),\n"
+                                      "vec2(-0.5, 0.5)\n"
+                                      ");\n"
+                                      "\n"
+                                      "vec3 colors[3] = vec3[](\n"
+                                      "vec3(1.0, 0.0, 0.0),\n"
+                                      "vec3(0.0, 1.0, 0.0),\n"
+                                      "vec3(0.0, 0.0, 1.0)\n"
+                                      ");\n"
+                                      "\n"
+                                      "void main() {\n"
+                                      "gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);\n"
+                                      "fragColor = colors[gl_VertexIndex];\n"
+                                      "}";
+        const char* fragmentShaderData = "#version 450\n"
+                                           "\n"
+                                           "layout(location = 0) in vec3 fragColor;\n"
+                                           "layout(location = 0) out vec4 outColor;\n"
+                                           "\n"
+                                           "void main() {\n"
+                                           "  outColor = vec4(fragColor, 1.0);\n"
+                                           "}";
+
+
+        m_shader.init({
+                            {
+                                "superBasic_vs",
+                                vertexShaderData,
+                                strlen(vertexShaderData)
+                            },
+                            {
+                                "superBasic_fs",
+                                fragmentShaderData,
+                                strlen(fragmentShaderData)
+                            }
+        });
     }
 
 
@@ -133,6 +176,7 @@ namespace eg::rendering::VKWrapper {
 
 
     VKAPI::~VKAPI() {
+        m_shader.destruct();
         m_renderPass.destruct();
         m_vkWindow.destroySwapchain();
         m_device.destruct();

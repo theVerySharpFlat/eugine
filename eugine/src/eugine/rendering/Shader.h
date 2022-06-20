@@ -7,6 +7,7 @@ namespace eg::rendering {
     class Shader {
     public:
         struct ShaderUnitSource {
+            const char* name;
             const char *data;
             u64 size;
         };

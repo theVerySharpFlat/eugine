@@ -4,4 +4,5 @@ target_sources(eugine PRIVATE
         ValidationLayers.cpp
         VkWindow.cpp
         VkRenderPass.cpp
+        VkShader.cpp
         )

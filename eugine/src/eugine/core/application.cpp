@@ -49,8 +49,8 @@ eg::Application::Application() {
 
     m_window->setVSync(true);
 
-    std::string vsData = filesystem::getFileContents("res/shaders/simple.vs");
-    std::string fsData = filesystem::getFileContents("res/shaders/simple.fs");
+    // std::string vsData = filesystem::getFileContents("res/shaders/simple.vs");
+    // std::string fsData = filesystem::getFileContents("res/shaders/simple.fs");
 
     // m_texture = rendering::Texture::create("res/textures/brick.jpg");
 
