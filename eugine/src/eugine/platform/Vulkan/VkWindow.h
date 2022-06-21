@@ -12,16 +12,20 @@ namespace eg::rendering::VKWrapper {
     class VKAPI;
     class VkDevice;
     class VkWindow;
+    class VkRenderPass;
 
     class VkWindow {
     public:
-        VkWindow(VKAPI& vkapi, VkDevice& device, Window& window);
+        VkWindow(VKAPI& vkapi, VkDevice& device, VkRenderPass& renderPass, Window& window);
 
         void initialize();
         void destruct();
 
         void createSwapchain();
         void destroySwapchain();
+
+        void createFrameBuffers();
+        void destroyFrameBuffers();
 
         ~VkWindow();
 
@@ -31,8 +35,10 @@ namespace eg::rendering::VKWrapper {
         friend class VkRenderPass;
         friend class VkShader;
 
+
         VkDevice& m_device;
         VkInstance& m_instance;
+        VkRenderPass& m_renderpass;
 
         VkSurfaceFormatKHR chooseSurfaceFormat(VkSurfaceFormatKHR* formats, u32 count);
         VkPresentModeKHR   choosePresentMode(VkPresentModeKHR* presentModes, u32 count);
@@ -48,6 +54,8 @@ namespace eg::rendering::VKWrapper {
 
         std::vector<VkImage> m_swapchainImages;
         std::vector<VkImageView> m_swapchainImageViews;
+
+        std::vector<VkFramebuffer> m_framebuffers;
 
         void createSurface();
     };

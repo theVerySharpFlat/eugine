@@ -22,6 +22,7 @@ namespace eg::rendering::VKWrapper {
 
     private:
         friend class VkShader;
+        friend class VkWindow;
 
         ::VkRenderPass m_renderPass;
 

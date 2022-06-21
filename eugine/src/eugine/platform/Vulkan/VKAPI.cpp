@@ -57,7 +57,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE),
-                                   m_device(*this), m_vkWindow(*this, m_device, m_window),
+                                   m_device(*this), m_vkWindow(*this, m_device, m_renderPass, m_window),
                                    m_renderPass(m_device, m_vkWindow), m_shader(m_device, m_renderPass, m_vkWindow){
 
         EG_ASSERT(volkInitialize() == VK_SUCCESS, "failed to initialize volk!!!");
@@ -140,6 +140,8 @@ namespace eg::rendering::VKWrapper {
                                 strlen(fragmentShaderData)
                             }
         });
+
+        m_vkWindow.createFrameBuffers();
     }
 
 
@@ -176,6 +178,7 @@ namespace eg::rendering::VKWrapper {
 
 
     VKAPI::~VKAPI() {
+        m_vkWindow.destroyFrameBuffers();
         m_shader.destruct();
         m_renderPass.destruct();
         m_vkWindow.destroySwapchain();

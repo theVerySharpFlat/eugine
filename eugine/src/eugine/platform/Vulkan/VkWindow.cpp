@@ -9,8 +9,9 @@
 #include <vulkan/vulkan_core.h>
 
 namespace eg::rendering::VKWrapper {
-    VkWindow::VkWindow(VKAPI& vkapi, VkDevice& device, Window& window) : m_instance(vkapi.m_instance),
+    VkWindow::VkWindow(VKAPI& vkapi, VkDevice& device, VkRenderPass& renderPass, Window& window) : m_instance(vkapi.m_instance),
                                                                          m_device(device),
+                                                                         m_renderpass(renderPass),
                                                                          m_window(window.getNativeWindow()) {}
 
     void VkWindow::initialize() {
@@ -169,6 +170,36 @@ namespace eg::rendering::VKWrapper {
 
     VkWindow::~VkWindow() {
 
+    }
+
+    void VkWindow::createFrameBuffers() {
+        m_framebuffers.resize(m_swapchainImageViews.size());
+
+        for (int i = 0; i < m_swapchainImages.size(); i++) {
+            VkImageView attachments[] = {
+                    m_swapchainImageViews[i]
+            };
+
+            VkFramebufferCreateInfo createInfo{};
+            createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            createInfo.renderPass = m_renderpass.m_renderPass;
+            createInfo.attachmentCount = 1;
+            createInfo.pAttachments = attachments;
+            createInfo.width = m_swapchainExtent.width;
+            createInfo.height = m_swapchainExtent.height;
+            createInfo.layers = 1;
+
+            if(vkCreateFramebuffer(m_device.getDevice(), &createInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS) {
+                error("failed to create framebuffer {}!!!", i);
+                return;
+            }
+        }
+    }
+
+    void VkWindow::destroyFrameBuffers() {
+        for(u32 i = 0; i < m_framebuffers.size(); i++) {
+            vkDestroyFramebuffer(m_device.getDevice(), m_framebuffers[i], nullptr);
+        }
     }
 
     void VkWindow::createSurface() {
