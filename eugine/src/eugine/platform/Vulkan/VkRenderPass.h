@@ -21,6 +21,7 @@ namespace eg::rendering::VKWrapper {
         void destruct();
 
     private:
+        friend class VKAPI;
         friend class VkShader;
         friend class VkWindow;
 

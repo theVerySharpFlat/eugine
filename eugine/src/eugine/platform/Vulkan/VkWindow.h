@@ -32,6 +32,7 @@ namespace eg::rendering::VKWrapper {
         VkSurfaceKHR& getSurface() { return m_surface; }
 
     private:
+        friend class VKAPI;
         friend class VkRenderPass;
         friend class VkShader;
 

@@ -23,6 +23,7 @@
 #include <eugine/rendering/GraphicsAPI.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
+#include "eugine/platform/Vulkan/VKAPI.h"
 
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 
@@ -127,6 +128,10 @@ eg::Application::~Application() {}
 
 void eg::Application::run() {
     while (m_running){
+        auto vkGraphics = (eg::rendering::VKWrapper::VKAPI*) m_renderAPI.get();
+        auto frameData = vkGraphics->begin();
+        vkGraphics->tempDraw();
+        vkGraphics->end(frameData);
         /* m_renderAPI->setClearColor({1.0, 0.0, 1.0});
         m_renderAPI->clear();
         for(Layer* layer : m_layerStack){

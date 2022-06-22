@@ -33,6 +33,14 @@ namespace eg::rendering::VKWrapper {
 
         i32 getMaxTexturesPerShader() const override;
 
+        struct FrameData { // to be passed between begin() and end() calls
+            u32 imageIndex;
+        };
+
+        FrameData begin();
+        void tempDraw();
+        void end(FrameData frameData);
+
     private:
         friend class VkDevice;
         friend class VkWindow;
@@ -48,6 +56,13 @@ namespace eg::rendering::VKWrapper {
         VkRenderPass m_renderPass;
 
         VkShader m_shader;
+
+        VkCommandPool  m_commandPool;
+        VkCommandBuffer m_commandBuffer;
+
+        VkSemaphore m_imageAvailableSemaphore;
+        VkSemaphore m_renderFinishedSemaphore;
+        VkFence m_inFlightFence;
 #ifdef NDEBUG
         void setupDebugMessenger() {}
 #else
@@ -59,6 +74,14 @@ namespace eg::rendering::VKWrapper {
         VkDebugUtilsMessengerEXT m_debugMessenger;
 
 #endif
+
+        void createSyncObjects();
+
+        void createCommandPool();
+        void allocateCommandBuffers();
+
+        void beginCommandBufferRecording(u32 imageIndex);
+        void endCommandBufferRecording(u32 imageIndex);
 
         std::vector<const char *> getRequiredInstanceExtensions();
 
