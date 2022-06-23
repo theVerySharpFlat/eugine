@@ -31,6 +31,8 @@ namespace eg::rendering::VKWrapper {
 
         void swapBuffers() override {}
 
+        inline void deviceWaitIdle() { m_device.waitIdle(); }
+
         i32 getMaxTexturesPerShader() const override;
 
         struct FrameData { // to be passed between begin() and end() calls
@@ -40,6 +42,11 @@ namespace eg::rendering::VKWrapper {
         FrameData begin();
         void tempDraw();
         void end(FrameData frameData);
+
+        u32 acquireImage(bool& success);
+
+        void recreateSwapchain();
+
 
     private:
         friend class VkDevice;

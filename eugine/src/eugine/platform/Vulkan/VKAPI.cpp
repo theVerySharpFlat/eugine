@@ -7,6 +7,35 @@
 #include "GLFW/glfw3.h"
 #include "VkDevice.h"
 
+static const char* vertexShaderData = "#version 450\n"
+                                      "\n"
+                                      "layout(location = 0) out vec3 fragColor;\n"
+                                      "\n"
+                                      "vec2 positions[3] = vec2[](\n"
+                                      "vec2(0.0, -0.5),\n"
+                                      "vec2(0.5, 0.5),\n"
+                                      "vec2(-0.5, 0.5)\n"
+                                      ");\n"
+                                      "\n"
+                                      "vec3 colors[3] = vec3[](\n"
+                                      "vec3(1.0, 0.0, 0.0),\n"
+                                      "vec3(0.0, 1.0, 0.0),\n"
+                                      "vec3(0.0, 0.0, 1.0)\n"
+                                      ");\n"
+                                      "\n"
+                                      "void main() {\n"
+                                      "gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);\n"
+                                      "fragColor = colors[gl_VertexIndex];\n"
+                                      "}";
+static const char* fragmentShaderData = "#version 450\n"
+                                        "\n"
+                                        "layout(location = 0) in vec3 fragColor;\n"
+                                        "layout(location = 0) out vec4 outColor;\n"
+                                        "\n"
+                                        "void main() {\n"
+                                        "  outColor = vec4(fragColor, 1.0);\n"
+                                        "}";
+
 namespace eg::rendering::VKWrapper {
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -97,35 +126,6 @@ namespace eg::rendering::VKWrapper {
         m_vkWindow.createSwapchain();
 
         m_renderPass.init();
-
-        const char* vertexShaderData = "#version 450\n"
-                                       "\n"
-                                       "layout(location = 0) out vec3 fragColor;\n"
-                                       "\n"
-                                       "vec2 positions[3] = vec2[](\n"
-                                       "vec2(0.0, -0.5),\n"
-                                       "vec2(0.5, 0.5),\n"
-                                       "vec2(-0.5, 0.5)\n"
-                                       ");\n"
-                                       "\n"
-                                       "vec3 colors[3] = vec3[](\n"
-                                       "vec3(1.0, 0.0, 0.0),\n"
-                                       "vec3(0.0, 1.0, 0.0),\n"
-                                       "vec3(0.0, 0.0, 1.0)\n"
-                                       ");\n"
-                                       "\n"
-                                       "void main() {\n"
-                                       "gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);\n"
-                                       "fragColor = colors[gl_VertexIndex];\n"
-                                       "}";
-        const char* fragmentShaderData = "#version 450\n"
-                                         "\n"
-                                         "layout(location = 0) in vec3 fragColor;\n"
-                                         "layout(location = 0) out vec4 outColor;\n"
-                                         "\n"
-                                         "void main() {\n"
-                                         "  outColor = vec4(fragColor, 1.0);\n"
-                                         "}";
 
 
         m_shader.init({
@@ -232,13 +232,36 @@ namespace eg::rendering::VKWrapper {
         }
     }
 
+    u32 VKAPI::acquireImage(bool& success) {
+        while (true) {
+            u32 imageIndex;
+            VkResult result = vkAcquireNextImageKHR(m_device.getDevice(), m_vkWindow.m_swapchain, UINT64_MAX,
+                                                    m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+            if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+                recreateSwapchain();
+                continue;
+            } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+                error("failed to acquire swapchain image!!!");
+                success = false;
+            } else {
+                success = true;
+            }
+
+            return imageIndex;
+        }
+    }
+
     VKAPI::FrameData VKAPI::begin() {
         vkWaitForFences(m_device.getDevice(), 1, &m_inFlightFence, VK_TRUE, UINT64_MAX);
         vkResetFences(m_device.getDevice(), 1, &m_inFlightFence);
 
-        u32 imageIndex;
-        vkAcquireNextImageKHR(m_device.getDevice(), m_vkWindow.m_swapchain, UINT64_MAX, m_imageAvailableSemaphore,
-                              VK_NULL_HANDLE, &imageIndex);
+        bool imageAcquireSuccess;
+        u32 imageIndex = acquireImage(imageAcquireSuccess);
+        if (!imageAcquireSuccess) {
+            return {UINT32_MAX};
+        }
+
 
         vkResetCommandBuffer(m_commandBuffer, 0);
         beginCommandBufferRecording(imageIndex);
@@ -303,7 +326,7 @@ namespace eg::rendering::VKWrapper {
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
-        if(vkQueueSubmit(m_device.m_graphicsQueue, 1, &submitInfo, m_inFlightFence) != VK_SUCCESS) {
+        if (vkQueueSubmit(m_device.m_graphicsQueue, 1, &submitInfo, m_inFlightFence) != VK_SUCCESS) {
             error("failed to submit queue!!!");
             return;
         }
@@ -319,7 +342,47 @@ namespace eg::rendering::VKWrapper {
         presentInfoKhr.pImageIndices = &frameData.imageIndex;
         presentInfoKhr.pResults = nullptr;
 
-        vkQueuePresentKHR(m_device.m_presentQueue, &presentInfoKhr);
+        VkResult result = vkQueuePresentKHR(m_device.m_presentQueue, &presentInfoKhr);
+
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+            recreateSwapchain();
+            return;
+        } else if (result != VK_SUCCESS) {
+            error("failed to present swapchain image!");
+        }
+
+        int frameBufferWidth, frameBufferHeight;
+        glfwGetFramebufferSize((GLFWwindow*) m_window.getNativeWindow(), &frameBufferWidth, &frameBufferHeight);
+
+        if (m_vkWindow.m_swapchainExtent.width != frameBufferWidth ||
+            m_vkWindow.m_swapchainExtent.height != frameBufferHeight) {
+            trace("window resize");
+            recreateSwapchain();
+        }
+    }
+
+    void VKAPI::recreateSwapchain() {
+        deviceWaitIdle();
+
+        m_vkWindow.destroySwapchain();
+        m_vkWindow.createSwapchain();
+        m_renderPass.destruct();
+        m_renderPass.init();
+        m_shader.destruct();
+        m_shader.init({
+                              {
+                                      "superBasic_vs",
+                                      vertexShaderData,
+                                      strlen(vertexShaderData)
+                              },
+                              {
+                                      "superBasic_fs",
+                                      fragmentShaderData,
+                                      strlen(fragmentShaderData)
+                              }
+                      });
+        m_vkWindow.destroyFrameBuffers();
+        m_vkWindow.createFrameBuffers();
     }
 
     VKAPI::~VKAPI() {

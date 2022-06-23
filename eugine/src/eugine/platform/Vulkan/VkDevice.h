@@ -33,6 +33,7 @@ namespace eg::rendering::VKWrapper {
         };
         QueueFamilyIndices getQueueFamilyIndices() { return m_queueFamilyIndices; }
 
+        inline void waitIdle() { vkDeviceWaitIdle(m_device); }
 
     private:
         friend class VKAPI;

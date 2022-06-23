@@ -127,8 +127,8 @@ eg::Application::Application() {
 eg::Application::~Application() {}
 
 void eg::Application::run() {
+    auto vkGraphics = (eg::rendering::VKWrapper::VKAPI*) m_renderAPI.get();
     while (m_running){
-        auto vkGraphics = (eg::rendering::VKWrapper::VKAPI*) m_renderAPI.get();
         auto frameData = vkGraphics->begin();
         vkGraphics->tempDraw();
         vkGraphics->end(frameData);
@@ -203,6 +203,7 @@ void eg::Application::run() {
         m_renderAPI->swapBuffers();*/
         m_window -> onUpdate();
     }
+    vkGraphics->deviceWaitIdle();
 }
 
 void eg::Application::onEvent(eg::Event &e) {
