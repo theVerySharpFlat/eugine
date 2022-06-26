@@ -26,7 +26,7 @@ namespace eg::rendering::VKWrapper {
         for (int i = 0; i < count; i++) {
             if (formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
                 formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-                trace("going with preferred surface format");
+                // trace("going with preferred surface format");
                 return formats[i];
             }
         }
@@ -36,7 +36,7 @@ namespace eg::rendering::VKWrapper {
     VkPresentModeKHR VkWindow::choosePresentMode(VkPresentModeKHR* presentModes, u32 count) {
         for (int i = 0; i < count; i++) {
             if (presentModes[i] == VK_PRESENT_MODE_MAILBOX_KHR) {
-                trace("going with preferred");
+                // trace("going with preferred");
                 return presentModes[i];
             }
         }

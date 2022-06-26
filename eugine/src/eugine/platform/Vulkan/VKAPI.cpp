@@ -7,6 +7,11 @@
 #include "GLFW/glfw3.h"
 #include "VkDevice.h"
 
+static bool framebufferResized = false;
+static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+    framebufferResized = true;
+}
+
 static const char* vertexShaderData = "#version 450\n"
                                       "\n"
                                       "layout(location = 0) out vec3 fragColor;\n"
@@ -51,7 +56,7 @@ namespace eg::rendering::VKWrapper {
         else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
             ::eg::info("Vulkan: {}", pCallbackData->pMessage);
         else;
-        // ::eg::trace("Vulkan: {}", pCallbackData->pMessage);
+             ::eg::trace("Vulkan: {}", pCallbackData->pMessage);
 
         return VK_FALSE;
     }
@@ -146,7 +151,17 @@ namespace eg::rendering::VKWrapper {
         createCommandPool();
         allocateCommandBuffers();
 
+//        for(int i = 0; i < maxFramesInFlight; i++) {
+//            auto& thing = m_frameObjects[i];
+//            thing = FrameObjectsContainer{};
+//            thing.m_commandBuffer = VK_NULL_HANDLE;
+//            thing.m_inFlightFence = VK_NULL_HANDLE;
+//            thing.m_imageAvailableSemaphore = VK_NULL_HANDLE;
+//            thing.m_renderFinishedSemaphore = VK_NULL_HANDLE;
+//        }
         createSyncObjects();
+
+        glfwSetFramebufferSizeCallback((GLFWwindow*) m_window.getNativeWindow(), framebufferResizeCallback);
     }
 
 
@@ -200,9 +215,13 @@ namespace eg::rendering::VKWrapper {
         allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
         allocateInfo.commandBufferCount = 1;
 
-        if (vkAllocateCommandBuffers(m_device.getDevice(), &allocateInfo, &m_commandBuffer) != VK_SUCCESS) {
-            error("failed to allocate command buffer");
-            return;
+        for (auto& frameObjects: m_frameObjects) {
+            if (vkAllocateCommandBuffers(m_device.getDevice(), &allocateInfo, &frameObjects.m_commandBuffer) !=
+                VK_SUCCESS) {
+                error("failed to allocate command buffer");
+                return;
+            }
+            trace("command buffer create: {}", (void*)m_frameObjects[frameNumber].m_commandBuffer);
         }
     }
 
@@ -210,25 +229,32 @@ namespace eg::rendering::VKWrapper {
         VkSemaphoreCreateInfo semaphoreCreateInfo{};
         semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-        if (vkCreateSemaphore(m_device.getDevice(), &semaphoreCreateInfo, nullptr, &m_imageAvailableSemaphore) !=
-            VK_SUCCESS) {
-            error("failed to create imageAvailable semaphore");
-            return;
-        }
-
-        if (vkCreateSemaphore(m_device.getDevice(), &semaphoreCreateInfo, nullptr, &m_renderFinishedSemaphore) !=
-            VK_SUCCESS) {
-            error("failed to create renderFinished semaphore");
-            return;
-        }
-
         VkFenceCreateInfo fenceCreateInfo{};
         fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-        if (vkCreateFence(m_device.getDevice(), &fenceCreateInfo, nullptr, &m_inFlightFence) != VK_SUCCESS) {
-            error("failed to create inFlightFence!!!");
-            return;
+        for (int i = 0; i < maxFramesInFlight; i++) {
+            auto& frameObjects = m_frameObjects[i];
+            trace("create objects");
+            if (vkCreateSemaphore(m_device.getDevice(), &semaphoreCreateInfo, nullptr,
+                                  &frameObjects.m_imageAvailableSemaphore) != VK_SUCCESS) {
+                error("failed to create imageAvailable semaphore");
+                return;
+            }
+
+            if (vkCreateSemaphore(m_device.getDevice(), &semaphoreCreateInfo, nullptr,
+                                  &frameObjects.m_renderFinishedSemaphore) != VK_SUCCESS) {
+                error("failed to create renderFinished semaphore");
+                return;
+            }
+
+
+            if (vkCreateFence(m_device.getDevice(), &fenceCreateInfo, nullptr, &(frameObjects.m_inFlightFence)) != VK_SUCCESS) {
+                error("failed to create inFlightFence!!!");
+                return;
+            }
+
+            trace("fence on creation: {}", (void*) &frameObjects.m_inFlightFence);
         }
     }
 
@@ -236,12 +262,14 @@ namespace eg::rendering::VKWrapper {
         while (true) {
             u32 imageIndex;
             VkResult result = vkAcquireNextImageKHR(m_device.getDevice(), m_vkWindow.m_swapchain, UINT64_MAX,
-                                                    m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+                                                    m_frameObjects[frameNumber].m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
+            // trace("acquire image");
             if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
                 recreateSwapchain();
+                glfwPollEvents();
                 continue;
-            } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+            } else if (result != VK_SUCCESS) {
                 error("failed to acquire swapchain image!!!");
                 success = false;
             } else {
@@ -253,17 +281,21 @@ namespace eg::rendering::VKWrapper {
     }
 
     VKAPI::FrameData VKAPI::begin() {
-        vkWaitForFences(m_device.getDevice(), 1, &m_inFlightFence, VK_TRUE, UINT64_MAX);
-        vkResetFences(m_device.getDevice(), 1, &m_inFlightFence);
 
-        bool imageAcquireSuccess;
+        // trace("begin");
+        // trace("fence: {}", (void*) &(m_frameObjects[frameNumber].m_inFlightFence));
+        vkWaitForFences(m_device.getDevice(), 1, &(m_frameObjects[frameNumber].m_inFlightFence), VK_TRUE, UINT64_MAX);
+
+        bool imageAcquireSuccess = false;
         u32 imageIndex = acquireImage(imageAcquireSuccess);
         if (!imageAcquireSuccess) {
             return {UINT32_MAX};
         }
+        // trace("acquired image");
+        vkResetFences(m_device.getDevice(), 1, &(m_frameObjects[frameNumber].m_inFlightFence));
 
-
-        vkResetCommandBuffer(m_commandBuffer, 0);
+        // trace("command buffer reset: {}", (void*)m_frameObjects[frameNumber].m_commandBuffer);
+        vkResetCommandBuffer(m_frameObjects[frameNumber].m_commandBuffer, 0);
         beginCommandBufferRecording(imageIndex);
 
         return {imageIndex};
@@ -273,9 +305,10 @@ namespace eg::rendering::VKWrapper {
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = 0;
-        beginInfo.pInheritanceInfo = 0;
+        beginInfo.pInheritanceInfo = nullptr;
 
-        if (vkBeginCommandBuffer(m_commandBuffer, &beginInfo) != VK_SUCCESS) {
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].m_commandBuffer;
+        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
             error("failed to begin command buffer!");
         }
 
@@ -290,18 +323,20 @@ namespace eg::rendering::VKWrapper {
         renderPassBeginInfo.clearValueCount = 1;
         renderPassBeginInfo.pClearValues = &clearColor;
 
-        vkCmdBeginRenderPass(m_commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     }
 
     void VKAPI::tempDraw() {
-        vkCmdBindPipeline(m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_shader.getPipeline());
-        vkCmdDraw(m_commandBuffer, 3, 1, 0, 0);
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].m_commandBuffer ;
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_shader.getPipeline());
+        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
     }
 
     void VKAPI::endCommandBufferRecording(u32 imageIndex) {
-        vkCmdEndRenderPass(m_commandBuffer);
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].m_commandBuffer ;
+        vkCmdEndRenderPass(commandBuffer);
 
-        if (vkEndCommandBuffer(m_commandBuffer) != VK_SUCCESS) {
+        if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
             error("failed to end command buffer recording!!!");
             return;
         }
@@ -313,20 +348,21 @@ namespace eg::rendering::VKWrapper {
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        VkSemaphore waitSemaphores[] = {m_imageAvailableSemaphore};
+        VkSemaphore waitSemaphores[] = {m_frameObjects[frameNumber].m_imageAvailableSemaphore};
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         submitInfo.waitSemaphoreCount = 1;
         submitInfo.pWaitSemaphores = waitSemaphores;
         submitInfo.pWaitDstStageMask = waitStages;
 
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].m_commandBuffer;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &m_commandBuffer;
+        submitInfo.pCommandBuffers = &commandBuffer;
 
-        VkSemaphore signalSemaphores[] = {m_renderFinishedSemaphore};
+        VkSemaphore signalSemaphores[] = {m_frameObjects[frameNumber].m_renderFinishedSemaphore};
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
-        if (vkQueueSubmit(m_device.m_graphicsQueue, 1, &submitInfo, m_inFlightFence) != VK_SUCCESS) {
+        if (vkQueueSubmit(m_device.m_graphicsQueue, 1, &submitInfo, m_frameObjects[frameNumber].m_inFlightFence) != VK_SUCCESS) {
             error("failed to submit queue!!!");
             return;
         }
@@ -344,31 +380,35 @@ namespace eg::rendering::VKWrapper {
 
         VkResult result = vkQueuePresentKHR(m_device.m_presentQueue, &presentInfoKhr);
 
-        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+        // trace("here");
+        // trace("try end frame {}", frameNumber);
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
             recreateSwapchain();
-            return;
+            framebufferResized = false;
+            // return;
         } else if (result != VK_SUCCESS) {
             error("failed to present swapchain image!");
         }
 
-        int frameBufferWidth, frameBufferHeight;
-        glfwGetFramebufferSize((GLFWwindow*) m_window.getNativeWindow(), &frameBufferWidth, &frameBufferHeight);
 
-        if (m_vkWindow.m_swapchainExtent.width != frameBufferWidth ||
-            m_vkWindow.m_swapchainExtent.height != frameBufferHeight) {
-            trace("window resize");
-            recreateSwapchain();
-        }
+        frameNumber++;
+        frameNumber %= maxFramesInFlight;
+
+        // trace("end. Next frame: {}", frameNumber);
     }
 
     void VKAPI::recreateSwapchain() {
+        trace("recreate swapchain");
+        glfwSetTime(0.0);
         deviceWaitIdle();
 
-        m_vkWindow.destroySwapchain();
-        m_vkWindow.createSwapchain();
-        m_renderPass.destruct();
-        m_renderPass.init();
+        m_vkWindow.destroyFrameBuffers();
         m_shader.destruct();
+        m_renderPass.destruct();
+        m_vkWindow.destroySwapchain();
+
+        m_vkWindow.createSwapchain();
+        m_renderPass.init();
         m_shader.init({
                               {
                                       "superBasic_vs",
@@ -381,14 +421,17 @@ namespace eg::rendering::VKWrapper {
                                       strlen(fragmentShaderData)
                               }
                       });
-        m_vkWindow.destroyFrameBuffers();
         m_vkWindow.createFrameBuffers();
+        trace("time to recreate: {}", glfwGetTime());
+        // trace("here");
     }
 
     VKAPI::~VKAPI() {
-        vkDestroySemaphore(m_device.getDevice(), m_imageAvailableSemaphore, nullptr);
-        vkDestroySemaphore(m_device.getDevice(), m_renderFinishedSemaphore, nullptr);
-        vkDestroyFence(m_device.getDevice(), m_inFlightFence, nullptr);
+        for(auto& frameObjects : m_frameObjects) {
+            vkDestroySemaphore(m_device.getDevice(), frameObjects.m_imageAvailableSemaphore, nullptr);
+            vkDestroySemaphore(m_device.getDevice(), frameObjects.m_renderFinishedSemaphore, nullptr);
+            vkDestroyFence(m_device.getDevice(), frameObjects.m_inFlightFence, nullptr);
+        }
 
         vkDestroyCommandPool(m_device.getDevice(), m_commandPool, nullptr);
         m_vkWindow.destroyFrameBuffers();

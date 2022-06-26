@@ -8,28 +8,31 @@
 #include "VkWindow.h"
 
 namespace eg::rendering::VKWrapper {
-    VkShader::VkShader(VkDevice& device, VkRenderPass& renderPass, VkWindow& window) : m_device(device), m_renderPass(renderPass),
-                                                                            m_window(window) {}
+    VkShader::VkShader(VkDevice& device, VkRenderPass& renderPass, VkWindow& window) : m_device(device),
+                                                                                       m_renderPass(renderPass),
+                                                                                       m_window(window) {}
 
     VkShader::~VkShader() {}
 
     void VkShader::init(eg::rendering::Shader::ShaderProgramSource source) {
-        VkShaderModule vertexShader = createShaderModule(source.vs, shaderc_vertex_shader);
-        VkShaderModule fragmentShader = createShaderModule(source.fs, shaderc_fragment_shader);
+        if (m_vertexShaderModule == VK_NULL_HANDLE)
+            m_vertexShaderModule = createShaderModule(source.vs, shaderc_vertex_shader);
+        if (m_fragmentShaderModule == VK_NULL_HANDLE)
+            m_fragmentShaderModule = createShaderModule(source.fs, shaderc_fragment_shader);
 
         VkPipelineShaderStageCreateInfo vertexShaderStageCreateInfo{};
         vertexShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        vertexShaderStageCreateInfo.module = vertexShader;
+        vertexShaderStageCreateInfo.module = m_vertexShaderModule;
         vertexShaderStageCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
         vertexShaderStageCreateInfo.pName = "main";
 
         VkPipelineShaderStageCreateInfo fragmentShaderStageCreateInfo{};
         fragmentShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        fragmentShaderStageCreateInfo.module = fragmentShader;
+        fragmentShaderStageCreateInfo.module = m_fragmentShaderModule;
         fragmentShaderStageCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         fragmentShaderStageCreateInfo.pName = "main";
 
-        VkPipelineShaderStageCreateInfo  shaderStages[] = {
+        VkPipelineShaderStageCreateInfo shaderStages[] = {
                 vertexShaderStageCreateInfo,
                 fragmentShaderStageCreateInfo
         };
@@ -89,7 +92,7 @@ namespace eg::rendering::VKWrapper {
 
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
         colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT
-                | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+                                              | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
         colorBlendAttachment.blendEnable = VK_TRUE;
         colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
         colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
@@ -111,7 +114,8 @@ namespace eg::rendering::VKWrapper {
         pipelineLayoutCreateInfo.setLayoutCount = 0;
         pipelineLayoutCreateInfo.pSetLayouts = nullptr;
 
-        if(vkCreatePipelineLayout(m_device.getDevice(), &pipelineLayoutCreateInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS) {
+        if (vkCreatePipelineLayout(m_device.getDevice(), &pipelineLayoutCreateInfo, nullptr, &m_pipelineLayout) !=
+            VK_SUCCESS) {
             error("failed to create pipeline layout!");
             return;
         }
@@ -135,13 +139,12 @@ namespace eg::rendering::VKWrapper {
         graphicsPipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
         graphicsPipelineCreateInfo.basePipelineIndex = -1;
 
-        if(vkCreateGraphicsPipelines(m_device.getDevice(), VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr, &m_pipeline) != VK_SUCCESS) {
+        if (vkCreateGraphicsPipelines(m_device.getDevice(), VK_NULL_HANDLE, 1, &graphicsPipelineCreateInfo, nullptr,
+                                      &m_pipeline) != VK_SUCCESS) {
             error("failed to create graphics pipeline!");
             return;
         }
 
-        vkDestroyShaderModule(m_device.getDevice(), vertexShader, nullptr);
-        vkDestroyShaderModule(m_device.getDevice(), fragmentShader, nullptr);
     }
 
     VkShaderModule
@@ -153,9 +156,9 @@ namespace eg::rendering::VKWrapper {
             options.SetOptimizationLevel(shaderc_optimization_level_size);
 
         shaderc::SpvCompilationResult spirvResult = compiler.CompileGlslToSpv(source.data, source.size,
-                                                                                           type, source.name, "main",
-                                                                                           options);
-        if(spirvResult.GetCompilationStatus() != shaderc_compilation_status_success) {
+                                                                              type, source.name, "main",
+                                                                              options);
+        if (spirvResult.GetCompilationStatus() != shaderc_compilation_status_success) {
             error("failed to compile file \"{}\"", source.name);
             error("errors: {}", spirvResult.GetErrorMessage());
             return VK_NULL_HANDLE;
@@ -167,7 +170,7 @@ namespace eg::rendering::VKWrapper {
         createInfo.codeSize = sizeof(u32) * std::distance(spirvResult.cbegin(), spirvResult.cend());
 
         VkShaderModule module;
-        if(vkCreateShaderModule(m_device.getDevice(), &createInfo, nullptr, &module) != VK_SUCCESS) {
+        if (vkCreateShaderModule(m_device.getDevice(), &createInfo, nullptr, &module) != VK_SUCCESS) {
             fatal("failed to create shader module!!!");
             return VK_NULL_HANDLE;
         }
@@ -176,6 +179,11 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkShader::destruct() {
+//        if(m_vertexShaderModule != VK_NULL_HANDLE)
+//            vkDestroyShaderModule(m_device.getDevice(), m_vertexShaderModule, nullptr);
+//        if(m_fragmentShaderModule != VK_NULL_HANDLE)
+//            vkDestroyShaderModule(m_device.getDevice(), m_fragmentShaderModule, nullptr);
+
         vkDestroyPipelineLayout(m_device.getDevice(), m_pipelineLayout, nullptr);
         vkDestroyPipeline(m_device.getDevice(), m_pipeline, nullptr);
     }

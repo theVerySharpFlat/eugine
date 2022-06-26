@@ -47,6 +47,7 @@ namespace eg::rendering::VKWrapper {
 
         void recreateSwapchain();
 
+        static const int maxFramesInFlight = 2;
 
     private:
         friend class VkDevice;
@@ -65,11 +66,16 @@ namespace eg::rendering::VKWrapper {
         VkShader m_shader;
 
         VkCommandPool  m_commandPool;
-        VkCommandBuffer m_commandBuffer;
 
-        VkSemaphore m_imageAvailableSemaphore;
-        VkSemaphore m_renderFinishedSemaphore;
-        VkFence m_inFlightFence;
+        struct FrameObjectsContainer {
+            VkCommandBuffer m_commandBuffer;
+            VkSemaphore m_imageAvailableSemaphore;
+            VkSemaphore m_renderFinishedSemaphore;
+            VkFence m_inFlightFence;
+        };
+        FrameObjectsContainer m_frameObjects[maxFramesInFlight];
+        int frameNumber = 0;
+
 #ifdef NDEBUG
         void setupDebugMessenger() {}
 #else
