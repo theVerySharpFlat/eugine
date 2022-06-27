@@ -12,34 +12,6 @@ static void framebufferResizeCallback(GLFWwindow* window, int width, int height)
     framebufferResized = true;
 }
 
-static const char* vertexShaderData = "#version 450\n"
-                                      "\n"
-                                      "layout(location = 0) out vec3 fragColor;\n"
-                                      "\n"
-                                      "vec2 positions[3] = vec2[](\n"
-                                      "vec2(0.0, -0.5),\n"
-                                      "vec2(0.5, 0.5),\n"
-                                      "vec2(-0.5, 0.5)\n"
-                                      ");\n"
-                                      "\n"
-                                      "vec3 colors[3] = vec3[](\n"
-                                      "vec3(1.0, 0.0, 0.0),\n"
-                                      "vec3(0.0, 1.0, 0.0),\n"
-                                      "vec3(0.0, 0.0, 1.0)\n"
-                                      ");\n"
-                                      "\n"
-                                      "void main() {\n"
-                                      "gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);\n"
-                                      "fragColor = colors[gl_VertexIndex];\n"
-                                      "}";
-static const char* fragmentShaderData = "#version 450\n"
-                                        "\n"
-                                        "layout(location = 0) in vec3 fragColor;\n"
-                                        "layout(location = 0) out vec4 outColor;\n"
-                                        "\n"
-                                        "void main() {\n"
-                                        "  outColor = vec4(fragColor, 1.0);\n"
-                                        "}";
 
 namespace eg::rendering::VKWrapper {
 
@@ -92,7 +64,7 @@ namespace eg::rendering::VKWrapper {
 
     VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE),
                                    m_device(*this), m_vkWindow(*this, m_device, m_renderPass, m_window),
-                                   m_renderPass(m_device, m_vkWindow), m_shader(m_device, m_renderPass, m_vkWindow) {
+                                   m_renderPass(m_device, m_vkWindow) {
 
         EG_ASSERT(volkInitialize() == VK_SUCCESS, "failed to initialize volk!!!");
 
@@ -131,20 +103,6 @@ namespace eg::rendering::VKWrapper {
         m_vkWindow.createSwapchain();
 
         m_renderPass.init();
-
-
-        m_shader.init({
-                              {
-                                      "superBasic_vs",
-                                      vertexShaderData,
-                                      strlen(vertexShaderData)
-                              },
-                              {
-                                      "superBasic_fs",
-                                      fragmentShaderData,
-                                      strlen(fragmentShaderData)
-                              }
-                      });
 
         m_vkWindow.createFrameBuffers();
 
@@ -258,6 +216,13 @@ namespace eg::rendering::VKWrapper {
         }
     }
 
+    Ref<::eg::rendering::VKWrapper::VkShader> VKAPI::createShader(eg::rendering::Shader::ShaderProgramSource source) {
+        auto temp = createRef<::eg::rendering::VKWrapper::VkShader>(m_device, m_renderPass, m_vkWindow);
+        temp->init(source);
+
+        return temp;
+    }
+
     u32 VKAPI::acquireImage(bool& success) {
         while (true) {
             u32 imageIndex;
@@ -323,7 +288,7 @@ namespace eg::rendering::VKWrapper {
         vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     }
 
-    void VKAPI::tempDraw() {
+    void VKAPI::tempDraw(Ref<VkShader> shader) {
         VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].m_commandBuffer ;
 
         VkExtent2D swapchainExtent = m_vkWindow.getSwapchainExtent();
@@ -341,7 +306,7 @@ namespace eg::rendering::VKWrapper {
         scissorRect.offset = {0, 0};
         vkCmdSetScissor(commandBuffer, 0, 1, &scissorRect);
 
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_shader.getPipeline());
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipeline());
         vkCmdDraw(commandBuffer, 3, 1, 0, 0);
     }
 
@@ -417,24 +382,11 @@ namespace eg::rendering::VKWrapper {
 
         m_vkWindow.updateSwapchainExtent();
         m_vkWindow.destroyFrameBuffers();
-        // m_shader.destruct();
         m_renderPass.destruct();
         m_vkWindow.destroySwapchain();
 
         m_vkWindow.createSwapchain();
         m_renderPass.init();
-//        m_shader.init({
-//                              {
-//                                      "superBasic_vs",
-//                                      vertexShaderData,
-//                                      strlen(vertexShaderData)
-//                              },
-//                              {
-//                                      "superBasic_fs",
-//                                      fragmentShaderData,
-//                                      strlen(fragmentShaderData)
-//                              }
-//                      });
         m_vkWindow.createFrameBuffers();
         trace("time to recreate: {}", glfwGetTime());
         // trace("here");
@@ -449,7 +401,6 @@ namespace eg::rendering::VKWrapper {
 
         vkDestroyCommandPool(m_device.getDevice(), m_commandPool, nullptr);
         m_vkWindow.destroyFrameBuffers();
-        m_shader.destruct();
         m_renderPass.destruct();
         m_vkWindow.destroySwapchain();
         m_device.destruct();

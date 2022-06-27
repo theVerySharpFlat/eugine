@@ -29,6 +29,35 @@
 
 eg::Application* eg::Application::s_instance = nullptr;
 
+static const char* vertexShaderData = "#version 450\n"
+                                      "\n"
+                                      "layout(location = 0) out vec3 fragColor;\n"
+                                      "\n"
+                                      "vec2 positions[3] = vec2[](\n"
+                                      "vec2(0.0, -0.5),\n"
+                                      "vec2(0.5, 0.5),\n"
+                                      "vec2(-0.5, 0.5)\n"
+                                      ");\n"
+                                      "\n"
+                                      "vec3 colors[3] = vec3[](\n"
+                                      "vec3(1.0, 0.0, 0.0),\n"
+                                      "vec3(0.0, 1.0, 0.0),\n"
+                                      "vec3(0.0, 0.0, 1.0)\n"
+                                      ");\n"
+                                      "\n"
+                                      "void main() {\n"
+                                      "gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);\n"
+                                      "fragColor = colors[gl_VertexIndex];\n"
+                                      "}";
+static const char* fragmentShaderData = "#version 450\n"
+                                        "\n"
+                                        "layout(location = 0) in vec3 fragColor;\n"
+                                        "layout(location = 0) out vec4 outColor;\n"
+                                        "\n"
+                                        "void main() {\n"
+                                        "  outColor = vec4(fragColor, 1.0);\n"
+                                        "}";
+
 eg::Application::Application() {
 
     //initialize log
@@ -43,8 +72,8 @@ eg::Application::Application() {
 
     //windowing and events
     m_window = std::unique_ptr<Window>(Window::create());
-    m_window ->setEventCallback(BIND_EVENT_FN(Application::onEvent));
-    
+    m_window->setEventCallback(BIND_EVENT_FN(Application::onEvent));
+
     m_renderAPI = rendering::GraphicsAPI::create(*m_window);
     info("Max Textures Per Shader: {}", m_renderAPI->getMaxTexturesPerShader());
 
@@ -128,9 +157,18 @@ eg::Application::~Application() {}
 
 void eg::Application::run() {
     auto vkGraphics = (eg::rendering::VKWrapper::VKAPI*) m_renderAPI.get();
-    while (m_running){
+    auto shader = vkGraphics->createShader({
+                                                   {
+                                                           "superBasic.vs", vertexShaderData,   strlen(vertexShaderData)
+                                                   },
+                                                   {
+                                                           "superBasic.fs", fragmentShaderData, strlen(
+                                                           fragmentShaderData)
+                                                   }
+                                           });
+    while (m_running) {
         auto frameData = vkGraphics->begin();
-        vkGraphics->tempDraw();
+        vkGraphics->tempDraw(shader);
         vkGraphics->end(frameData);
         /* m_renderAPI->setClearColor({1.0, 0.0, 1.0});
         m_renderAPI->clear();
@@ -201,40 +239,40 @@ void eg::Application::run() {
 
         m_imGuiLayer->end();
         m_renderAPI->swapBuffers();*/
-        m_window -> onUpdate();
+        m_window->onUpdate();
     }
     vkGraphics->deviceWaitIdle();
 }
 
-void eg::Application::onEvent(eg::Event &e) {
+void eg::Application::onEvent(eg::Event& e) {
     EventDispatcher dispatcher(e);
     dispatcher.dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::onWindowClose));
     dispatcher.dispatch<KeyPressedEvent>(BIND_EVENT_FN(Application::onKeyEvent));
-    for(auto it = m_layerStack.end(); it != m_layerStack.begin(); ) {
+    for (auto it = m_layerStack.end(); it != m_layerStack.begin();) {
 
         (*--it)->onEvent(e);
-        if(e.handled){
+        if (e.handled) {
             break;
         }
     }
 }
 
-void eg::Application::pushOverlay(eg::Layer *layer) {
+void eg::Application::pushOverlay(eg::Layer* layer) {
     m_layerStack.pushOverlay(layer);
-    layer -> onAttach();
+    layer->onAttach();
 }
 
-void eg::Application::pushLayer(eg::Layer *layer) {
+void eg::Application::pushLayer(eg::Layer* layer) {
     m_layerStack.pushLayer(layer);
-    layer -> onAttach();
+    layer->onAttach();
 }
 
-bool eg::Application::onWindowClose(eg::WindowCloseEvent &e) {
+bool eg::Application::onWindowClose(eg::WindowCloseEvent& e) {
     m_running = false;
     return true;
 }
 
-bool eg::Application::onKeyEvent(eg::KeyPressedEvent &e) {
+bool eg::Application::onKeyEvent(eg::KeyPressedEvent& e) {
 //    if(e.getKeyCode() == EG_KEY_RIGHT) {
 //        m_camera.setPosition(m_camera.getPosition() + glm::vec2(0.0, 5.0));
 //    } else if(e.getKeyCode() == EG_KEY_LEFT) {

@@ -40,7 +40,7 @@ namespace eg::rendering::VKWrapper {
         };
 
         FrameData begin();
-        void tempDraw();
+        void tempDraw(Ref<VkShader> shader);
         void end(FrameData frameData);
 
         u32 acquireImage(bool& success);
@@ -48,6 +48,8 @@ namespace eg::rendering::VKWrapper {
         void recreateSwapchain();
 
         static const int maxFramesInFlight = 2;
+
+        Ref<::eg::rendering::VKWrapper::VkShader> createShader(eg::rendering::Shader::ShaderProgramSource source);
 
     private:
         friend class VkDevice;
@@ -62,8 +64,6 @@ namespace eg::rendering::VKWrapper {
         VkWindow m_vkWindow;
 
         VkRenderPass m_renderPass;
-
-        VkShader m_shader;
 
         VkCommandPool  m_commandPool;
 

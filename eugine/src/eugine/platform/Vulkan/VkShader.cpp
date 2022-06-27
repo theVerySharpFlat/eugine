@@ -12,7 +12,9 @@ namespace eg::rendering::VKWrapper {
                                                                                        m_renderPass(renderPass),
                                                                                        m_window(window) {}
 
-    VkShader::~VkShader() {}
+    VkShader::~VkShader() {
+        destruct();
+    }
 
     void VkShader::init(eg::rendering::Shader::ShaderProgramSource source) {
         VkShaderModule vertexShaderModule = createShaderModule(source.vs, shaderc_vertex_shader);
@@ -188,7 +190,12 @@ namespace eg::rendering::VKWrapper {
 
     void VkShader::destruct() {
 
-        vkDestroyPipelineLayout(m_device.getDevice(), m_pipelineLayout, nullptr);
-        vkDestroyPipeline(m_device.getDevice(), m_pipeline, nullptr);
+        if(m_pipelineLayout != VK_NULL_HANDLE)
+            vkDestroyPipelineLayout(m_device.getDevice(), m_pipelineLayout, nullptr);
+        if(m_pipeline != VK_NULL_HANDLE)
+            vkDestroyPipeline(m_device.getDevice(), m_pipeline, nullptr);
+
+        m_pipelineLayout = VK_NULL_HANDLE;
+        m_pipeline = VK_NULL_HANDLE;
     }
 }
