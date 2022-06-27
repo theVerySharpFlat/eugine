@@ -37,8 +37,6 @@ namespace eg::rendering::VKWrapper {
         VkPipelineLayout m_pipelineLayout = VK_NULL_HANDLE;
 
         VkShaderModule createShaderModule(eg::rendering::Shader::ShaderUnitSource source, shaderc_shader_kind type, bool optimize = false);
-        VkShaderModule m_vertexShaderModule = VK_NULL_HANDLE;
-        VkShaderModule m_fragmentShaderModule = VK_NULL_HANDLE;
     };
 }
 

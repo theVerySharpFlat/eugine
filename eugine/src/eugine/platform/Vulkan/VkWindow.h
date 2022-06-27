@@ -27,6 +27,9 @@ namespace eg::rendering::VKWrapper {
         void createFrameBuffers();
         void destroyFrameBuffers();
 
+        void updateSwapchainExtent();
+        VkExtent2D getSwapchainExtent() { return m_swapchainExtent; }
+
         ~VkWindow();
 
         VkSurfaceKHR& getSurface() { return m_surface; }

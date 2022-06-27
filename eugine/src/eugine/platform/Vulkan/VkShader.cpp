@@ -15,20 +15,18 @@ namespace eg::rendering::VKWrapper {
     VkShader::~VkShader() {}
 
     void VkShader::init(eg::rendering::Shader::ShaderProgramSource source) {
-        if (m_vertexShaderModule == VK_NULL_HANDLE)
-            m_vertexShaderModule = createShaderModule(source.vs, shaderc_vertex_shader);
-        if (m_fragmentShaderModule == VK_NULL_HANDLE)
-            m_fragmentShaderModule = createShaderModule(source.fs, shaderc_fragment_shader);
+        VkShaderModule vertexShaderModule = createShaderModule(source.vs, shaderc_vertex_shader);
+        VkShaderModule fragmentShaderModule = createShaderModule(source.fs, shaderc_fragment_shader);
 
         VkPipelineShaderStageCreateInfo vertexShaderStageCreateInfo{};
         vertexShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        vertexShaderStageCreateInfo.module = m_vertexShaderModule;
+        vertexShaderStageCreateInfo.module = vertexShaderModule;
         vertexShaderStageCreateInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
         vertexShaderStageCreateInfo.pName = "main";
 
         VkPipelineShaderStageCreateInfo fragmentShaderStageCreateInfo{};
         fragmentShaderStageCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        fragmentShaderStageCreateInfo.module = m_fragmentShaderModule;
+        fragmentShaderStageCreateInfo.module = fragmentShaderModule;
         fragmentShaderStageCreateInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
         fragmentShaderStageCreateInfo.pName = "main";
 
@@ -120,6 +118,13 @@ namespace eg::rendering::VKWrapper {
             return;
         }
 
+        VkDynamicState dynamicStates[] = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+
+        VkPipelineDynamicStateCreateInfo dynamicStateCreateInfo{};
+        dynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        dynamicStateCreateInfo.pDynamicStates = dynamicStates;
+        dynamicStateCreateInfo.dynamicStateCount = 2;
+
         VkGraphicsPipelineCreateInfo graphicsPipelineCreateInfo{};
         graphicsPipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         graphicsPipelineCreateInfo.stageCount = 2;
@@ -132,7 +137,7 @@ namespace eg::rendering::VKWrapper {
         graphicsPipelineCreateInfo.pMultisampleState = &multisampleStateCreateInfo;
         graphicsPipelineCreateInfo.pDepthStencilState = nullptr;
         graphicsPipelineCreateInfo.pColorBlendState = &colorBlending;
-        graphicsPipelineCreateInfo.pDynamicState = nullptr;
+        graphicsPipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
         graphicsPipelineCreateInfo.layout = m_pipelineLayout;
         graphicsPipelineCreateInfo.renderPass = m_renderPass.m_renderPass;
         graphicsPipelineCreateInfo.subpass = 0;
@@ -144,6 +149,9 @@ namespace eg::rendering::VKWrapper {
             error("failed to create graphics pipeline!");
             return;
         }
+
+        vkDestroyShaderModule(m_device.getDevice(), vertexShaderModule, nullptr);
+        vkDestroyShaderModule(m_device.getDevice(), fragmentShaderModule, nullptr);
 
     }
 
@@ -179,10 +187,6 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkShader::destruct() {
-//        if(m_vertexShaderModule != VK_NULL_HANDLE)
-//            vkDestroyShaderModule(m_device.getDevice(), m_vertexShaderModule, nullptr);
-//        if(m_fragmentShaderModule != VK_NULL_HANDLE)
-//            vkDestroyShaderModule(m_device.getDevice(), m_fragmentShaderModule, nullptr);
 
         vkDestroyPipelineLayout(m_device.getDevice(), m_pipelineLayout, nullptr);
         vkDestroyPipeline(m_device.getDevice(), m_pipeline, nullptr);

@@ -61,6 +61,13 @@ namespace eg::rendering::VKWrapper {
         }
     }
 
+    void VkWindow::updateSwapchainExtent() {
+        VkSurfaceCapabilitiesKHR surfaceCapabilities;
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_device.getPhysicalDevice(), m_surface, &surfaceCapabilities);
+
+        m_swapchainExtent = chooseSwapExtent(surfaceCapabilities);
+    }
+
     void VkWindow::createSwapchain() {
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_device.getPhysicalDevice(), m_surface, &surfaceCapabilities);

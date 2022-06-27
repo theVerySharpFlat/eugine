@@ -55,7 +55,7 @@ namespace eg::rendering::VKWrapper {
             ::eg::warn("Vulkan: {}", pCallbackData->pMessage);
         else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
             ::eg::info("Vulkan: {}", pCallbackData->pMessage);
-        else;
+        else
              ::eg::trace("Vulkan: {}", pCallbackData->pMessage);
 
         return VK_FALSE;
@@ -266,8 +266,8 @@ namespace eg::rendering::VKWrapper {
 
             // trace("acquire image");
             if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
-                recreateSwapchain();
                 glfwPollEvents();
+                recreateSwapchain();
                 continue;
             } else if (result != VK_SUCCESS) {
                 error("failed to acquire swapchain image!!!");
@@ -281,9 +281,6 @@ namespace eg::rendering::VKWrapper {
     }
 
     VKAPI::FrameData VKAPI::begin() {
-
-        // trace("begin");
-        // trace("fence: {}", (void*) &(m_frameObjects[frameNumber].m_inFlightFence));
         vkWaitForFences(m_device.getDevice(), 1, &(m_frameObjects[frameNumber].m_inFlightFence), VK_TRUE, UINT64_MAX);
 
         bool imageAcquireSuccess = false;
@@ -328,6 +325,22 @@ namespace eg::rendering::VKWrapper {
 
     void VKAPI::tempDraw() {
         VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].m_commandBuffer ;
+
+        VkExtent2D swapchainExtent = m_vkWindow.getSwapchainExtent();
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = swapchainExtent.width;
+        viewport.height = swapchainExtent.height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+        VkRect2D scissorRect = {};
+        scissorRect.extent = swapchainExtent;
+        scissorRect.offset = {0, 0};
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissorRect);
+
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_shader.getPipeline());
         vkCmdDraw(commandBuffer, 3, 1, 0, 0);
     }
@@ -402,25 +415,26 @@ namespace eg::rendering::VKWrapper {
         glfwSetTime(0.0);
         deviceWaitIdle();
 
+        m_vkWindow.updateSwapchainExtent();
         m_vkWindow.destroyFrameBuffers();
-        m_shader.destruct();
+        // m_shader.destruct();
         m_renderPass.destruct();
         m_vkWindow.destroySwapchain();
 
         m_vkWindow.createSwapchain();
         m_renderPass.init();
-        m_shader.init({
-                              {
-                                      "superBasic_vs",
-                                      vertexShaderData,
-                                      strlen(vertexShaderData)
-                              },
-                              {
-                                      "superBasic_fs",
-                                      fragmentShaderData,
-                                      strlen(fragmentShaderData)
-                              }
-                      });
+//        m_shader.init({
+//                              {
+//                                      "superBasic_vs",
+//                                      vertexShaderData,
+//                                      strlen(vertexShaderData)
+//                              },
+//                              {
+//                                      "superBasic_fs",
+//                                      fragmentShaderData,
+//                                      strlen(fragmentShaderData)
+//                              }
+//                      });
         m_vkWindow.createFrameBuffers();
         trace("time to recreate: {}", glfwGetTime());
         // trace("here");
