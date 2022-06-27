@@ -52,14 +52,14 @@ namespace eg::rendering::VKWrapper {
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = (float) m_window.m_swapchainExtent.width;
-        viewport.height = (float) m_window.m_swapchainExtent.height;
+        viewport.width = (float) m_window.getSwapchainExtent().width;
+        viewport.height = (float) m_window.getSwapchainExtent().height;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
 
         VkRect2D scissor{};
         scissor.offset = {0, 0};
-        scissor.extent = m_window.m_swapchainExtent;
+        scissor.extent = m_window.getSwapchainExtent();
 
         VkPipelineViewportStateCreateInfo viewportStateCreateInfo{};
         viewportStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -141,7 +141,7 @@ namespace eg::rendering::VKWrapper {
         graphicsPipelineCreateInfo.pColorBlendState = &colorBlending;
         graphicsPipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
         graphicsPipelineCreateInfo.layout = m_pipelineLayout;
-        graphicsPipelineCreateInfo.renderPass = m_renderPass.m_renderPass;
+        graphicsPipelineCreateInfo.renderPass = m_renderPass.getRenderPass();
         graphicsPipelineCreateInfo.subpass = 0;
         graphicsPipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
         graphicsPipelineCreateInfo.basePipelineIndex = -1;

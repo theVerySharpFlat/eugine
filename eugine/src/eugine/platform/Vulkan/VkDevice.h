@@ -33,6 +33,9 @@ namespace eg::rendering::VKWrapper {
         };
         QueueFamilyIndices getQueueFamilyIndices() { return m_queueFamilyIndices; }
 
+        ::VkQueue& getGraphicsQueue() { return m_graphicsQueue; }
+        ::VkQueue& getPresentQueue() { return m_presentQueue; }
+
         inline void waitIdle() { vkDeviceWaitIdle(m_device); }
 
     private:

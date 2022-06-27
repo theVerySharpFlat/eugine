@@ -20,6 +20,8 @@ namespace eg::rendering::VKWrapper {
         void init();
         void destruct();
 
+        ::VkRenderPass getRenderPass() { return m_renderPass; }
+
     private:
         friend class VKAPI;
         friend class VkShader;

@@ -23,12 +23,16 @@ namespace eg::rendering::VKWrapper {
 
         void createSwapchain();
         void destroySwapchain();
+        ::VkSwapchainKHR& getSwapchain() { return m_swapchain; }
 
         void createFrameBuffers();
         void destroyFrameBuffers();
+        ::VkFramebuffer& getFrameBuffer(u32 index) { return m_framebuffers[index]; }
 
         void updateSwapchainExtent();
         VkExtent2D getSwapchainExtent() { return m_swapchainExtent; }
+
+        ::VkFormat& getSwapchainImageFormat() { return m_swapchainImageFormat; }
 
         ~VkWindow();
 

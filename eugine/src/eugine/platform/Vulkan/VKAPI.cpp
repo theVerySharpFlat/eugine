@@ -64,9 +64,9 @@ namespace eg::rendering::VKWrapper {
 
     VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE),
                                    m_device(*this), m_vkWindow(*this, m_device, m_renderPass, m_window),
-                                   m_renderPass(m_device, m_vkWindow) {
+                                   m_renderPass(m_device, m_vkWindow), m_commandPool(VK_NULL_HANDLE) {
 
-        EG_ASSERT(volkInitialize() == VK_SUCCESS, "failed to initialize volk!!!");
+        EG_ASSERT(volkInitialize() == VK_SUCCESS, "failed to initialize volk!!!")
 
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -92,7 +92,7 @@ namespace eg::rendering::VKWrapper {
         instanceCreateInfo.ppEnabledLayerNames = validationLayers;
         instanceCreateInfo.pNext = enableValidationLayers ? &debugUtilsMessengerCreateInfo : nullptr;
         EG_ASSERT(vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance) == VK_SUCCESS,
-                  "Failed to create instance!");
+                  "Failed to create instance!")
         volkLoadInstance(m_instance);
 
         setupDebugMessenger();
@@ -109,14 +109,6 @@ namespace eg::rendering::VKWrapper {
         createCommandPool();
         allocateCommandBuffers();
 
-//        for(int i = 0; i < maxFramesInFlight; i++) {
-//            auto& thing = m_frameObjects[i];
-//            thing = FrameObjectsContainer{};
-//            thing.m_commandBuffer = VK_NULL_HANDLE;
-//            thing.m_inFlightFence = VK_NULL_HANDLE;
-//            thing.m_imageAvailableSemaphore = VK_NULL_HANDLE;
-//            thing.m_renderFinishedSemaphore = VK_NULL_HANDLE;
-//        }
         createSyncObjects();
 
         glfwSetFramebufferSizeCallback((GLFWwindow*) m_window.getNativeWindow(), framebufferResizeCallback);
@@ -139,7 +131,7 @@ namespace eg::rendering::VKWrapper {
         VkDebugUtilsMessengerCreateInfoEXT createInfo{};
         populateDebugMessengerCreateInfo(createInfo);
         EG_ASSERT(createDebugUtilsMessengerEXTProxy(m_instance, &createInfo, nullptr, &m_debugMessenger) == VK_SUCCESS,
-                  "Failed to set up debug messenger!!!");
+                  "Failed to set up debug messenger!!!")
     }
 
     std::vector<const char*> VKAPI::getRequiredInstanceExtensions() {
@@ -174,12 +166,12 @@ namespace eg::rendering::VKWrapper {
         allocateInfo.commandBufferCount = 1;
 
         for (auto& frameObjects: m_frameObjects) {
-            if (vkAllocateCommandBuffers(m_device.getDevice(), &allocateInfo, &frameObjects.m_commandBuffer) !=
+            if (vkAllocateCommandBuffers(m_device.getDevice(), &allocateInfo, &frameObjects.commandBuffer) !=
                 VK_SUCCESS) {
                 error("failed to allocate command buffer");
                 return;
             }
-            trace("command buffer create: {}", (void*)m_frameObjects[frameNumber].m_commandBuffer);
+            trace("command buffer create: {}", (void*)m_frameObjects[frameNumber].commandBuffer);
         }
     }
 
@@ -191,28 +183,27 @@ namespace eg::rendering::VKWrapper {
         fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-        for (int i = 0; i < maxFramesInFlight; i++) {
-            auto& frameObjects = m_frameObjects[i];
+        for (auto& frameObjects : m_frameObjects) {
             trace("create objects");
             if (vkCreateSemaphore(m_device.getDevice(), &semaphoreCreateInfo, nullptr,
-                                  &frameObjects.m_imageAvailableSemaphore) != VK_SUCCESS) {
+                                  &frameObjects.imageAvailableSemaphore) != VK_SUCCESS) {
                 error("failed to create imageAvailable semaphore");
                 return;
             }
 
             if (vkCreateSemaphore(m_device.getDevice(), &semaphoreCreateInfo, nullptr,
-                                  &frameObjects.m_renderFinishedSemaphore) != VK_SUCCESS) {
+                                  &frameObjects.renderFinishedSemaphore) != VK_SUCCESS) {
                 error("failed to create renderFinished semaphore");
                 return;
             }
 
 
-            if (vkCreateFence(m_device.getDevice(), &fenceCreateInfo, nullptr, &(frameObjects.m_inFlightFence)) != VK_SUCCESS) {
+            if (vkCreateFence(m_device.getDevice(), &fenceCreateInfo, nullptr, &(frameObjects.inFlightFence)) != VK_SUCCESS) {
                 error("failed to create inFlightFence!!!");
                 return;
             }
 
-            trace("fence on creation: {}", (void*) &frameObjects.m_inFlightFence);
+            trace("fence on creation: {}", (void*) &frameObjects.inFlightFence);
         }
     }
 
@@ -226,8 +217,8 @@ namespace eg::rendering::VKWrapper {
     u32 VKAPI::acquireImage(bool& success) {
         while (true) {
             u32 imageIndex;
-            VkResult result = vkAcquireNextImageKHR(m_device.getDevice(), m_vkWindow.m_swapchain, UINT64_MAX,
-                                                    m_frameObjects[frameNumber].m_imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+            VkResult result = vkAcquireNextImageKHR(m_device.getDevice(), m_vkWindow.getSwapchain(), UINT64_MAX,
+                                                    m_frameObjects[frameNumber].imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
             // trace("acquire image");
             if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
@@ -246,7 +237,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     VKAPI::FrameData VKAPI::begin() {
-        vkWaitForFences(m_device.getDevice(), 1, &(m_frameObjects[frameNumber].m_inFlightFence), VK_TRUE, UINT64_MAX);
+        vkWaitForFences(m_device.getDevice(), 1, &(m_frameObjects[frameNumber].inFlightFence), VK_TRUE, UINT64_MAX);
 
         bool imageAcquireSuccess = false;
         u32 imageIndex = acquireImage(imageAcquireSuccess);
@@ -254,10 +245,10 @@ namespace eg::rendering::VKWrapper {
             return {UINT32_MAX};
         }
         // trace("acquired image");
-        vkResetFences(m_device.getDevice(), 1, &(m_frameObjects[frameNumber].m_inFlightFence));
+        vkResetFences(m_device.getDevice(), 1, &(m_frameObjects[frameNumber].inFlightFence));
 
         // trace("command buffer reset: {}", (void*)m_frameObjects[frameNumber].m_commandBuffer);
-        vkResetCommandBuffer(m_frameObjects[frameNumber].m_commandBuffer, 0);
+        vkResetCommandBuffer(m_frameObjects[frameNumber].commandBuffer, 0);
         beginCommandBufferRecording(imageIndex);
 
         return {imageIndex};
@@ -269,7 +260,7 @@ namespace eg::rendering::VKWrapper {
         beginInfo.flags = 0;
         beginInfo.pInheritanceInfo = nullptr;
 
-        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].m_commandBuffer;
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
         if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
             error("failed to begin command buffer!");
         }
@@ -278,10 +269,10 @@ namespace eg::rendering::VKWrapper {
         // begin renderpass
         VkRenderPassBeginInfo renderPassBeginInfo{};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassBeginInfo.renderPass = m_renderPass.m_renderPass;
-        renderPassBeginInfo.framebuffer = m_vkWindow.m_framebuffers[imageIndex];
+        renderPassBeginInfo.renderPass = m_renderPass.getRenderPass();
+        renderPassBeginInfo.framebuffer = m_vkWindow.getFrameBuffer(imageIndex);
         renderPassBeginInfo.renderArea.offset = {0, 0};
-        renderPassBeginInfo.renderArea.extent = m_vkWindow.m_swapchainExtent;
+        renderPassBeginInfo.renderArea.extent = m_vkWindow.getSwapchainExtent();
         renderPassBeginInfo.clearValueCount = 1;
         renderPassBeginInfo.pClearValues = &clearColor;
 
@@ -289,14 +280,14 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VKAPI::tempDraw(Ref<VkShader> shader) {
-        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].m_commandBuffer ;
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer ;
 
         VkExtent2D swapchainExtent = m_vkWindow.getSwapchainExtent();
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = swapchainExtent.width;
-        viewport.height = swapchainExtent.height;
+        viewport.width = (float) swapchainExtent.width;
+        viewport.height = (float) swapchainExtent.height;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
@@ -311,7 +302,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VKAPI::endCommandBufferRecording(u32 imageIndex) {
-        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].m_commandBuffer ;
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer ;
         vkCmdEndRenderPass(commandBuffer);
 
         if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
@@ -326,21 +317,21 @@ namespace eg::rendering::VKWrapper {
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-        VkSemaphore waitSemaphores[] = {m_frameObjects[frameNumber].m_imageAvailableSemaphore};
+        VkSemaphore waitSemaphores[] = {m_frameObjects[frameNumber].imageAvailableSemaphore};
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         submitInfo.waitSemaphoreCount = 1;
         submitInfo.pWaitSemaphores = waitSemaphores;
         submitInfo.pWaitDstStageMask = waitStages;
 
-        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].m_commandBuffer;
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &commandBuffer;
 
-        VkSemaphore signalSemaphores[] = {m_frameObjects[frameNumber].m_renderFinishedSemaphore};
+        VkSemaphore signalSemaphores[] = {m_frameObjects[frameNumber].renderFinishedSemaphore};
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
-        if (vkQueueSubmit(m_device.m_graphicsQueue, 1, &submitInfo, m_frameObjects[frameNumber].m_inFlightFence) != VK_SUCCESS) {
+        if (vkQueueSubmit(m_device.getGraphicsQueue(), 1, &submitInfo, m_frameObjects[frameNumber].inFlightFence) != VK_SUCCESS) {
             error("failed to submit queue!!!");
             return;
         }
@@ -350,13 +341,13 @@ namespace eg::rendering::VKWrapper {
         presentInfoKhr.waitSemaphoreCount = 1;
         presentInfoKhr.pWaitSemaphores = signalSemaphores;
 
-        VkSwapchainKHR swapchains[] = {m_vkWindow.m_swapchain};
+        VkSwapchainKHR swapchains[] = {m_vkWindow.getSwapchain()};
         presentInfoKhr.swapchainCount = 1;
         presentInfoKhr.pSwapchains = swapchains;
         presentInfoKhr.pImageIndices = &frameData.imageIndex;
         presentInfoKhr.pResults = nullptr;
 
-        VkResult result = vkQueuePresentKHR(m_device.m_presentQueue, &presentInfoKhr);
+        VkResult result = vkQueuePresentKHR(m_device.getPresentQueue(), &presentInfoKhr);
 
         // trace("here");
         // trace("try end frame {}", frameNumber);
@@ -394,9 +385,9 @@ namespace eg::rendering::VKWrapper {
 
     VKAPI::~VKAPI() {
         for(auto& frameObjects : m_frameObjects) {
-            vkDestroySemaphore(m_device.getDevice(), frameObjects.m_imageAvailableSemaphore, nullptr);
-            vkDestroySemaphore(m_device.getDevice(), frameObjects.m_renderFinishedSemaphore, nullptr);
-            vkDestroyFence(m_device.getDevice(), frameObjects.m_inFlightFence, nullptr);
+            vkDestroySemaphore(m_device.getDevice(), frameObjects.imageAvailableSemaphore, nullptr);
+            vkDestroySemaphore(m_device.getDevice(), frameObjects.renderFinishedSemaphore, nullptr);
+            vkDestroyFence(m_device.getDevice(), frameObjects.inFlightFence, nullptr);
         }
 
         vkDestroyCommandPool(m_device.getDevice(), m_commandPool, nullptr);

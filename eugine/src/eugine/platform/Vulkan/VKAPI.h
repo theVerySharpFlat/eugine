@@ -68,10 +68,10 @@ namespace eg::rendering::VKWrapper {
         VkCommandPool  m_commandPool;
 
         struct FrameObjectsContainer {
-            VkCommandBuffer m_commandBuffer;
-            VkSemaphore m_imageAvailableSemaphore;
-            VkSemaphore m_renderFinishedSemaphore;
-            VkFence m_inFlightFence;
+            VkCommandBuffer commandBuffer;
+            VkSemaphore imageAvailableSemaphore;
+            VkSemaphore renderFinishedSemaphore;
+            VkFence inFlightFence;
         };
         FrameObjectsContainer m_frameObjects[maxFramesInFlight];
         int frameNumber = 0;
