@@ -8,6 +8,7 @@
 #include <volk.h>
 
 #include <eugine/rendering/Shader.h>
+#include <eugine/rendering/VertexBufferLayout.h>
 #include <shaderc/shaderc.hpp>
 
 namespace eg::rendering::VKWrapper {
@@ -22,7 +23,7 @@ namespace eg::rendering::VKWrapper {
         VkShader(VkDevice& device, VkRenderPass& renderPass, VkWindow& window);
         ~VkShader();
 
-        void init(eg::rendering::Shader::ShaderProgramSource source);
+        void init(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout& layout);
         void destruct();
 
         VkPipeline& getPipeline() { return m_pipeline; }

@@ -31,23 +31,14 @@ eg::Application* eg::Application::s_instance = nullptr;
 
 static const char* vertexShaderData = "#version 450\n"
                                       "\n"
+                                      "layout(location = 0) in vec2 inPosition;\n"
+                                      "layout(location = 1) in vec3 inColor;\n"
+                                      "\n"
                                       "layout(location = 0) out vec3 fragColor;\n"
                                       "\n"
-                                      "vec2 positions[3] = vec2[](\n"
-                                      "vec2(0.0, -0.5),\n"
-                                      "vec2(0.5, 0.5),\n"
-                                      "vec2(-0.5, 0.5)\n"
-                                      ");\n"
-                                      "\n"
-                                      "vec3 colors[3] = vec3[](\n"
-                                      "vec3(1.0, 0.0, 0.0),\n"
-                                      "vec3(0.0, 1.0, 0.0),\n"
-                                      "vec3(0.0, 0.0, 1.0)\n"
-                                      ");\n"
-                                      "\n"
                                       "void main() {\n"
-                                      "gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);\n"
-                                      "fragColor = colors[gl_VertexIndex];\n"
+                                      "gl_Position = vec4(inPosition, 0.0, 1.0);\n"
+                                      "fragColor = inColor;\n"
                                       "}";
 static const char* fragmentShaderData = "#version 450\n"
                                         "\n"
@@ -157,6 +148,17 @@ eg::Application::~Application() {}
 
 void eg::Application::run() {
     auto vkGraphics = (eg::rendering::VKWrapper::VKAPI*) m_renderAPI.get();
+
+    rendering::VertexBufferLayout vertexBufferLayout(2);
+    vertexBufferLayout.setAttribute(0, { // pos
+            rendering::SHDR_VEC2,
+            1
+    });
+    vertexBufferLayout.setAttribute(1, { // color
+            rendering::SHDR_VEC3,
+            1
+    });
+
     auto shader = vkGraphics->createShader({
                                                    {
                                                            "superBasic.vs", vertexShaderData,   strlen(vertexShaderData)
@@ -165,10 +167,20 @@ void eg::Application::run() {
                                                            "superBasic.fs", fragmentShaderData, strlen(
                                                            fragmentShaderData)
                                                    }
-                                           });
+                                           }, vertexBufferLayout);
+
+    const float vertices[] = {
+            0.0f, -0.5f, 1.0f, 0.0f, 0.0f,
+            0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+            -0.5f, 0.5f, 0.0f, 0.0f, 1.0f
+    };
+
+    auto vertexBuffer = vkGraphics->createVertexBuffer((void*)vertices, sizeof(vertices));
+
     while (m_running) {
         auto frameData = vkGraphics->begin();
-        vkGraphics->tempDraw(shader);
+        // vkGraphics->tempDraw(shader);
+        vkGraphics->tempDraw(shader, vertexBuffer);
         vkGraphics->end(frameData);
         /* m_renderAPI->setClearColor({1.0, 0.0, 1.0});
         m_renderAPI->clear();

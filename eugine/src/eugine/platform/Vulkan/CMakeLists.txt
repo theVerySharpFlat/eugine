@@ -5,4 +5,5 @@ target_sources(eugine PRIVATE
         VkWindow.cpp
         VkRenderPass.cpp
         VkShader.cpp
+        VkVertexBuffer.cpp
         )

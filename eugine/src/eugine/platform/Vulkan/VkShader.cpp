@@ -16,7 +16,115 @@ namespace eg::rendering::VKWrapper {
         destruct();
     }
 
-    void VkShader::init(eg::rendering::Shader::ShaderProgramSource source) {
+    static VkFormat vertexAttributeToVkFormat(const VertexAttrib& attrib) {
+        EG_ASSERT(attrib.count <= 4, "cannot have more than 4 primitives per attribute!!!");
+        switch (attrib.type) {
+            case SHDR_BOOL: EG_ASSERT(attrib.count == 1,
+                                      "we do not support multiple booleans in vertex descriptions!!!");
+                return VK_FORMAT_R8_UINT;
+                break;
+            case SHDR_INT:
+                if (attrib.count == 1) {
+                    return VK_FORMAT_R32_SINT;
+                } else if (attrib.count == 2) {
+                    return VK_FORMAT_R32G32_SINT;
+                } else if (attrib.count == 3) {
+                    return VK_FORMAT_R32G32B32_SINT;
+                } else if (attrib.count == 4) {
+                    return VK_FORMAT_R32G32B32A32_SINT;
+                } else {
+                    EG_ASSERT(false, "this should never happen");
+                    return VK_FORMAT_R32_SINT;
+                }
+                break;
+            case SHDR_UINT:
+                if (attrib.count == 1) {
+                    return VK_FORMAT_R32_UINT;
+                } else if (attrib.count == 2) {
+                    return VK_FORMAT_R32G32_UINT;
+                } else if (attrib.count == 3) {
+                    return VK_FORMAT_R32G32B32_UINT;
+                } else if (attrib.count == 4) {
+                    return VK_FORMAT_R32G32B32A32_UINT;
+                } else {
+                    EG_ASSERT(false, "this should never happen");
+                    return VK_FORMAT_R32_SINT;
+                }
+                break;
+            case SHDR_FLOAT:
+                if (attrib.count == 1) {
+                    return VK_FORMAT_R32_SFLOAT;
+                } else if (attrib.count == 2) {
+                    return VK_FORMAT_R32G32_SFLOAT;
+                } else if (attrib.count == 3) {
+                    return VK_FORMAT_R32G32B32_SFLOAT;
+                } else if (attrib.count == 4) {
+                    return VK_FORMAT_R32G32B32A32_SFLOAT;
+                } else {
+                    EG_ASSERT(false, "this should never happen");
+                    return VK_FORMAT_R32_SINT;
+                }
+                break;
+            case SHDR_DOUBLE:
+                if (attrib.count == 1) {
+                    return VK_FORMAT_R64_SFLOAT;
+                } else if (attrib.count == 2) {
+                    return VK_FORMAT_R64G64_SFLOAT;
+                } else if (attrib.count == 3) {
+                    return VK_FORMAT_R64G64B64_SFLOAT;
+                } else if (attrib.count == 4) {
+                    return VK_FORMAT_R64G64B64A64_SFLOAT;
+                } else {
+                    EG_ASSERT(false, "this should never happen");
+                    return VK_FORMAT_R32_SINT;
+                }
+                break;
+            case SHDR_VEC2: EG_ASSERT(attrib.count == 1, "you can only have 1 vec2!!!");
+                return VK_FORMAT_R32G32_SFLOAT;
+                break;
+            case SHDR_VEC3: EG_ASSERT(attrib.count == 1, "you can only have 1 vec3!!!");
+                return VK_FORMAT_R32G32B32_SFLOAT;
+                break;
+            case SHDR_VEC4: EG_ASSERT(attrib.count == 1, "you can only have 1 vec4!!!");
+                return VK_FORMAT_R32G32B32A32_SFLOAT;
+                break;
+            case SHDR_MAT2: EG_ASSERT(false, "you can't have matrices in vertex input descriptions!!!");
+                break;
+            case SHDR_MAT3: EG_ASSERT(false, "you can't have matrices in vertex input descriptions!!!");
+                break;
+            case SHDR_MAT4: EG_ASSERT(false, "you can't have matrices in vertex input descriptions!!!");
+                break;
+        }
+        EG_ASSERT(false, "failed to find vertex attribute type conversion to a vulkan type!!!");
+        return VK_FORMAT_R32_SINT;
+    }
+
+    static VkVertexInputBindingDescription vertexBufferLayoutToInputBindingDescription(VertexBufferLayout& layout) {
+        VkVertexInputBindingDescription bindingDescription{};
+        bindingDescription.binding = 0;
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        bindingDescription.stride = layout.getStride();
+        return bindingDescription;
+    }
+
+    static void vertexBufferLayoutToAttributeDescriptions(VertexBufferLayout& layout,
+                                                          VkVertexInputAttributeDescription* descriptions) {
+        auto& attributes = layout.getAttributes();
+        u32 byteOffset = 0;
+        for (u32 i = 0; i < layout.getAttributes().size(); i++) {
+            VkVertexInputAttributeDescription& attributeDescription = descriptions[i];
+            attributeDescription.binding = 0;
+            attributeDescription.location = i;
+            attributeDescription.format = vertexAttributeToVkFormat(attributes[i]);
+            attributeDescription.offset = byteOffset;
+
+            byteOffset += getSizeOfType(attributes[i].type) * attributes[i].count;
+        }
+
+        trace("computed byte offset is {} bytes", byteOffset);
+    }
+
+    void VkShader::init(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout& layout) {
         VkShaderModule vertexShaderModule = createShaderModule(source.vs, shaderc_vertex_shader);
         VkShaderModule fragmentShaderModule = createShaderModule(source.fs, shaderc_fragment_shader);
 
@@ -37,12 +145,18 @@ namespace eg::rendering::VKWrapper {
                 fragmentShaderStageCreateInfo
         };
 
+
+        VkVertexInputBindingDescription bindingDescription = vertexBufferLayoutToInputBindingDescription(layout);
+        auto attributeDescriptions = (VkVertexInputAttributeDescription*) alloca(
+                sizeof(VkVertexInputAttributeDescription) * layout.getAttributes().size());
+        vertexBufferLayoutToAttributeDescriptions(layout, attributeDescriptions);
+
         VkPipelineVertexInputStateCreateInfo vertexInputStateCreateInfo{};
         vertexInputStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputStateCreateInfo.vertexBindingDescriptionCount = 0;
-        vertexInputStateCreateInfo.pVertexBindingDescriptions = nullptr;
-        vertexInputStateCreateInfo.vertexAttributeDescriptionCount = 0;
-        vertexInputStateCreateInfo.pVertexAttributeDescriptions = nullptr;
+        vertexInputStateCreateInfo.vertexBindingDescriptionCount = 1;
+        vertexInputStateCreateInfo.pVertexBindingDescriptions = &bindingDescription;
+        vertexInputStateCreateInfo.vertexAttributeDescriptionCount = layout.getAttributes().size();
+        vertexInputStateCreateInfo.pVertexAttributeDescriptions = attributeDescriptions;
 
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyStateCreateInfo{};
         inputAssemblyStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -190,9 +304,9 @@ namespace eg::rendering::VKWrapper {
 
     void VkShader::destruct() {
 
-        if(m_pipelineLayout != VK_NULL_HANDLE)
+        if (m_pipelineLayout != VK_NULL_HANDLE)
             vkDestroyPipelineLayout(m_device.getDevice(), m_pipelineLayout, nullptr);
-        if(m_pipeline != VK_NULL_HANDLE)
+        if (m_pipeline != VK_NULL_HANDLE)
             vkDestroyPipeline(m_device.getDevice(), m_pipeline, nullptr);
 
         m_pipelineLayout = VK_NULL_HANDLE;

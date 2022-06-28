@@ -9,19 +9,21 @@
 
 #include <eugine/rendering/GraphicsAPI.h>
 #include <eugine/core/window.h>
+#include <eugine/rendering/VertexBufferLayout.h>
 
 #include "volk.h"
 #include "VkDevice.h"
 #include "VkWindow.h"
 #include "VkRenderPass.h"
 #include "VkShader.h"
+#include "VkVertexBuffer.h"
 
 namespace eg::rendering::VKWrapper {
     class VkDevice;
 
     class VKAPI : public ::eg::rendering::GraphicsAPI {
     public:
-        VKAPI(Window &window);
+        VKAPI(Window& window);
 
         ~VKAPI();
 
@@ -40,7 +42,10 @@ namespace eg::rendering::VKWrapper {
         };
 
         FrameData begin();
+
         void tempDraw(Ref<VkShader> shader);
+        void tempDraw(Ref<VkShader> shader, Ref<VkVertexBuffer> vertexBuffer);
+
         void end(FrameData frameData);
 
         u32 acquireImage(bool& success);
@@ -49,13 +54,17 @@ namespace eg::rendering::VKWrapper {
 
         static const int maxFramesInFlight = 2;
 
-        Ref<::eg::rendering::VKWrapper::VkShader> createShader(eg::rendering::Shader::ShaderProgramSource source);
+        Ref<::eg::rendering::VKWrapper::VkShader>
+        createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout);
+
+        Ref<VkVertexBuffer> createVertexBuffer(void* data, u32 size);
 
     private:
         friend class VkDevice;
+
         friend class VkWindow;
 
-        Window &m_window;
+        Window& m_window;
 
         VkInstance m_instance;
 
@@ -65,7 +74,9 @@ namespace eg::rendering::VKWrapper {
 
         VkRenderPass m_renderPass;
 
-        VkCommandPool  m_commandPool;
+        VkCommandPool m_commandPool;
+
+        VmaAllocator m_allocator;
 
         struct FrameObjectsContainer {
             VkCommandBuffer commandBuffer;
@@ -82,7 +93,7 @@ namespace eg::rendering::VKWrapper {
 
         void setupDebugMessenger();
 
-        void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+        void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
         VkDebugUtilsMessengerEXT m_debugMessenger;
 
@@ -91,12 +102,16 @@ namespace eg::rendering::VKWrapper {
         void createSyncObjects();
 
         void createCommandPool();
+
+        void createBufferAllocator();
+
         void allocateCommandBuffers();
 
         void beginCommandBufferRecording(u32 imageIndex);
+
         void endCommandBufferRecording(u32 imageIndex);
 
-        std::vector<const char *> getRequiredInstanceExtensions();
+        std::vector<const char*> getRequiredInstanceExtensions();
 
     };
 }

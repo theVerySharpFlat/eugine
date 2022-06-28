@@ -52,7 +52,7 @@ namespace eg::rendering::VKWrapper {
 
         u32 foundCount = 0;
         for(u32 i = 0; i < extensionCount; i++) {
-            trace("extensions: {}", properties[i].extensionName);
+            // trace("extensions: {}", properties[i].extensionName);
             const auto iterator = requiredExtensions.find(properties[i].extensionName);
             if(iterator != requiredExtensions.end()) {
                 eg::trace("found extension {}", *iterator);

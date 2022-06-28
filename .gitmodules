@@ -23,3 +23,6 @@
 [submodule "eugine/vendor/volk"]
 	path = eugine/vendor/volk
 	url = https://github.com/zeux/volk.git
+[submodule "eugine/vendor/vma"]
+	path = eugine/vendor/vma
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git

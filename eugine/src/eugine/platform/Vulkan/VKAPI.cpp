@@ -8,6 +8,7 @@
 #include "VkDevice.h"
 
 static bool framebufferResized = false;
+
 static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
     framebufferResized = true;
 }
@@ -28,7 +29,7 @@ namespace eg::rendering::VKWrapper {
         else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
             ::eg::info("Vulkan: {}", pCallbackData->pMessage);
         else
-             ::eg::trace("Vulkan: {}", pCallbackData->pMessage);
+            ::eg::trace("Vulkan: {}", pCallbackData->pMessage);
 
         return VK_FALSE;
     }
@@ -112,6 +113,8 @@ namespace eg::rendering::VKWrapper {
         createSyncObjects();
 
         glfwSetFramebufferSizeCallback((GLFWwindow*) m_window.getNativeWindow(), framebufferResizeCallback);
+
+        createBufferAllocator();
     }
 
 
@@ -171,7 +174,7 @@ namespace eg::rendering::VKWrapper {
                 error("failed to allocate command buffer");
                 return;
             }
-            trace("command buffer create: {}", (void*)m_frameObjects[frameNumber].commandBuffer);
+            trace("command buffer create: {}", (void*) m_frameObjects[frameNumber].commandBuffer);
         }
     }
 
@@ -183,7 +186,7 @@ namespace eg::rendering::VKWrapper {
         fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-        for (auto& frameObjects : m_frameObjects) {
+        for (auto& frameObjects: m_frameObjects) {
             trace("create objects");
             if (vkCreateSemaphore(m_device.getDevice(), &semaphoreCreateInfo, nullptr,
                                   &frameObjects.imageAvailableSemaphore) != VK_SUCCESS) {
@@ -198,7 +201,8 @@ namespace eg::rendering::VKWrapper {
             }
 
 
-            if (vkCreateFence(m_device.getDevice(), &fenceCreateInfo, nullptr, &(frameObjects.inFlightFence)) != VK_SUCCESS) {
+            if (vkCreateFence(m_device.getDevice(), &fenceCreateInfo, nullptr, &(frameObjects.inFlightFence)) !=
+                VK_SUCCESS) {
                 error("failed to create inFlightFence!!!");
                 return;
             }
@@ -207,18 +211,65 @@ namespace eg::rendering::VKWrapper {
         }
     }
 
-    Ref<::eg::rendering::VKWrapper::VkShader> VKAPI::createShader(eg::rendering::Shader::ShaderProgramSource source) {
+    void VKAPI::createBufferAllocator() {
+        VmaVulkanFunctions vulkanFunctions{};
+        vulkanFunctions.vkGetInstanceProcAddr = vkGetInstanceProcAddr;
+        vulkanFunctions.vkGetDeviceProcAddr = vkGetDeviceProcAddr;
+        vulkanFunctions.vkGetPhysicalDeviceProperties = vkGetPhysicalDeviceProperties;
+        vulkanFunctions.vkGetPhysicalDeviceMemoryProperties = vkGetPhysicalDeviceMemoryProperties;
+        vulkanFunctions.vkAllocateMemory = vkAllocateMemory;
+        vulkanFunctions.vkFreeMemory = vkFreeMemory;
+        vulkanFunctions.vkMapMemory = vkMapMemory;
+        vulkanFunctions.vkUnmapMemory = vkUnmapMemory;
+        vulkanFunctions.vkFlushMappedMemoryRanges = vkFlushMappedMemoryRanges;
+        vulkanFunctions.vkInvalidateMappedMemoryRanges = vkInvalidateMappedMemoryRanges;
+        vulkanFunctions.vkBindBufferMemory = vkBindBufferMemory;
+        vulkanFunctions.vkBindImageMemory = vkBindImageMemory;
+        vulkanFunctions.vkGetBufferMemoryRequirements = vkGetBufferMemoryRequirements;
+        vulkanFunctions.vkGetImageMemoryRequirements = vkGetImageMemoryRequirements;
+        vulkanFunctions.vkCreateBuffer = vkCreateBuffer;
+        vulkanFunctions.vkDestroyBuffer = vkDestroyBuffer;
+        vulkanFunctions.vkCreateImage = vkCreateImage;
+        vulkanFunctions.vkDestroyImage = vkDestroyImage;
+        vulkanFunctions.vkCmdCopyBuffer = vkCmdCopyBuffer;
+        vulkanFunctions.vkGetBufferMemoryRequirements2KHR = vkGetBufferMemoryRequirements2KHR;
+        vulkanFunctions.vkGetImageMemoryRequirements2KHR = vkGetImageMemoryRequirements2KHR;
+        vulkanFunctions.vkBindBufferMemory2KHR = vkBindBufferMemory2KHR;
+        vulkanFunctions.vkBindImageMemory2KHR = vkBindImageMemory2KHR;
+        vulkanFunctions.vkGetPhysicalDeviceMemoryProperties2KHR = vkGetPhysicalDeviceMemoryProperties2KHR;
+        vulkanFunctions.vkGetDeviceBufferMemoryRequirements = vkGetDeviceBufferMemoryRequirements;
+        vulkanFunctions.vkGetDeviceImageMemoryRequirements = vkGetDeviceImageMemoryRequirements;
+
+        VmaAllocatorCreateInfo allocatorCreateInfo{};
+        allocatorCreateInfo.physicalDevice = m_device.getPhysicalDevice();
+        allocatorCreateInfo.device = m_device.getDevice();
+        allocatorCreateInfo.instance = m_instance;
+        allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
+
+        if(vmaCreateAllocator(&allocatorCreateInfo, &m_allocator) != VK_SUCCESS) {
+            error("failed to create allocator!!!");
+            return;
+        }
+    }
+
+    Ref<::eg::rendering::VKWrapper::VkShader>
+    VKAPI::createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout) {
         auto temp = createRef<::eg::rendering::VKWrapper::VkShader>(m_device, m_renderPass, m_vkWindow);
-        temp->init(source);
+        temp->init(source, layout);
 
         return temp;
+    }
+
+    Ref<VkVertexBuffer> VKAPI::createVertexBuffer(void* data, u32 size) {
+        return eg::createRef<VkVertexBuffer>(m_device, m_allocator, data, size);
     }
 
     u32 VKAPI::acquireImage(bool& success) {
         while (true) {
             u32 imageIndex;
             VkResult result = vkAcquireNextImageKHR(m_device.getDevice(), m_vkWindow.getSwapchain(), UINT64_MAX,
-                                                    m_frameObjects[frameNumber].imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+                                                    m_frameObjects[frameNumber].imageAvailableSemaphore, VK_NULL_HANDLE,
+                                                    &imageIndex);
 
             // trace("acquire image");
             if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
@@ -279,8 +330,8 @@ namespace eg::rendering::VKWrapper {
         vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
     }
 
-    void VKAPI::tempDraw(Ref<VkShader> shader) {
-        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer ;
+    void VKAPI::tempDraw(Ref <VkShader> shader) {
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
 
         VkExtent2D swapchainExtent = m_vkWindow.getSwapchainExtent();
         VkViewport viewport{};
@@ -301,8 +352,36 @@ namespace eg::rendering::VKWrapper {
         vkCmdDraw(commandBuffer, 3, 1, 0, 0);
     }
 
+    void VKAPI::tempDraw(Ref<VkShader> shader, Ref<VkVertexBuffer> vertexBuffer) {
+
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
+
+        VkExtent2D swapchainExtent = m_vkWindow.getSwapchainExtent();
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = (float) swapchainExtent.width;
+        viewport.height = (float) swapchainExtent.height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+        VkRect2D scissorRect = {};
+        scissorRect.extent = swapchainExtent;
+        scissorRect.offset = {0, 0};
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissorRect);
+
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipeline());
+
+        VkBuffer vertexBuffers[] = { vertexBuffer->getBuffer() };
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+        vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    }
+
     void VKAPI::endCommandBufferRecording(u32 imageIndex) {
-        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer ;
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
         vkCmdEndRenderPass(commandBuffer);
 
         if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
@@ -331,7 +410,8 @@ namespace eg::rendering::VKWrapper {
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
-        if (vkQueueSubmit(m_device.getGraphicsQueue(), 1, &submitInfo, m_frameObjects[frameNumber].inFlightFence) != VK_SUCCESS) {
+        if (vkQueueSubmit(m_device.getGraphicsQueue(), 1, &submitInfo, m_frameObjects[frameNumber].inFlightFence) !=
+            VK_SUCCESS) {
             error("failed to submit queue!!!");
             return;
         }
@@ -367,8 +447,8 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VKAPI::recreateSwapchain() {
-        trace("recreate swapchain");
-        glfwSetTime(0.0);
+        // trace("recreate swapchain");
+        // glfwSetTime(0.0);
         deviceWaitIdle();
 
         m_vkWindow.updateSwapchainExtent();
@@ -379,12 +459,14 @@ namespace eg::rendering::VKWrapper {
         m_vkWindow.createSwapchain();
         m_renderPass.init();
         m_vkWindow.createFrameBuffers();
-        trace("time to recreate: {}", glfwGetTime());
+        // trace("time to recreate: {}", glfwGetTime());
         // trace("here");
     }
 
     VKAPI::~VKAPI() {
-        for(auto& frameObjects : m_frameObjects) {
+        vmaDestroyAllocator(m_allocator);
+
+        for (auto& frameObjects: m_frameObjects) {
             vkDestroySemaphore(m_device.getDevice(), frameObjects.imageAvailableSemaphore, nullptr);
             vkDestroySemaphore(m_device.getDevice(), frameObjects.renderFinishedSemaphore, nullptr);
             vkDestroyFence(m_device.getDevice(), frameObjects.inFlightFence, nullptr);
