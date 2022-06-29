@@ -10,7 +10,7 @@
 
 namespace eg::rendering::VKWrapper {
 
-    VkDevice::VkDevice(VKAPI &vkapi) : m_instance(vkapi.m_instance), m_surface(vkapi.m_vkWindow.getSurface()){}
+    VkDevice::VkDevice(VKAPI& vkapi) : m_instance(vkapi.m_instance), m_surface(vkapi.m_vkWindow.getSurface()) {}
 
     VkDevice::~VkDevice() {}
 
@@ -40,7 +40,7 @@ namespace eg::rendering::VKWrapper {
     bool VkDevice::deviceSupportsRequiredExtensions(VkPhysicalDevice device) {
         u32 extensionCount = 0;
         vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-        if(extensionCount == 0) {
+        if (extensionCount == 0) {
             eg::fatal("failed to retrieve device extensions!");
             return false;
         }
@@ -51,10 +51,10 @@ namespace eg::rendering::VKWrapper {
                                                  std::cbegin(deviceExtensions) + deviceExtensionsCount);
 
         u32 foundCount = 0;
-        for(u32 i = 0; i < extensionCount; i++) {
+        for (u32 i = 0; i < extensionCount; i++) {
             // trace("extensions: {}", properties[i].extensionName);
             const auto iterator = requiredExtensions.find(properties[i].extensionName);
-            if(iterator != requiredExtensions.end()) {
+            if (iterator != requiredExtensions.end()) {
                 eg::trace("found extension {}", *iterator);
                 foundCount++;
             }
@@ -70,7 +70,7 @@ namespace eg::rendering::VKWrapper {
             eg::fatal("failed to find a Vulkan-capable GPU!!!");
             return;
         }
-        auto *devices = (VkPhysicalDevice *) alloca(sizeof(VkPhysicalDevice) * deviceCount);
+        auto* devices = (VkPhysicalDevice*) alloca(sizeof(VkPhysicalDevice) * deviceCount);
         vkEnumeratePhysicalDevices(m_instance, &deviceCount, devices);
 
         for (u32 i = 0; i < deviceCount; i++) {
@@ -95,12 +95,12 @@ namespace eg::rendering::VKWrapper {
         };
         eg::trace("{} unique queues", uniqueQueues.size());
 
-        auto queueCreateInfos = (VkDeviceQueueCreateInfo *) alloca(
+        auto queueCreateInfos = (VkDeviceQueueCreateInfo*) alloca(
                 sizeof(VkDeviceQueueCreateInfo) * uniqueQueues.size());
         float queuePriority = 1.0f;
         {
             u32 i = 0;
-            for (u32 queue : uniqueQueues) {
+            for (u32 queue: uniqueQueues) {
                 queueCreateInfos[i] = VkDeviceQueueCreateInfo{};
                 queueCreateInfos[i].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
                 queueCreateInfos[i].queueCount = 1;
@@ -141,12 +141,12 @@ namespace eg::rendering::VKWrapper {
             eg::fatal("vulkan physical device has no queue families!");
             return QueueFamilyIndices{};
         }
-        auto queueFamilyProperties = (VkQueueFamilyProperties *) alloca(
+        auto queueFamilyProperties = (VkQueueFamilyProperties*) alloca(
                 sizeof(VkQueueFamilyProperties) * queueFamilyCount);
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilyProperties);
 
         for (u32 i = 0; i < queueFamilyCount; i++) {
-            VkQueueFamilyProperties &properties = queueFamilyProperties[i];
+            VkQueueFamilyProperties& properties = queueFamilyProperties[i];
 
             VkBool32 presentSupport = false;
             vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &presentSupport);

@@ -8,11 +8,13 @@
 #include <volk.h>
 #include <vk_mem_alloc.h>
 
+#include "VkDevice.h"
+#include <eugine/rendering/VertexBuffer.h>
+
 namespace eg::rendering::VKWrapper {
-    class VkDevice;
     class VkVertexBuffer {
     public:
-        VkVertexBuffer(VkDevice& device, VmaAllocator& allocator, void* data, u32 size);
+        VkVertexBuffer(VkDevice& device, VkCommandPool commandPool, VmaAllocator& allocator, void* data, u32 size, VertexBuffer::UsageHints usageHint);
         ~VkVertexBuffer();
 
         VkBuffer& getBuffer() { return m_buffer; }

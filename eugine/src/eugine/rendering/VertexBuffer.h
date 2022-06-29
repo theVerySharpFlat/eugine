@@ -10,6 +10,11 @@
 namespace eg::rendering {
     class VertexBuffer {
     public:
+        enum UsageHints {
+            VB_USAGE_HINT_STATIC = 0,
+            VB_USAGE_HINT_DYNAMIC
+        };
+
         static Ref<VertexBuffer> create(void* data, u32 size, const VertexBufferLayout& layout);
 
         virtual void bind() const = 0;

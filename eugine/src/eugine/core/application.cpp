@@ -175,7 +175,7 @@ void eg::Application::run() {
             -0.5f, 0.5f, 0.0f, 0.0f, 1.0f
     };
 
-    auto vertexBuffer = vkGraphics->createVertexBuffer((void*)vertices, sizeof(vertices));
+    auto vertexBuffer = vkGraphics->createVertexBuffer((void*)vertices, sizeof(vertices), rendering::VertexBuffer::VB_USAGE_HINT_STATIC);
 
     while (m_running) {
         auto frameData = vkGraphics->begin();

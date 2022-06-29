@@ -17,6 +17,7 @@
 #include "VkRenderPass.h"
 #include "VkShader.h"
 #include "VkVertexBuffer.h"
+#include "eugine/rendering/VertexBuffer.h"
 
 namespace eg::rendering::VKWrapper {
     class VkDevice;
@@ -57,7 +58,7 @@ namespace eg::rendering::VKWrapper {
         Ref<::eg::rendering::VKWrapper::VkShader>
         createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout);
 
-        Ref<VkVertexBuffer> createVertexBuffer(void* data, u32 size);
+        Ref<VkVertexBuffer> createVertexBuffer(void* data, u32 size, rendering::VertexBuffer::UsageHints usageHint);
 
     private:
         friend class VkDevice;
