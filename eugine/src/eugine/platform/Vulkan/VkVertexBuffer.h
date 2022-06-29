@@ -12,6 +12,7 @@
 #include <eugine/rendering/VertexBuffer.h>
 
 namespace eg::rendering::VKWrapper {
+    class VkDevice;
     class VkVertexBuffer {
     public:
         VkVertexBuffer(VkDevice& device, VkCommandPool commandPool, VmaAllocator& allocator, void* data, u32 size, VertexBuffer::UsageHints usageHint);
@@ -21,6 +22,10 @@ namespace eg::rendering::VKWrapper {
 
     private:
         VmaAllocator& m_allocator;
+        VkDevice& m_device;
+
+        u32 m_maxSize;
+        VertexBuffer::UsageHints m_usageHint;
 
         VkBuffer m_buffer = VK_NULL_HANDLE;
         VmaAllocation m_allocation = VK_NULL_HANDLE;
