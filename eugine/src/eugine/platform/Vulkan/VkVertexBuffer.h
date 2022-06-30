@@ -18,11 +18,15 @@ namespace eg::rendering::VKWrapper {
         VkVertexBuffer(VkDevice& device, VkCommandPool commandPool, VmaAllocator& allocator, void* data, u32 size, VertexBuffer::UsageHints usageHint);
         ~VkVertexBuffer();
 
+        void setData(void* data, u32 size);
+
         VkBuffer& getBuffer() { return m_buffer; }
 
     private:
         VmaAllocator& m_allocator;
         VkDevice& m_device;
+
+        VkCommandPool m_commandPool;
 
         u32 m_maxSize;
         VertexBuffer::UsageHints m_usageHint;

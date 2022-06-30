@@ -169,11 +169,11 @@ void eg::Application::run() {
                                                    }
                                            }, vertexBufferLayout);
 
-    const float vertices[] = {
-            -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-            0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-            0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-            -0.5f, 0.5f, 1.0f, 1.0f, 1.0f
+    float vertices[] = {
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+            0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+            0.5f, 0.5f, 0.0f, 0.0f, 0.0f,
+            -0.5f, 0.5f, 0.0f, 0.0f, 0.0f
     };
 
     const u16 indices[] = {
@@ -190,6 +190,27 @@ void eg::Application::run() {
 //        vkGraphics->tempDraw(shader, vertexBuffer);
         vkGraphics->tempDrawIndexed(shader, vertexBuffer, indexBuffer);
         vkGraphics->end(frameData);
+
+        static auto startTime = std::chrono::high_resolution_clock::now();
+
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+        time /= 2;
+
+        float timeIntPart;
+        time = std::modf(time, &timeIntPart);
+
+        if((long)timeIntPart % 2) {
+            time = 1 - time;
+        }
+
+        vertices[2] = time;
+        vertices[7] = time;
+        vertices[12] = time;
+        vertices[17] = time;
+
+        vertexBuffer->setData((void*) vertices, sizeof(vertices));
+
         /* m_renderAPI->setClearColor({1.0, 0.0, 1.0});
         m_renderAPI->clear();
         for(Layer* layer : m_layerStack){
