@@ -17,6 +17,7 @@
 #include "VkRenderPass.h"
 #include "VkShader.h"
 #include "VkVertexBuffer.h"
+#include "VkIndexBuffer.h"
 #include "eugine/rendering/VertexBuffer.h"
 
 namespace eg::rendering::VKWrapper {
@@ -46,6 +47,7 @@ namespace eg::rendering::VKWrapper {
 
         void tempDraw(Ref<VkShader> shader);
         void tempDraw(Ref<VkShader> shader, Ref<VkVertexBuffer> vertexBuffer);
+        void tempDrawIndexed(Ref<VkShader> shader, Ref<VkVertexBuffer> vertexBuffer, Ref<VkIndexBuffer> indexBuffer);
 
         void end(FrameData frameData);
 
@@ -59,6 +61,7 @@ namespace eg::rendering::VKWrapper {
         createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout);
 
         Ref<VkVertexBuffer> createVertexBuffer(void* data, u32 size, rendering::VertexBuffer::UsageHints usageHint);
+        Ref<VkIndexBuffer> createIndexBuffer(const u16* data, u32 count, rendering::VertexBuffer::UsageHints usageHint);
 
     private:
         friend class VkDevice;

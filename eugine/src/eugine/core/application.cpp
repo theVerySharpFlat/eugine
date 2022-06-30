@@ -170,17 +170,24 @@ void eg::Application::run() {
                                            }, vertexBufferLayout);
 
     const float vertices[] = {
-            0.0f, -0.5f, 1.0f, 0.0f, 0.0f,
-            0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-            -0.5f, 0.5f, 0.0f, 0.0f, 1.0f
+            -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+            0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+            -0.5f, 0.5f, 1.0f, 1.0f, 1.0f
+    };
+
+    const u16 indices[] = {
+            0, 1, 2, 2, 3, 0
     };
 
     auto vertexBuffer = vkGraphics->createVertexBuffer((void*)vertices, sizeof(vertices), rendering::VertexBuffer::VB_USAGE_HINT_STATIC);
+    auto indexBuffer = vkGraphics->createIndexBuffer(indices, 16, rendering::VertexBuffer::VB_USAGE_HINT_STATIC);
 
     while (m_running) {
         auto frameData = vkGraphics->begin();
         // vkGraphics->tempDraw(shader);
-        vkGraphics->tempDraw(shader, vertexBuffer);
+//        vkGraphics->tempDraw(shader, vertexBuffer);
+        vkGraphics->tempDrawIndexed(shader, vertexBuffer, indexBuffer);
         vkGraphics->end(frameData);
         /* m_renderAPI->setClearColor({1.0, 0.0, 1.0});
         m_renderAPI->clear();

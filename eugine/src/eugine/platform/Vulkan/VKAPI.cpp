@@ -264,6 +264,10 @@ namespace eg::rendering::VKWrapper {
         return eg::createRef<VkVertexBuffer>(m_device, m_commandPool, m_allocator, data, size, usageHint);
     }
 
+    Ref <VkIndexBuffer> VKAPI::createIndexBuffer(const u16* data, u32 count, rendering::VertexBuffer::UsageHints usageHint) {
+        return eg::createRef<VkIndexBuffer>(m_device, m_commandPool, m_allocator, data, count, usageHint);
+    }
+
     u32 VKAPI::acquireImage(bool& success) {
         while (true) {
             u32 imageIndex;
@@ -378,6 +382,36 @@ namespace eg::rendering::VKWrapper {
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
         vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    }
+
+    void VKAPI::tempDrawIndexed(Ref<VkShader> shader, Ref<VkVertexBuffer> vertexBuffer, Ref<VkIndexBuffer> indexBuffer) {
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
+
+        VkExtent2D swapchainExtent = m_vkWindow.getSwapchainExtent();
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = (float) swapchainExtent.width;
+        viewport.height = (float) swapchainExtent.height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+        VkRect2D scissorRect = {};
+        scissorRect.extent = swapchainExtent;
+        scissorRect.offset = {0, 0};
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissorRect);
+
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipeline());
+
+        VkBuffer vertexBuffers[] = { vertexBuffer->getBuffer() };
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+        vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT16);
+
+        //vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, indexBuffer->getCount(), 1, 0, 0, 0);
     }
 
     void VKAPI::endCommandBufferRecording(u32 imageIndex) {

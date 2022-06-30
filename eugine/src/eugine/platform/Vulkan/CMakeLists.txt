@@ -7,4 +7,5 @@ target_sources(eugine PRIVATE
         VkShader.cpp
         VkVertexBuffer.cpp
         VkBufferUtil.cpp
+        VkIndexBuffer.cpp
         )
