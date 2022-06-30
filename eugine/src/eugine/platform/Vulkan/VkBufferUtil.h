@@ -11,10 +11,15 @@
 namespace eg::rendering::VKWrapper {
     class VkDevice;
     namespace BufferUtil {
+        enum BufferType {
+            BUFFER_DYNAMIC,
+            BUFFER_STATIC,
+            BUFFER_STAGING
+        };
 
         void
-        createBuffer(VmaAllocator allocator, VmaMemoryUsage vmaMemoryUsage, VkBufferUsageFlags bufferUsage, u32 size,
-                     VkBuffer* buffer, VmaAllocation* allocation);
+        createBuffer(VmaAllocator allocator, VmaMemoryUsage vmaMemoryUsage, VkBufferUsageFlags bufferUsage, BufferType bufferType, u32 size,
+                     VkBuffer* buffer, VmaAllocation* allocation, VmaAllocationInfo* allocationInfo = nullptr);
 
         void
         copyBuffer(VkDevice& device, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer,

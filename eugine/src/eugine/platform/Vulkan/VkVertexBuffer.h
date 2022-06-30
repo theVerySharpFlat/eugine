@@ -29,6 +29,7 @@ namespace eg::rendering::VKWrapper {
 
         VkBuffer m_buffer = VK_NULL_HANDLE;
         VmaAllocation m_allocation = VK_NULL_HANDLE;
+        VmaAllocationInfo m_allocationInfo{};
     };
 }
 

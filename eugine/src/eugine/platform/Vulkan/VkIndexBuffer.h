@@ -25,6 +25,7 @@ namespace eg::rendering::VKWrapper {
         VkCommandPool m_commandPool;
         VmaAllocation m_allocation = VK_NULL_HANDLE;
         VmaAllocator m_allocator;
+        VmaAllocationInfo m_allocationInfo{};
         VkDevice& m_device;
 
         VertexBuffer::UsageHints m_usageHint;

@@ -6,8 +6,9 @@
 #include "VkDevice.h"
 
 namespace eg::rendering::VKWrapper::BufferUtil {
-    void createBuffer(VmaAllocator allocator, VmaMemoryUsage vmaMemoryUsage, VkBufferUsageFlags bufferUsage, u32 size,
-                      VkBuffer* buffer, VmaAllocation* allocation) {
+    void createBuffer(VmaAllocator allocator, VmaMemoryUsage vmaMemoryUsage,
+                      VkBufferUsageFlags bufferUsage, BufferType bufferType, u32 size,
+                      VkBuffer* buffer, VmaAllocation* allocation, VmaAllocationInfo* allocationInfo) {
         VkBufferCreateInfo bufferCreateInfo{};
         bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferCreateInfo.size = size;
@@ -16,14 +17,28 @@ namespace eg::rendering::VKWrapper::BufferUtil {
         VmaAllocationCreateInfo allocInfo{};
         allocInfo.usage = vmaMemoryUsage;
 
-        if (vmaCreateBuffer(allocator, &bufferCreateInfo, &allocInfo, buffer, allocation, nullptr) != VK_SUCCESS) {
+        if (bufferType == BUFFER_STAGING) {
+            allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
+        } else if (bufferType == BUFFER_STATIC) {
+            allocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+        } else if (bufferType == BUFFER_DYNAMIC) {
+            allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+                              VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT |
+                              VMA_ALLOCATION_CREATE_MAPPED_BIT;
+        }
+
+        VmaAllocation tempAllocation;
+        if (vmaCreateBuffer(allocator, &bufferCreateInfo, &allocInfo, buffer, &tempAllocation, allocationInfo) !=
+            VK_SUCCESS) {
             error("failed to create vertex buffer!!!");
             return;
         }
+
+        *allocation = tempAllocation;
     }
 
     void copyBuffer(VKWrapper::VkDevice& device, VkCommandPool commandPool, VkBuffer srcBuffer, VkBuffer dstBuffer,
-                       VkDeviceSize size) {
+                    VkDeviceSize size) {
         VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
         commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
