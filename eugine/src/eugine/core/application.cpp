@@ -180,7 +180,8 @@ void eg::Application::run() {
             0, 1, 2, 2, 3, 0
     };
 
-    auto vertexBuffer = vkGraphics->createVertexBuffer((void*)vertices, sizeof(vertices), rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
+    auto vertexBuffer = vkGraphics->createVertexBuffer((void*) vertices, sizeof(vertices),
+                                                       rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
     auto indexBuffer = vkGraphics->createIndexBuffer(indices, 16, rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
 
     while (m_running) {
