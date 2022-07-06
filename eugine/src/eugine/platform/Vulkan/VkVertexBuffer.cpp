@@ -66,6 +66,10 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkVertexBuffer::setData(void* data, u32 size) {
+        if(size > m_maxSize) {
+            error("failed to update vertex buffer: size is greater than maxSize");
+            return;
+        }
         if (m_usageHint == VertexBuffer::VB_USAGE_HINT_DYNAMIC) {
             VkMemoryPropertyFlags memoryPropertyFlags;
             vmaGetAllocationMemoryProperties(m_allocator, m_allocation, &memoryPropertyFlags);

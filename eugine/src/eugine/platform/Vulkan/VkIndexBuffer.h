@@ -17,6 +17,8 @@ namespace eg::rendering::VKWrapper {
         VkIndexBuffer(VkDevice& device, VkCommandPool commandPool, VmaAllocator& allocator, const u16* data, u32 count, VertexBuffer::UsageHints usageHint);
         ~VkIndexBuffer();
 
+        void setData(const u16* data, u32 count);
+
         VkBuffer getBuffer() { return m_buffer; }
         u32 getCount() { return m_count; }
 
@@ -29,7 +31,7 @@ namespace eg::rendering::VKWrapper {
         VkDevice& m_device;
 
         VertexBuffer::UsageHints m_usageHint;
-        u32 m_maxSize;
+        u32 m_maxCount;
         u32 m_count;
     };
 }

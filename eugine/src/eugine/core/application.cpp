@@ -182,7 +182,7 @@ void eg::Application::run() {
 
     auto vertexBuffer = vkGraphics->createVertexBuffer((void*) vertices, sizeof(vertices),
                                                        rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
-    auto indexBuffer = vkGraphics->createIndexBuffer(indices, 16, rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
+    auto indexBuffer = vkGraphics->createIndexBuffer(indices, 16, rendering::VertexBuffer::VB_USAGE_HINT_STATIC);
 
     while (m_running) {
         auto frameData = vkGraphics->begin();
@@ -195,21 +195,21 @@ void eg::Application::run() {
 
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-        time /= 2;
 
         float timeIntPart;
         time = std::modf(time, &timeIntPart);
 
         if((long)timeIntPart % 2) {
-            time = 1 - time;
+            vertices[2] = vertices[7] = vertices[12] = vertices[17] = 1.0f;
+            vertices[3] = vertices[8] = vertices[13] = vertices[18] = 0.0f;
+        } else {
+            vertices[2] = vertices[7] = vertices[12] = vertices[17] = 0.0f;
+            vertices[3] = vertices[8] = vertices[13] = vertices[18] = 1.0f;
         }
 
-        vertices[2] = time;
-        vertices[7] = time;
-        vertices[12] = time;
-        vertices[17] = time;
 
         vertexBuffer->setData((void*) vertices, sizeof(vertices));
+        indexBuffer->setData(indices, 6);
 
         /* m_renderAPI->setClearColor({1.0, 0.0, 1.0});
         m_renderAPI->clear();
