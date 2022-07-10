@@ -3,7 +3,21 @@
 
 #include <glm/glm.hpp>
 
+#include "Types.h"
+
 namespace eg::rendering {
+
+    struct ShaderUniform {
+        const char* name;
+        ShaderType type;
+    };
+
+    struct ShaderUniformLayout {
+        std::initializer_list<ShaderUniform> uniforms;
+    };
+
+    u32 calculateShaderUniformLayoutSize(const ShaderUniformLayout& layout);
+
     class Shader {
     public:
         struct ShaderUnitSource {

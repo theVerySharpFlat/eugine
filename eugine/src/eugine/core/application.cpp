@@ -24,6 +24,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
 #include "eugine/platform/Vulkan/VKAPI.h"
+#include <glm/gtx/string_cast.hpp>
 
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 
@@ -35,9 +36,15 @@ static const char* vertexShaderData = "#version 450\n"
                                       "layout(location = 1) in vec3 inColor;\n"
                                       "\n"
                                       "layout(location = 0) out vec3 fragColor;\n"
+                                      ""
+                                      "layout(push_constant) uniform constants {\n"
+                                      "    mat4 u_projection;\n"
+                                      "} pushConstants;\n"
                                       "\n"
                                       "void main() {\n"
-                                      "gl_Position = vec4(inPosition, 0.0, 1.0);\n"
+                                      "vec4 pos = pushConstants.u_projection * vec4(inPosition, 0.0, 1.0);"
+                                      "pos.y = -pos.y;\n"
+                                      "gl_Position = pos;\n"
                                       "fragColor = inColor;\n"
                                       "}";
 static const char* fragmentShaderData = "#version 450\n"
@@ -159,6 +166,15 @@ void eg::Application::run() {
             1
     });
 
+    rendering::ShaderUniformLayout shaderUniformLayout = {
+            {
+                    {
+                        "u_projection",
+                        rendering::SHDR_MAT4
+                    }
+            }
+    };
+
     auto shader = vkGraphics->createShader({
                                                    {
                                                            "superBasic.vs", vertexShaderData,   strlen(vertexShaderData)
@@ -167,13 +183,14 @@ void eg::Application::run() {
                                                            "superBasic.fs", fragmentShaderData, strlen(
                                                            fragmentShaderData)
                                                    }
-                                           }, vertexBufferLayout);
+                                           }, vertexBufferLayout, shaderUniformLayout);
+
 
     float vertices[] = {
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-            0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-            0.5f, 0.5f, 0.0f, 0.0f, 0.0f,
-            -0.5f, 0.5f, 0.0f, 0.0f, 0.0f
+            -150.0f, -150.0f, 1.0f, 0.0f, 0.0f, // bottom left
+            150.0f, -150.0f, 1.0f, 0.0f, 0.0f, // bottom right
+            150.0f, 150.0f, 1.0f, 0.0f, 0.0f, // top right
+            -150.0f, 150.0f, 1.0f, 0.0f, 0.0f // top left
     };
 
     const u16 indices[] = {
@@ -182,34 +199,48 @@ void eg::Application::run() {
 
     auto vertexBuffer = vkGraphics->createVertexBuffer((void*) vertices, sizeof(vertices),
                                                        rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
-    auto indexBuffer = vkGraphics->createIndexBuffer(indices, 16, rendering::VertexBuffer::VB_USAGE_HINT_STATIC);
+    auto indexBuffer = vkGraphics->createIndexBuffer(indices, 6, rendering::VertexBuffer::VB_USAGE_HINT_STATIC);
 
     while (m_running) {
         auto frameData = vkGraphics->begin();
-        // vkGraphics->tempDraw(shader);
-//        vkGraphics->tempDraw(shader, vertexBuffer);
         vkGraphics->tempDrawIndexed(shader, vertexBuffer, indexBuffer);
         vkGraphics->end(frameData);
 
-        static auto startTime = std::chrono::high_resolution_clock::now();
-
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-
-        float timeIntPart;
-        time = std::modf(time, &timeIntPart);
-
-        if((long)timeIntPart % 2) {
-            vertices[2] = vertices[7] = vertices[12] = vertices[17] = 1.0f;
-            vertices[3] = vertices[8] = vertices[13] = vertices[18] = 0.0f;
-        } else {
-            vertices[2] = vertices[7] = vertices[12] = vertices[17] = 0.0f;
-            vertices[3] = vertices[8] = vertices[13] = vertices[18] = 1.0f;
+        const float moveSpeed = 0.5f;
+        if(Input::isKeyPressed(EG_KEY_LEFT)) {
+            m_camera->moveCamera({-moveSpeed, 0.0f});
+        }
+        if(Input::isKeyPressed(EG_KEY_RIGHT)) {
+            m_camera->moveCamera({moveSpeed, 0.0f});
+        }
+        if(Input::isKeyPressed(EG_KEY_UP)) {
+            m_camera->moveCamera({0.0f, moveSpeed});
+        }
+        if(Input::isKeyPressed(EG_KEY_DOWN)) {
+            m_camera->moveCamera({0.0f, -moveSpeed});
         }
 
+        shader->setMat4("u_projection", m_camera->getProjectionTimesView());
 
-        vertexBuffer->setData((void*) vertices, sizeof(vertices));
-        indexBuffer->setData(indices, 6);
+//        static auto startTime = std::chrono::high_resolution_clock::now();
+//
+//        auto currentTime = std::chrono::high_resolution_clock::now();
+//        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+//
+//        float timeIntPart;
+//        time = std::modf(time, &timeIntPart);
+//
+//        if((long)timeIntPart % 2) {
+//            vertices[2] = vertices[7] = vertices[12] = vertices[17] = 1.0f;
+//            vertices[3] = vertices[8] = vertices[13] = vertices[18] = 0.0f;
+//        } else {
+//            vertices[2] = vertices[7] = vertices[12] = vertices[17] = 0.0f;
+//            vertices[3] = vertices[8] = vertices[13] = vertices[18] = 1.0f;
+//        }
+//
+//
+//        vertexBuffer->setData((void*) vertices, sizeof(vertices));
+//        indexBuffer->setData(indices, 6);
 
         /* m_renderAPI->setClearColor({1.0, 0.0, 1.0});
         m_renderAPI->clear();

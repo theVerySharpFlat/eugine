@@ -253,9 +253,9 @@ namespace eg::rendering::VKWrapper {
     }
 
     Ref<::eg::rendering::VKWrapper::VkShader>
-    VKAPI::createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout) {
+    VKAPI::createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout, rendering::ShaderUniformLayout uniformLayout) {
         auto temp = createRef<::eg::rendering::VKWrapper::VkShader>(m_device, m_renderPass, m_vkWindow);
-        temp->init(source, layout);
+        temp->init(source, layout, uniformLayout);
 
         return temp;
     }
@@ -403,6 +403,8 @@ namespace eg::rendering::VKWrapper {
         vkCmdSetScissor(commandBuffer, 0, 1, &scissorRect);
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipeline());
+
+        vkCmdPushConstants(commandBuffer, shader->getPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, shader->getPushConstantsSize(), shader->getPushConstantsBuffer());
 
         VkBuffer vertexBuffers[] = { vertexBuffer->getBuffer() };
         VkDeviceSize offsets[] = {0};

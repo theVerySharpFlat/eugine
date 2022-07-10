@@ -11,7 +11,7 @@ namespace eg::rendering {
     Camera2D::Camera2D(glm::vec2 dimensions, glm::vec2 position) {
         m_projection = glm::ortho(-dimensions.x / 2, dimensions.x / 2,
                                   -dimensions.y / 2, dimensions.y / 2,
-                                  1.0f, -1.0f);
+                                  0.0f, 1.0f);
         m_position = position;
         recalculateView();
         m_projectionTimesView = m_projection * m_view;

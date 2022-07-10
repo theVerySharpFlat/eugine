@@ -58,7 +58,7 @@ namespace eg::rendering::VKWrapper {
         static const int maxFramesInFlight = 2;
 
         Ref<::eg::rendering::VKWrapper::VkShader>
-        createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout);
+        createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout, ShaderUniformLayout uniformLayout);
 
         Ref<VkVertexBuffer> createVertexBuffer(void* data, u32 size, rendering::VertexBuffer::UsageHints usageHint);
         Ref<VkIndexBuffer> createIndexBuffer(const u16* data, u32 count, rendering::VertexBuffer::UsageHints usageHint);

@@ -7,6 +7,8 @@
 #include "VkRenderPass.h"
 #include "VkWindow.h"
 
+#include <glm/gtc/type_ptr.hpp>
+
 namespace eg::rendering::VKWrapper {
     VkShader::VkShader(VkDevice& device, VkRenderPass& renderPass, VkWindow& window) : m_device(device),
                                                                                        m_renderPass(renderPass),
@@ -124,7 +126,8 @@ namespace eg::rendering::VKWrapper {
         trace("computed byte offset is {} bytes", byteOffset);
     }
 
-    void VkShader::init(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout& layout) {
+    void VkShader::init(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout& layout,
+                        ShaderUniformLayout uniformLayout) {
         VkShaderModule vertexShaderModule = createShaderModule(source.vs, shaderc_vertex_shader);
         VkShaderModule fragmentShaderModule = createShaderModule(source.fs, shaderc_fragment_shader);
 
@@ -188,7 +191,7 @@ namespace eg::rendering::VKWrapper {
         rasterizationStateCreateInfo.rasterizerDiscardEnable = VK_FALSE;
         rasterizationStateCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizationStateCreateInfo.lineWidth = 1.0f;
-        rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+        rasterizationStateCreateInfo.cullMode = VK_CULL_MODE_NONE;
         rasterizationStateCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
         rasterizationStateCreateInfo.depthBiasEnable = VK_FALSE;
         rasterizationStateCreateInfo.depthBiasConstantFactor = 0.0f;
@@ -221,10 +224,32 @@ namespace eg::rendering::VKWrapper {
         colorBlending.attachmentCount = 1;
         colorBlending.pAttachments = &colorBlendAttachment;
 
+        m_pushConstantBufferSize = calculateShaderUniformLayoutSize(uniformLayout);
+        m_pushConstantBuffer = (u8*) malloc(m_pushConstantBufferSize);
+
+        if (m_pushConstantBufferSize > 128) {
+            warn("push constant buffer has a size of {} which is greater than 128 bytes!!! Cannot guarantee that this shader will work!!!",
+                 m_pushConstantBufferSize);
+        }
+
+        {
+            u8* curPtr = m_pushConstantBuffer;
+            for (const auto& u: uniformLayout.uniforms) {
+                trace("uniform name: {}", u.name);
+                m_pushConstantNamesToBufPtrMap[u.name] = curPtr;
+                curPtr += getSizeOfType(u.type);
+            }
+        }
+
+        VkPushConstantRange pushConstant{};
+        pushConstant.offset = 0;
+        pushConstant.size = m_pushConstantBufferSize;
+        pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
         pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
-        pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
+        pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
+        pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstant;
         pipelineLayoutCreateInfo.setLayoutCount = 0;
         pipelineLayoutCreateInfo.pSetLayouts = nullptr;
 
@@ -311,5 +336,70 @@ namespace eg::rendering::VKWrapper {
 
         m_pipelineLayout = VK_NULL_HANDLE;
         m_pipeline = VK_NULL_HANDLE;
+
+        free(m_pushConstantBuffer);
+    }
+
+    void VkShader::bind() const {}
+
+    void VkShader::unBind() const {}
+
+    void VkShader::setPushConstantUniform(const char* name, const void* data, u32 size) {
+        auto it = m_pushConstantNamesToBufPtrMap.find(name);
+
+        if (it ==  m_pushConstantNamesToBufPtrMap.end()) {
+            error("failed to find uniform \"{}\"", name);
+            return;
+        }
+
+        memcpy(it->second, data, size);
+    }
+
+    void VkShader::setMat4(const char* name, const glm::mat4& mat) {
+        setPushConstantUniform(name, glm::value_ptr(mat), getSizeOfType(SHDR_MAT4));
+    }
+
+    void VkShader::setMat3(const char* name, const glm::mat3& mat) {
+        setPushConstantUniform(name, glm::value_ptr(mat), getSizeOfType(SHDR_MAT3));
+    }
+
+    void VkShader::setMat2(const char* name, const glm::mat2& mat) {
+        setPushConstantUniform(name, glm::value_ptr(mat), getSizeOfType(SHDR_MAT2));
+    }
+
+    void VkShader::setVec4(const char* name, const glm::vec4& vec) {
+        setPushConstantUniform(name, glm::value_ptr(vec), getSizeOfType(SHDR_VEC4));
+    }
+
+    void VkShader::setVec3(const char* name, const glm::vec3& vec) {
+        setPushConstantUniform(name, glm::value_ptr(vec), getSizeOfType(SHDR_VEC3));
+    }
+
+    void VkShader::setVec2(const char* name, const glm::vec2& vec) {
+        setPushConstantUniform(name, glm::value_ptr(vec), getSizeOfType(SHDR_VEC2));
+    }
+
+    void VkShader::setBool(const char* name, const bool& value) {
+        setPushConstantUniform(name, &value, getSizeOfType(SHDR_BOOL));
+    }
+
+    void VkShader::setInt(const char* name, const i32& value) {
+        setPushConstantUniform(name, &value, getSizeOfType(SHDR_INT));
+    }
+
+    void VkShader::setUint(const char* name, const u32& value) {
+        setPushConstantUniform(name, &value, getSizeOfType(SHDR_UINT));
+    }
+
+    void VkShader::setFloat(const char* name, const float& value) {
+        setPushConstantUniform(name, &value, getSizeOfType(SHDR_FLOAT));
+    }
+
+    void VkShader::setDouble(const char* name, const double& value) {
+        setPushConstantUniform(name, &value, getSizeOfType(SHDR_DOUBLE));
+    }
+
+    void VkShader::setIntArray(const char* name, const i32* value, u32 count) {
+        setPushConstantUniform(name, value, getSizeOfType(SHDR_INT) * count);
     }
 }
