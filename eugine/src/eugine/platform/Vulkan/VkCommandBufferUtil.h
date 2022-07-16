@@ -7,7 +7,7 @@
 
 #include "volk.h"
 
-namespace eg::rendering::VKWrapper {
+namespace eg::rendering::VKWrapper::CommandBufferUtil {
     VkCommandBuffer beginSingleTimeCommands(::VkDevice device, ::VkCommandPool pool);
     VkFence endSingleTimeCommands(::VkDevice device, ::VkQueue queue, VkCommandBuffer buffer);
 }

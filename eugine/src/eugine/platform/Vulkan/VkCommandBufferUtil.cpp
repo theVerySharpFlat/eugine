@@ -4,7 +4,7 @@
 
 #include "VkCommandBufferUtil.h"
 
-namespace eg::rendering::VKWrapper {
+namespace eg::rendering::VKWrapper::CommandBufferUtil {
     VkCommandBuffer beginSingleTimeCommands(::VkDevice device, ::VkCommandPool commandPool) {
         VkCommandBufferAllocateInfo commandBufferAllocateInfo{};
         commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
