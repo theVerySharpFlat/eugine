@@ -8,4 +8,6 @@ target_sources(eugine PRIVATE
         VkVertexBuffer.cpp
         VkBufferUtil.cpp
         VkIndexBuffer.cpp
+        VkTexture.cpp
+        VkCommandBufferUtil.cpp
         )
