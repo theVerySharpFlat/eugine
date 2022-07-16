@@ -13,15 +13,19 @@ namespace eg::rendering::VKWrapper {
 
     class VkTexture {
     public:
-        VkTexture(VkDevice& device, VmaAllocator& allocator);
+        VkTexture(VkDevice& device, VmaAllocator& allocator, VkCommandPool& commandPool);
         ~VkTexture();
 
         void init(const char* path);
         void destruct();
 
+        static void transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+        static void copyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, u32 width, u32 height);
+
     private:
         VmaAllocator& m_allocator;
         VkDevice& m_device;
+        VkCommandPool& m_commandPool;
 
         VkImage m_image = VK_NULL_HANDLE;
         VmaAllocation m_imageAllocation = VK_NULL_HANDLE;
