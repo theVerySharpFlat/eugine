@@ -201,6 +201,8 @@ void eg::Application::run() {
                                                        rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
     auto indexBuffer = vkGraphics->createIndexBuffer(indices, 6, rendering::VertexBuffer::VB_USAGE_HINT_STATIC);
 
+    auto texture = vkGraphics->createTexture("res/textures/Vulkan/vulkan.png");
+
     while (m_running) {
         auto frameData = vkGraphics->begin();
         vkGraphics->tempDrawIndexed(shader, vertexBuffer, indexBuffer);

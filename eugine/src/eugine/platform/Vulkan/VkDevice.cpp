@@ -33,8 +33,11 @@ namespace eg::rendering::VKWrapper {
         info("VULKAN API VERSION: {}.{}", VK_API_VERSION_MAJOR(deviceProperties.apiVersion),
              VK_API_VERSION_MINOR(deviceProperties.apiVersion));
 
+        VkPhysicalDeviceFeatures physicalDeviceFeatures;
+        vkGetPhysicalDeviceFeatures(device, &physicalDeviceFeatures);
+
         QueueFamilyIndices indices = findQueueFamilyIndices(device);
-        return indices.isAcceptable() && deviceSupportsRequiredExtensions(device);
+        return indices.isAcceptable() && deviceSupportsRequiredExtensions(device) && physicalDeviceFeatures.samplerAnisotropy;
     }
 
     bool VkDevice::deviceSupportsRequiredExtensions(VkPhysicalDevice device) {
@@ -111,6 +114,7 @@ namespace eg::rendering::VKWrapper {
         }
 
         VkPhysicalDeviceFeatures deviceFeatures{};
+        deviceFeatures.samplerAnisotropy = VK_TRUE;
 
         VkDeviceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -160,5 +164,17 @@ namespace eg::rendering::VKWrapper {
             }
         }
         return indices;
+    }
+
+    VkPhysicalDeviceProperties VkDevice::getPhysicalDeviceProperties() {
+        static VkPhysicalDeviceProperties physicalDeviceProperties{};
+        static bool found = false;
+
+        if(!found) {
+            vkGetPhysicalDeviceProperties(m_physicalDevice, &physicalDeviceProperties);
+            found = true;
+        }
+
+        return physicalDeviceProperties;
     }
 }

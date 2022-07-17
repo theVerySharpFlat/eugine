@@ -22,6 +22,8 @@ namespace eg::rendering::VKWrapper {
         VkPhysicalDevice& getPhysicalDevice() { return m_physicalDevice; };
         ::VkDevice& getDevice() { return m_device; }
 
+        VkPhysicalDeviceProperties getPhysicalDeviceProperties();
+
         struct QueueFamilyIndices {
             std::optional<u32> graphicsFamily;
             std::optional<u32> presentFamily;

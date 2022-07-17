@@ -268,6 +268,12 @@ namespace eg::rendering::VKWrapper {
         return eg::createRef<VkIndexBuffer>(m_device, m_commandPool, m_allocator, data, count, usageHint);
     }
 
+    Ref<VkTexture> VKAPI::createTexture(const char* path) {
+        auto temp = createRef<VkTexture>(m_device, m_allocator, m_commandPool);
+        temp->init(path);
+        return temp;
+    }
+
     u32 VKAPI::acquireImage(bool& success) {
         while (true) {
             u32 imageIndex;

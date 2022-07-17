@@ -18,6 +18,7 @@
 #include "VkShader.h"
 #include "VkVertexBuffer.h"
 #include "VkIndexBuffer.h"
+#include "VkTexture.h"
 #include "eugine/rendering/VertexBuffer.h"
 
 namespace eg::rendering::VKWrapper {
@@ -62,6 +63,8 @@ namespace eg::rendering::VKWrapper {
 
         Ref<VkVertexBuffer> createVertexBuffer(void* data, u32 size, rendering::VertexBuffer::UsageHints usageHint);
         Ref<VkIndexBuffer> createIndexBuffer(const u16* data, u32 count, rendering::VertexBuffer::UsageHints usageHint);
+
+        Ref<VkTexture> createTexture(const char* path);
 
     private:
         friend class VkDevice;

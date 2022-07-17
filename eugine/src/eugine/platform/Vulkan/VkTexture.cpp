@@ -17,7 +17,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     VkTexture::~VkTexture() {
-
+        destruct();
     }
 
     void
@@ -146,9 +146,54 @@ namespace eg::rendering::VKWrapper {
         vkDestroyFence(m_device.getDevice(), fence, nullptr);
 
         vmaDestroyBuffer(m_allocator, stagingBuffer, stagingBufferAllocation);
+
+        VkImageViewCreateInfo imageViewCreateInfo{};
+        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        imageViewCreateInfo.image = m_image;
+        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        imageViewCreateInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+        imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+        imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        imageViewCreateInfo.subresourceRange.layerCount = 1;
+        imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+        imageViewCreateInfo.subresourceRange.levelCount = 1;
+        imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+        if(vkCreateImageView(m_device.getDevice(), &imageViewCreateInfo, nullptr, &m_imageView) != VK_SUCCESS) {
+            error("failed to create image view for \"{}\"", path);
+            return;
+        }
+
+        VkSamplerCreateInfo samplerCreateInfo{};
+        samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+        samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+        samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerCreateInfo.anisotropyEnable = VK_TRUE;
+        samplerCreateInfo.maxAnisotropy = m_device.getPhysicalDeviceProperties().limits.maxSamplerAnisotropy;
+        samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
+        samplerCreateInfo.compareEnable = VK_FALSE;
+        samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+        samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerCreateInfo.mipLodBias = 0.0f;
+        samplerCreateInfo.minLod = 0.0f;
+        samplerCreateInfo.maxLod = 0.0f;
+
+        if(vkCreateSampler(m_device.getDevice(), &samplerCreateInfo, nullptr, &m_sampler) != VK_SUCCESS) {
+            error("failed to create sampler for texture \"{}\"");
+            return;
+        }
     }
 
     void VkTexture::destruct() {
+        vkDestroySampler(m_device.getDevice(), m_sampler, nullptr);
+        vkDestroyImageView(m_device.getDevice(), m_imageView, nullptr);
         vmaDestroyImage(m_allocator, m_image, m_imageAllocation);
     }
 }

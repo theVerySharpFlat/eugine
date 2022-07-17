@@ -28,6 +28,8 @@ namespace eg::rendering::VKWrapper {
         VkCommandPool& m_commandPool;
 
         VkImage m_image = VK_NULL_HANDLE;
+        VkImageView m_imageView = VK_NULL_HANDLE;
+        VkSampler m_sampler = VK_NULL_HANDLE;
         VmaAllocation m_imageAllocation = VK_NULL_HANDLE;
         VmaAllocationInfo m_imageAllocationInfo{};
 
