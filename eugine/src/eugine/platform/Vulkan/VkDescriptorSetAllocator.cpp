@@ -4,6 +4,7 @@
 
 #include "VkDescriptorSetAllocator.h"
 #include "VkDevice.h"
+#include <vulkan/vulkan_core.h>
 
 namespace eg::rendering::VKWrapper {
     VkDescriptorSetAllocator::VkDescriptorSetAllocator(VkDevice& device) : m_device(device) {
@@ -16,23 +17,18 @@ namespace eg::rendering::VKWrapper {
 
     void VkDescriptorSetAllocator::init(DescriptorPoolAllocationHints allocationHints) {
         m_allocationHints = allocationHints;
+        m_poolIterator = m_pools.begin();
     }
 
     void VkDescriptorSetAllocator::destruct() {
-        for (auto& pool: m_freePools) {
-            vkDestroyDescriptorPool(m_device.getDevice(), pool, nullptr);
-        }
-
-        for (auto& pool: m_usedPools) {
+        for (auto& pool: m_pools) {
             vkDestroyDescriptorPool(m_device.getDevice(), pool, nullptr);
         }
     }
 
     VkDescriptorPool VkDescriptorSetAllocator::getFreePool() {
-        if (!m_freePools.empty()) {
-            VkDescriptorPool pool = m_freePools.back();
-            m_freePools.pop_back();
-            m_usedPools.push_back(pool);
+        if (m_poolIterator != m_pools.end()) {
+            VkDescriptorPool pool = *m_poolIterator;
             return pool;
         } else {
             std::array<VkDescriptorPoolSize, 2> poolSizes{};
@@ -46,6 +42,7 @@ namespace eg::rendering::VKWrapper {
                                                   (double) m_allocationHints.avgCombinedSamplersPerSet);
             VkDescriptorPoolCreateInfo descriptorPoolCreateInfo{};
             descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+            descriptorPoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
             descriptorPoolCreateInfo.maxSets = m_allocationHints.setsPerPool;
             descriptorPoolCreateInfo.poolSizeCount = 2;
             descriptorPoolCreateInfo.pPoolSizes = poolSizes.data();
@@ -56,7 +53,7 @@ namespace eg::rendering::VKWrapper {
                 return VK_NULL_HANDLE;
             }
 
-            m_usedPools.push_back(descriptorPool);
+            m_pools.push_back(descriptorPool);
 
             return descriptorPool;
         }
@@ -64,14 +61,11 @@ namespace eg::rendering::VKWrapper {
 
     bool VkDescriptorSetAllocator::allocateDescriptorSet(VkDescriptorSet* descriptorSet,
                                                          VkDescriptorSetLayout descriptorSetLayout) {
-        if(m_currentFreePool == VK_NULL_HANDLE) {
-            m_currentFreePool = getFreePool();
-        }
-
+        VkDescriptorPool currentFreePool = getFreePool();
         VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{};
         descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         descriptorSetAllocateInfo.pSetLayouts = &descriptorSetLayout;
-        descriptorSetAllocateInfo.descriptorPool = m_currentFreePool;
+        descriptorSetAllocateInfo.descriptorPool = currentFreePool;
         descriptorSetAllocateInfo.descriptorSetCount = 1;
 
         switch(vkAllocateDescriptorSets(m_device.getDevice(), &descriptorSetAllocateInfo, descriptorSet)) {
@@ -80,8 +74,9 @@ namespace eg::rendering::VKWrapper {
             case VK_ERROR_FRAGMENTED_POOL:
             case VK_ERROR_OUT_OF_POOL_MEMORY:
             {
-                m_currentFreePool = getFreePool();
-                descriptorSetAllocateInfo.descriptorPool = m_currentFreePool;
+                m_poolIterator++;
+                currentFreePool = getFreePool();
+                descriptorSetAllocateInfo.descriptorPool = currentFreePool;
 
                 if(vkAllocateDescriptorSets(m_device.getDevice(), &descriptorSetAllocateInfo, descriptorSet) != VK_SUCCESS) {
                     error("failed to allocate descriptor set on second try!!!");
@@ -98,12 +93,9 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkDescriptorSetAllocator::resetAllocations() {
-        while(!m_usedPools.empty()) {
-            m_freePools.push_back(m_usedPools.back());
-            m_usedPools.pop_back();
-        }
-        for (auto& pool: m_freePools) {
+        for(auto& pool : m_pools) {
             vkResetDescriptorPool(m_device.getDevice(), pool, 0);
         }
+        m_poolIterator = m_pools.begin();
     }
 }

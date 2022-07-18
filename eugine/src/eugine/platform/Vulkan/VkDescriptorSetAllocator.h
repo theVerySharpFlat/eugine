@@ -31,10 +31,9 @@ namespace eg::rendering::VKWrapper {
     private:
         VkDevice& m_device;
 
-        std::list<VkDescriptorPool> m_freePools;
-        std::list<VkDescriptorPool> m_usedPools;
+        std::list<VkDescriptorPool> m_pools;
+        std::list<VkDescriptorPool>::iterator m_poolIterator;
 
-        VkDescriptorPool m_currentFreePool = VK_NULL_HANDLE;
         VkDescriptorPool getFreePool();
 
         DescriptorPoolAllocationHints m_allocationHints{};
