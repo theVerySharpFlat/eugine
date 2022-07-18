@@ -19,6 +19,7 @@
 #include "VkVertexBuffer.h"
 #include "VkIndexBuffer.h"
 #include "VkTexture.h"
+#include "VkDescriptorSetAllocator.h"
 #include "eugine/rendering/VertexBuffer.h"
 
 namespace eg::rendering::VKWrapper {
@@ -56,7 +57,21 @@ namespace eg::rendering::VKWrapper {
 
         void recreateSwapchain();
 
+        struct DescriptorSetAllocatorCombination {
+            VkDescriptorSetAllocator uniformBufferAllocator;
+            VkDescriptorSetAllocator textureArrayAllocator;
+        };
         static const int maxFramesInFlight = 2;
+        std::array<DescriptorSetAllocatorCombination, maxFramesInFlight> m_descriptorSetAllocators = {
+            DescriptorSetAllocatorCombination {
+                VkDescriptorSetAllocator(m_device),
+                VkDescriptorSetAllocator(m_device)
+            },
+            DescriptorSetAllocatorCombination {
+                VkDescriptorSetAllocator(m_device),
+                VkDescriptorSetAllocator(m_device)
+            }
+        };
 
         Ref<::eg::rendering::VKWrapper::VkShader>
         createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout, ShaderUniformLayout uniformLayout);

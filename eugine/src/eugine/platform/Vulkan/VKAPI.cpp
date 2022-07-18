@@ -115,6 +115,15 @@ namespace eg::rendering::VKWrapper {
         glfwSetFramebufferSizeCallback((GLFWwindow*) m_window.getNativeWindow(), framebufferResizeCallback);
 
         createBufferAllocator();
+
+        for(auto& allocators : m_descriptorSetAllocators) {
+            allocators.textureArrayAllocator.init({
+                0.0f, 4.0f, 20
+            });
+            allocators.uniformBufferAllocator.init({
+                1.0f, 0.0f, 20
+            });
+        }
     }
 
 
@@ -507,6 +516,11 @@ namespace eg::rendering::VKWrapper {
 
     VKAPI::~VKAPI() {
         vmaDestroyAllocator(m_allocator);
+
+        for(auto& allocators : m_descriptorSetAllocators) {
+            allocators.textureArrayAllocator.destruct();
+            allocators.uniformBufferAllocator.destruct();
+        }
 
         for (auto& frameObjects: m_frameObjects) {
             vkDestroySemaphore(m_device.getDevice(), frameObjects.imageAvailableSemaphore, nullptr);
