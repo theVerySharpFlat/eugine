@@ -400,6 +400,10 @@ namespace eg::rendering::VKWrapper {
         memcpy(it->second, data, size);
     }
 
+    void VkShader::setUniformBuffer(const char* name, Ref<VkUniformBuffer> uniformBuffer) {
+
+    }
+
     void VkShader::setMat4(const char* name, const glm::mat4& mat) {
         setPushConstantUniform(name, glm::value_ptr(mat), getSizeOfType(SHDR_MAT4));
     }

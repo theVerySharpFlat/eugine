@@ -18,6 +18,8 @@ namespace eg::rendering::VKWrapper{
 
     class VkWindow;
 
+    class VkUniformBuffer;
+
     class VkShader : public ::eg::rendering::Shader {
     public:
         VkShader(VkDevice& device, VkRenderPass& renderPass, VkWindow& window);
@@ -36,6 +38,8 @@ namespace eg::rendering::VKWrapper{
 
         void bind() const override;
         void unBind() const override;
+
+        void setUniformBuffer(const char* name, Ref<VkUniformBuffer> uniformBuffer);
 
         void setPushConstantUniform(const char* name, const void* data, u32 size);
 

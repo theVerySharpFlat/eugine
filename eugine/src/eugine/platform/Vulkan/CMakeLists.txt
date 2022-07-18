@@ -10,4 +10,6 @@ target_sources(eugine PRIVATE
         VkIndexBuffer.cpp
         VkTexture.cpp
         VkCommandBufferUtil.cpp
+        VkUniformBuffer.cpp
+        VkDescriptorSetAllocator.cpp
         )

@@ -1,0 +1,41 @@
+//
+// Created by aiden on 7/17/22.
+//
+
+#ifndef EUGINE_VKUNIFORMBUFFER_H
+#define EUGINE_VKUNIFORMBUFFER_H
+
+#include "volk.h"
+#include "vk_mem_alloc.h"
+
+#include "eugine/rendering/VertexBuffer.h"
+
+namespace eg::rendering::VKWrapper {
+    class VkDevice;
+    class VkUniformBuffer {
+    public:
+        VkUniformBuffer(VkDevice& device, VkCommandPool commandPool, VmaAllocator& allocator, void* data, u32 size, VertexBuffer::UsageHints usageHint);
+        ~VkUniformBuffer();
+
+        void setData(void* data, u32 size);
+
+        VkBuffer& getBuffer() { return m_buffer; }
+
+    private:
+        VmaAllocator& m_allocator;
+        VkDevice& m_device;
+
+        VkCommandPool m_commandPool;
+
+        u32 m_maxSize;
+        VertexBuffer::UsageHints m_usageHint;
+
+        VkBuffer m_buffer = VK_NULL_HANDLE;
+        VmaAllocation m_allocation = VK_NULL_HANDLE;
+        VmaAllocationInfo m_allocationInfo{};
+    };
+}
+
+
+
+#endif //EUGINE_VKUNIFORMBUFFER_H
