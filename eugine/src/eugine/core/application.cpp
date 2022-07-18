@@ -172,6 +172,13 @@ void eg::Application::run() {
                         "u_projection",
                         rendering::SHDR_MAT4
                     }
+            },
+            {
+                    {
+                        "u_matrices",
+                        rendering::SHADER_BINDING_TYPE_UNIFORM_BUFFER,
+                        1
+                    }
             }
     };
 

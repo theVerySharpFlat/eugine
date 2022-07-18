@@ -78,6 +78,10 @@ namespace eg::rendering::VKWrapper{
         u32 m_pushConstantBufferSize = 0;
         u8* m_pushConstantBuffer = nullptr;
         std::unordered_map<const char*, u8*> m_pushConstantNamesToBufPtrMap;
+
+        std::unordered_map<const char*, u32> m_descriptorBindingNameToSetIndexMap;
+        VkDescriptorSetLayout* m_descriptorSetLayouts = nullptr;
+        u32 m_descriptorSetLayoutsCount = 0;
     };
 }
 

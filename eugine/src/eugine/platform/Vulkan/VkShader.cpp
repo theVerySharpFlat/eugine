@@ -246,12 +246,53 @@ namespace eg::rendering::VKWrapper {
         pushConstant.size = m_pushConstantBufferSize;
         pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
+        m_descriptorSetLayouts = (VkDescriptorSetLayout*) malloc(
+                sizeof(VkDescriptorSetLayout) * uniformLayout.bindings.size());
+        m_descriptorSetLayoutsCount = uniformLayout.bindings.size();
+        {
+            u32 i = 0;
+            for (auto& binding: uniformLayout.bindings) {
+                m_descriptorBindingNameToSetIndexMap[binding.name] = i;
+
+                VkDescriptorType descriptorType;
+                switch (binding.type) {
+                    case SHADER_BINDING_TYPE_SAMPLER_ARRAY:
+                        descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                        break;
+                    case SHADER_BINDING_TYPE_UNIFORM_BUFFER:
+                        descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                        break;
+                    default:
+                        EG_ASSERT(false, "incorrect descriptor type. THIS SHOULD NEVER HAPPEN!!!");
+                        break;
+                }
+
+                VkDescriptorSetLayoutBinding descriptorSetLayoutBinding{};
+                descriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+                descriptorSetLayoutBinding.binding = 0;
+                descriptorSetLayoutBinding.descriptorCount = binding.arrayCount;
+                descriptorSetLayoutBinding.descriptorType = descriptorType;
+                descriptorSetLayoutBinding.pImmutableSamplers = nullptr;
+
+                VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo{};
+                descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+                descriptorSetLayoutCreateInfo.bindingCount = 1;
+                descriptorSetLayoutCreateInfo.pBindings = &descriptorSetLayoutBinding;
+
+                if(vkCreateDescriptorSetLayout(m_device.getDevice(), &descriptorSetLayoutCreateInfo, nullptr, m_descriptorSetLayouts + i) != VK_SUCCESS) {
+                    error("failed to create descriptor set layout {} for shader \"{}\"", i, source.vs.name);
+                }
+
+                i++;
+            }
+        }
+
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
         pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
         pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstant;
-        pipelineLayoutCreateInfo.setLayoutCount = 0;
-        pipelineLayoutCreateInfo.pSetLayouts = nullptr;
+        pipelineLayoutCreateInfo.setLayoutCount = m_descriptorSetLayoutsCount;
+        pipelineLayoutCreateInfo.pSetLayouts = m_descriptorSetLayouts;
 
         if (vkCreatePipelineLayout(m_device.getDevice(), &pipelineLayoutCreateInfo, nullptr, &m_pipelineLayout) !=
             VK_SUCCESS) {
@@ -328,6 +369,9 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkShader::destruct() {
+        for(u32 i = 0; i < m_descriptorSetLayoutsCount; i++) {
+            vkDestroyDescriptorSetLayout(m_device.getDevice(), m_descriptorSetLayouts[i], nullptr);
+        }
 
         if (m_pipelineLayout != VK_NULL_HANDLE)
             vkDestroyPipelineLayout(m_device.getDevice(), m_pipelineLayout, nullptr);
@@ -338,6 +382,7 @@ namespace eg::rendering::VKWrapper {
         m_pipeline = VK_NULL_HANDLE;
 
         free(m_pushConstantBuffer);
+        free(m_descriptorSetLayouts);
     }
 
     void VkShader::bind() const {}
@@ -347,7 +392,7 @@ namespace eg::rendering::VKWrapper {
     void VkShader::setPushConstantUniform(const char* name, const void* data, u32 size) {
         auto it = m_pushConstantNamesToBufPtrMap.find(name);
 
-        if (it ==  m_pushConstantNamesToBufPtrMap.end()) {
+        if (it == m_pushConstantNamesToBufPtrMap.end()) {
             error("failed to find uniform \"{}\"", name);
             return;
         }

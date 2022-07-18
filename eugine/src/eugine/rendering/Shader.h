@@ -12,8 +12,20 @@ namespace eg::rendering {
         ShaderType type;
     };
 
+    enum ShaderBindingType {
+        SHADER_BINDING_TYPE_SAMPLER_ARRAY = 0,
+        SHADER_BINDING_TYPE_UNIFORM_BUFFER
+    };
+
+    struct ShaderBindingDescription {
+        const char* name;
+        ShaderBindingType type;
+        u32 arrayCount;
+    };
+
     struct ShaderUniformLayout {
         std::initializer_list<ShaderUniform> uniforms;
+        std::initializer_list<ShaderBindingDescription> bindings;
     };
 
     u32 calculateShaderUniformLayoutSize(const ShaderUniformLayout& layout);
