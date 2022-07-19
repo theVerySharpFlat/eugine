@@ -24,6 +24,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
 #include "eugine/platform/Vulkan/VKAPI.h"
+#include "eugine/platform/Vulkan/VkShader.h"
 #include <glm/gtx/string_cast.hpp>
 
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
@@ -40,9 +41,13 @@ static const char* vertexShaderData = "#version 450\n"
                                       "layout(push_constant) uniform constants {\n"
                                       "    mat4 u_projection;\n"
                                       "} pushConstants;\n"
+                                      ""
+                                      "layout(binding = 0, set = 0) uniform UniformBufferObject {\n"
+                                      "    mat4 model;"
+                                      "} u_matrices;\n"
                                       "\n"
                                       "void main() {\n"
-                                      "vec4 pos = pushConstants.u_projection * vec4(inPosition, 0.0, 1.0);"
+                                      "vec4 pos = pushConstants.u_projection * u_matrices.model * vec4(inPosition, 0.0, 1.0);"
                                       "pos.y = -pos.y;\n"
                                       "gl_Position = pos;\n"
                                       "fragColor = inColor;\n"
@@ -204,14 +209,30 @@ void eg::Application::run() {
             0, 1, 2, 2, 3, 0
     };
 
+    struct UniformBufferData {
+        glm::mat4 model;
+    } uniformBufferData{};
+
     auto vertexBuffer = vkGraphics->createVertexBuffer((void*) vertices, sizeof(vertices),
                                                        rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
     auto indexBuffer = vkGraphics->createIndexBuffer(indices, 6, rendering::VertexBuffer::VB_USAGE_HINT_STATIC);
 
+    auto uniformBuffer0 = vkGraphics->createUniformBuffer((void*)&uniformBufferData, sizeof(uniformBufferData), rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
+    auto uniformBuffer1 = vkGraphics->createUniformBuffer((void*)&uniformBufferData, sizeof(uniformBufferData), rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
+    std::array<Ref<rendering::VKWrapper::VkUniformBuffer>, 2> uniformBuffers = {uniformBuffer0, uniformBuffer1};
+
     auto texture = vkGraphics->createTexture("res/textures/Vulkan/vulkan.png");
 
     while (m_running) {
+        static auto startTime = std::chrono::high_resolution_clock::now();
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+        uniformBufferData.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        uniformBuffers[vkGraphics->getFrameInFlight()]->setData(&uniformBufferData, sizeof(uniformBufferData));
+
         auto frameData = vkGraphics->begin();
+        shader->setUniformBuffer("u_matrices", uniformBuffers[vkGraphics->getFrameInFlight()]);
         vkGraphics->tempDrawIndexed(shader, vertexBuffer, indexBuffer);
         vkGraphics->end(frameData);
 

@@ -15,15 +15,19 @@
 #include "VkDevice.h"
 #include "VkWindow.h"
 #include "VkRenderPass.h"
-#include "VkShader.h"
 #include "VkVertexBuffer.h"
 #include "VkIndexBuffer.h"
 #include "VkTexture.h"
 #include "VkDescriptorSetAllocator.h"
+#include "VkUniformBuffer.h"
+
 #include "eugine/rendering/VertexBuffer.h"
+#include "eugine/rendering/Shader.h"
 
 namespace eg::rendering::VKWrapper {
     class VkDevice;
+
+    class VkShader;
 
     class VKAPI : public ::eg::rendering::GraphicsAPI {
     public:
@@ -61,7 +65,7 @@ namespace eg::rendering::VKWrapper {
             VkDescriptorSetAllocator uniformBufferAllocator;
             VkDescriptorSetAllocator textureArrayAllocator;
         };
-        static const int maxFramesInFlight = 2;
+        static inline const int maxFramesInFlight = 2;
         std::array<DescriptorSetAllocatorCombination, maxFramesInFlight> m_descriptorSetAllocators = {
             DescriptorSetAllocatorCombination {
                 VkDescriptorSetAllocator(m_device),
@@ -78,8 +82,11 @@ namespace eg::rendering::VKWrapper {
 
         Ref<VkVertexBuffer> createVertexBuffer(void* data, u32 size, rendering::VertexBuffer::UsageHints usageHint);
         Ref<VkIndexBuffer> createIndexBuffer(const u16* data, u32 count, rendering::VertexBuffer::UsageHints usageHint);
+        Ref<VkUniformBuffer> createUniformBuffer(void* data, u32 size, VertexBuffer::UsageHints usageHint);
 
         Ref<VkTexture> createTexture(const char* path);
+
+        u32 getFrameInFlight() const { return frameNumber; }
 
     private:
         friend class VkDevice;
@@ -107,7 +114,7 @@ namespace eg::rendering::VKWrapper {
             VkFence inFlightFence;
         };
         FrameObjectsContainer m_frameObjects[maxFramesInFlight];
-        int frameNumber = 0;
+        u32 frameNumber = 0;
 
 #ifdef NDEBUG
         void setupDebugMessenger() {}

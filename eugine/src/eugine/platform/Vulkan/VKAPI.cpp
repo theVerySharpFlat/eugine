@@ -6,6 +6,7 @@
 #include "VKAPI.h"
 #include "GLFW/glfw3.h"
 #include "VkDevice.h"
+#include "VkShader.h"
 
 static bool framebufferResized = false;
 
@@ -116,13 +117,13 @@ namespace eg::rendering::VKWrapper {
 
         createBufferAllocator();
 
-        for(auto& allocators : m_descriptorSetAllocators) {
+        for (auto& allocators: m_descriptorSetAllocators) {
             allocators.textureArrayAllocator.init({
-                0.0f, 4.0f, 20
-            });
+                                                          0.0f, 4.0f, 20
+                                                  });
             allocators.uniformBufferAllocator.init({
-                1.0f, 0.0f, 20
-            });
+                                                           1.0f, 0.0f, 20
+                                                   });
         }
     }
 
@@ -255,29 +256,38 @@ namespace eg::rendering::VKWrapper {
         allocatorCreateInfo.instance = m_instance;
         allocatorCreateInfo.pVulkanFunctions = &vulkanFunctions;
 
-        if(vmaCreateAllocator(&allocatorCreateInfo, &m_allocator) != VK_SUCCESS) {
+        if (vmaCreateAllocator(&allocatorCreateInfo, &m_allocator) != VK_SUCCESS) {
             error("failed to create allocator!!!");
             return;
         }
     }
 
     Ref<::eg::rendering::VKWrapper::VkShader>
-    VKAPI::createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout, rendering::ShaderUniformLayout uniformLayout) {
-        auto temp = createRef<::eg::rendering::VKWrapper::VkShader>(m_device, m_renderPass, m_vkWindow);
+    VKAPI::createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout,
+                        rendering::ShaderUniformLayout uniformLayout) {
+        auto temp = createRef<::eg::rendering::VKWrapper::VkShader>(m_device, m_renderPass, m_vkWindow,
+                                                                    m_descriptorSetAllocators.data(), maxFramesInFlight,
+                                                                    frameNumber);
         temp->init(source, layout, uniformLayout);
 
         return temp;
     }
 
-    Ref<VkVertexBuffer> VKAPI::createVertexBuffer(void* data, u32 size, rendering::VertexBuffer::UsageHints usageHint) {
+    Ref <VkVertexBuffer>
+    VKAPI::createVertexBuffer(void* data, u32 size, rendering::VertexBuffer::UsageHints usageHint) {
         return eg::createRef<VkVertexBuffer>(m_device, m_commandPool, m_allocator, data, size, usageHint);
     }
 
-    Ref <VkIndexBuffer> VKAPI::createIndexBuffer(const u16* data, u32 count, rendering::VertexBuffer::UsageHints usageHint) {
+    Ref <VkIndexBuffer>
+    VKAPI::createIndexBuffer(const u16* data, u32 count, rendering::VertexBuffer::UsageHints usageHint) {
         return eg::createRef<VkIndexBuffer>(m_device, m_commandPool, m_allocator, data, count, usageHint);
     }
 
-    Ref<VkTexture> VKAPI::createTexture(const char* path) {
+    Ref <VkUniformBuffer> VKAPI::createUniformBuffer(void* data, u32 size, VertexBuffer::UsageHints usageHint) {
+        return eg::createRef<VkUniformBuffer>(m_device, m_commandPool, m_allocator, data, size, usageHint);
+    }
+
+    Ref <VkTexture> VKAPI::createTexture(const char* path) {
         auto temp = createRef<VkTexture>(m_device, m_allocator, m_commandPool);
         temp->init(path);
         return temp;
@@ -307,7 +317,13 @@ namespace eg::rendering::VKWrapper {
     }
 
     VKAPI::FrameData VKAPI::begin() {
+        // trace("waiting for frame {}", frameNumber);
         vkWaitForFences(m_device.getDevice(), 1, &(m_frameObjects[frameNumber].inFlightFence), VK_TRUE, UINT64_MAX);
+        // trace("waiting for frame{} complete", frameNumber);
+        // trace("resetting allocations for frame {}", frameNumber);
+        m_descriptorSetAllocators[frameNumber].uniformBufferAllocator.resetAllocations();
+        m_descriptorSetAllocators[frameNumber].textureArrayAllocator.resetAllocations();
+        // trace("finished resetting allocations");
 
         bool imageAcquireSuccess = false;
         u32 imageIndex = acquireImage(imageAcquireSuccess);
@@ -371,7 +387,7 @@ namespace eg::rendering::VKWrapper {
         vkCmdDraw(commandBuffer, 3, 1, 0, 0);
     }
 
-    void VKAPI::tempDraw(Ref<VkShader> shader, Ref<VkVertexBuffer> vertexBuffer) {
+    void VKAPI::tempDraw(Ref <VkShader> shader, Ref <VkVertexBuffer> vertexBuffer) {
 
         VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
 
@@ -392,14 +408,17 @@ namespace eg::rendering::VKWrapper {
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipeline());
 
-        VkBuffer vertexBuffers[] = { vertexBuffer->getBuffer() };
+        VkBuffer vertexBuffers[] = {vertexBuffer->getBuffer()};
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
         vkCmdDraw(commandBuffer, 3, 1, 0, 0);
     }
 
-    void VKAPI::tempDrawIndexed(Ref<VkShader> shader, Ref<VkVertexBuffer> vertexBuffer, Ref<VkIndexBuffer> indexBuffer) {
+    void
+    VKAPI::tempDrawIndexed(Ref <VkShader> shader, Ref <VkVertexBuffer> vertexBuffer, Ref <VkIndexBuffer> indexBuffer) {
+        // trace("draw indexed on frame {}", frameNumber);
+
         VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
 
         VkExtent2D swapchainExtent = m_vkWindow.getSwapchainExtent();
@@ -419,9 +438,16 @@ namespace eg::rendering::VKWrapper {
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipeline());
 
-        vkCmdPushConstants(commandBuffer, shader->getPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, shader->getPushConstantsSize(), shader->getPushConstantsBuffer());
+        vkCmdPushConstants(commandBuffer, shader->getPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0,
+                           shader->getPushConstantsSize(), shader->getPushConstantsBuffer());
 
-        VkBuffer vertexBuffers[] = { vertexBuffer->getBuffer() };
+        for (auto& descriptorInfo: shader->m_descriptorBindingNameToSetIndexMap) {
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipelineLayout(), 0, 1,
+                                    &descriptorInfo.second.descriptorSet, 0,
+                                    nullptr);
+        }
+
+        VkBuffer vertexBuffers[] = {vertexBuffer->getBuffer()};
         VkDeviceSize offsets[] = {0};
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
@@ -490,7 +516,7 @@ namespace eg::rendering::VKWrapper {
             error("failed to present swapchain image!");
         }
 
-
+        // trace("end frame {}", frameNumber);
         frameNumber++;
         frameNumber %= maxFramesInFlight;
 
@@ -517,7 +543,7 @@ namespace eg::rendering::VKWrapper {
     VKAPI::~VKAPI() {
         vmaDestroyAllocator(m_allocator);
 
-        for(auto& allocators : m_descriptorSetAllocators) {
+        for (auto& allocators: m_descriptorSetAllocators) {
             allocators.textureArrayAllocator.destruct();
             allocators.uniformBufferAllocator.destruct();
         }

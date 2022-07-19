@@ -6,13 +6,21 @@
 #include "VkDevice.h"
 #include "VkRenderPass.h"
 #include "VkWindow.h"
+#include "VkUniformBuffer.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
 namespace eg::rendering::VKWrapper {
-    VkShader::VkShader(VkDevice& device, VkRenderPass& renderPass, VkWindow& window) : m_device(device),
-                                                                                       m_renderPass(renderPass),
-                                                                                       m_window(window) {}
+    VkShader::VkShader(VkDevice& device, VkRenderPass& renderPass, VkWindow& window,
+                       VKAPI::DescriptorSetAllocatorCombination* descriptorSetAllocatorCombinations,
+                       u32 numFramesInFlight, const u32& currentFrameInFlight)
+            : m_device(device),
+              m_renderPass(renderPass),
+              m_window(window),
+              m_descriptorSetAllocators(descriptorSetAllocatorCombinations),
+              m_numFramesInFlight(numFramesInFlight),
+              m_currentFrameInFlight(currentFrameInFlight) {}
+
 
     VkShader::~VkShader() {
         destruct();
@@ -252,7 +260,7 @@ namespace eg::rendering::VKWrapper {
         {
             u32 i = 0;
             for (auto& binding: uniformLayout.bindings) {
-                m_descriptorBindingNameToSetIndexMap[binding.name] = i;
+                m_descriptorBindingNameToSetIndexMap[binding.name].setNum = i;
 
                 VkDescriptorType descriptorType;
                 switch (binding.type) {
@@ -262,8 +270,7 @@ namespace eg::rendering::VKWrapper {
                     case SHADER_BINDING_TYPE_UNIFORM_BUFFER:
                         descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
                         break;
-                    default:
-                        EG_ASSERT(false, "incorrect descriptor type. THIS SHOULD NEVER HAPPEN!!!");
+                    default: EG_ASSERT(false, "incorrect descriptor type. THIS SHOULD NEVER HAPPEN!!!");
                         break;
                 }
 
@@ -279,7 +286,8 @@ namespace eg::rendering::VKWrapper {
                 descriptorSetLayoutCreateInfo.bindingCount = 1;
                 descriptorSetLayoutCreateInfo.pBindings = &descriptorSetLayoutBinding;
 
-                if(vkCreateDescriptorSetLayout(m_device.getDevice(), &descriptorSetLayoutCreateInfo, nullptr, m_descriptorSetLayouts + i) != VK_SUCCESS) {
+                if (vkCreateDescriptorSetLayout(m_device.getDevice(), &descriptorSetLayoutCreateInfo, nullptr,
+                                                m_descriptorSetLayouts + i) != VK_SUCCESS) {
                     error("failed to create descriptor set layout {} for shader \"{}\"", i, source.vs.name);
                 }
 
@@ -369,7 +377,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkShader::destruct() {
-        for(u32 i = 0; i < m_descriptorSetLayoutsCount; i++) {
+        for (u32 i = 0; i < m_descriptorSetLayoutsCount; i++) {
             vkDestroyDescriptorSetLayout(m_device.getDevice(), m_descriptorSetLayouts[i], nullptr);
         }
 
@@ -400,8 +408,37 @@ namespace eg::rendering::VKWrapper {
         memcpy(it->second, data, size);
     }
 
-    void VkShader::setUniformBuffer(const char* name, Ref<VkUniformBuffer> uniformBuffer) {
+    void VkShader::setUniformBuffer(const char* name, Ref <VkUniformBuffer> uniformBuffer) {
+        auto found = m_descriptorBindingNameToSetIndexMap.find(name);
+        if (found == m_descriptorBindingNameToSetIndexMap.end()) {
+            error("could not find uniform buffer \"{}\" in shader layout!!!", name);
+            return;
+        }
 
+        DescriptorSetInfo& info = found->second;
+
+        // trace("allocate descriptor set from pool for frame in flight {}", m_currentFrameInFlight);
+        if (!m_descriptorSetAllocators[m_currentFrameInFlight].uniformBufferAllocator.allocateDescriptorSet(
+                &info.descriptorSet, m_descriptorSetLayouts[info.setNum])) {
+            error("failed to allocate descriptor set for uniform buffer!!!");
+            return;
+        }
+
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.offset = 0;
+        bufferInfo.range = uniformBuffer->getSize();
+        bufferInfo.buffer = uniformBuffer->getBuffer();
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = info.descriptorSet;
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo = &bufferInfo;
+
+        vkUpdateDescriptorSets(m_device.getDevice(), 1, &descriptorWrite, 0, nullptr);
     }
 
     void VkShader::setMat4(const char* name, const glm::mat4& mat) {

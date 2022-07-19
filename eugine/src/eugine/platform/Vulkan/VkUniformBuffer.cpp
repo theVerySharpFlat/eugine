@@ -8,11 +8,11 @@
 namespace eg::rendering::VKWrapper {
     VkUniformBuffer::VkUniformBuffer(VkDevice& device, VkCommandPool commandPool, VmaAllocator& allocator, void* data,
                                      u32 size, VertexBuffer::UsageHints usageHint)
-        : m_allocator(allocator), m_device(device), m_commandPool(commandPool), m_maxSize(size),
+        : m_allocator(allocator), m_device(device), m_commandPool(commandPool), m_maxSize(size), m_currentSize(size),
                 m_usageHint(usageHint) {
             if (usageHint == VertexBuffer::VB_USAGE_HINT_DYNAMIC) {
             BufferUtil::createBuffer(m_allocator, VMA_MEMORY_USAGE_AUTO,
-                                     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                     VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
                                      BufferUtil::BUFFER_DYNAMIC, size,
                                      &m_buffer, &m_allocation, &m_allocationInfo);
 
@@ -68,6 +68,8 @@ namespace eg::rendering::VKWrapper {
             error("failed to update vertex buffer: size is greater than maxSize");
             return;
         }
+        m_currentSize = size;
+
         if (m_usageHint == VertexBuffer::VB_USAGE_HINT_DYNAMIC) {
             VkMemoryPropertyFlags memoryPropertyFlags;
             vmaGetAllocationMemoryProperties(m_allocator, m_allocation, &memoryPropertyFlags);

@@ -11,6 +11,8 @@
 #include <eugine/rendering/VertexBufferLayout.h>
 #include <shaderc/shaderc.hpp>
 
+#include "VKAPI.h"
+
 namespace eg::rendering::VKWrapper{
     class VkDevice;
 
@@ -22,7 +24,7 @@ namespace eg::rendering::VKWrapper{
 
     class VkShader : public ::eg::rendering::Shader {
     public:
-        VkShader(VkDevice& device, VkRenderPass& renderPass, VkWindow& window);
+        VkShader(VkDevice& device, VkRenderPass& renderPass, VkWindow& window, VKAPI::DescriptorSetAllocatorCombination* descriptorSetAllocatorCombinations, u32 numFramesInFlight, const u32& currentFrameInFlight);
 
         ~VkShader();
 
@@ -69,6 +71,7 @@ namespace eg::rendering::VKWrapper{
 
 
     private:
+        friend class VKAPI;
         VkDevice& m_device;
         VkRenderPass& m_renderPass;
         VkWindow& m_window;
@@ -83,9 +86,18 @@ namespace eg::rendering::VKWrapper{
         u8* m_pushConstantBuffer = nullptr;
         std::unordered_map<const char*, u8*> m_pushConstantNamesToBufPtrMap;
 
-        std::unordered_map<const char*, u32> m_descriptorBindingNameToSetIndexMap;
+        struct DescriptorSetInfo {
+            u32 setNum = 0;
+            VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+        };
+
+        std::unordered_map<const char*, DescriptorSetInfo> m_descriptorBindingNameToSetIndexMap;
         VkDescriptorSetLayout* m_descriptorSetLayouts = nullptr;
         u32 m_descriptorSetLayoutsCount = 0;
+        VKAPI::DescriptorSetAllocatorCombination* m_descriptorSetAllocators;
+
+        const u32 m_numFramesInFlight;
+        const u32& m_currentFrameInFlight;
     };
 }
 

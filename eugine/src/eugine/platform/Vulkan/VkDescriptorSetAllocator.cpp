@@ -27,7 +27,8 @@ namespace eg::rendering::VKWrapper {
     }
 
     VkDescriptorPool VkDescriptorSetAllocator::getFreePool() {
-        if (m_poolIterator != m_pools.end()) {
+        if (m_poolIterator != m_pools.end() || !m_pools.empty()) {
+            // trace("already a pool");
             VkDescriptorPool pool = *m_poolIterator;
             return pool;
         } else {
@@ -40,12 +41,29 @@ namespace eg::rendering::VKWrapper {
             poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             poolSizes[1].descriptorCount = (u32) (m_allocationHints.setsPerPool *
                                                   (double) m_allocationHints.avgCombinedSamplersPerSet);
+
+            VkDescriptorPoolSize* pPoolSizes;
+            u32 poolSizeCount = 0;
+            if(poolSizes[0].descriptorCount == 0 && poolSizes[1].descriptorCount == 0) {
+                error("descriptor pool sizes must be allocated with nonzero descriptor counts");
+                return VK_NULL_HANDLE;
+            } else if(poolSizes[0].descriptorCount == 0) {
+                pPoolSizes = &poolSizes[1];
+                poolSizeCount = 1;
+            } else if(poolSizes[1].descriptorCount == 0) {
+                pPoolSizes = &poolSizes[0];
+                poolSizeCount = 1;
+            } else {
+                pPoolSizes = poolSizes.data();
+                poolSizeCount = 2;
+            }
+
             VkDescriptorPoolCreateInfo descriptorPoolCreateInfo{};
             descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-            descriptorPoolCreateInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+            descriptorPoolCreateInfo.flags = 0;
             descriptorPoolCreateInfo.maxSets = m_allocationHints.setsPerPool;
-            descriptorPoolCreateInfo.poolSizeCount = 2;
-            descriptorPoolCreateInfo.pPoolSizes = poolSizes.data();
+            descriptorPoolCreateInfo.poolSizeCount = poolSizeCount;
+            descriptorPoolCreateInfo.pPoolSizes = pPoolSizes;
 
             VkDescriptorPool descriptorPool;
             if(vkCreateDescriptorPool(m_device.getDevice(), &descriptorPoolCreateInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
@@ -94,6 +112,7 @@ namespace eg::rendering::VKWrapper {
 
     void VkDescriptorSetAllocator::resetAllocations() {
         for(auto& pool : m_pools) {
+            // trace("reset");
             vkResetDescriptorPool(m_device.getDevice(), pool, 0);
         }
         m_poolIterator = m_pools.begin();

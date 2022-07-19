@@ -32,7 +32,7 @@ namespace eg::rendering::VKWrapper {
         VkDevice& m_device;
 
         std::list<VkDescriptorPool> m_pools;
-        std::list<VkDescriptorPool>::iterator m_poolIterator;
+        std::list<VkDescriptorPool>::iterator m_poolIterator = m_pools.begin();
 
         VkDescriptorPool getFreePool();
 
