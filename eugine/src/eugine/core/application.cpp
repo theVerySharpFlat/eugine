@@ -35,8 +35,10 @@ static const char* vertexShaderData = "#version 450\n"
                                       "\n"
                                       "layout(location = 0) in vec2 inPosition;\n"
                                       "layout(location = 1) in vec3 inColor;\n"
+                                      "layout(location = 2) in vec2 inTexCoord;\n"
                                       "\n"
                                       "layout(location = 0) out vec3 fragColor;\n"
+                                      "layout(location = 1) out vec2 fragTexCoord;\n"
                                       ""
                                       "layout(push_constant) uniform constants {\n"
                                       "    mat4 u_projection;\n"
@@ -51,14 +53,18 @@ static const char* vertexShaderData = "#version 450\n"
                                       "pos.y = -pos.y;\n"
                                       "gl_Position = pos;\n"
                                       "fragColor = inColor;\n"
+                                      "fragTexCoord = inTexCoord;"
                                       "}";
 static const char* fragmentShaderData = "#version 450\n"
                                         "\n"
                                         "layout(location = 0) in vec3 fragColor;\n"
+                                        "layout(location = 1) in vec2 texCoord;\n"
                                         "layout(location = 0) out vec4 outColor;\n"
                                         "\n"
+                                        "layout(set = 1, binding = 0) uniform sampler2D texSampler;\n"
+                                        "\n"
                                         "void main() {\n"
-                                        "  outColor = vec4(fragColor, 1.0);\n"
+                                        "  outColor = texture(texSampler, texCoord);\n"
                                         "}";
 
 eg::Application::Application() {
@@ -161,7 +167,7 @@ eg::Application::~Application() {}
 void eg::Application::run() {
     auto vkGraphics = (eg::rendering::VKWrapper::VKAPI*) m_renderAPI.get();
 
-    rendering::VertexBufferLayout vertexBufferLayout(2);
+    rendering::VertexBufferLayout vertexBufferLayout(3);
     vertexBufferLayout.setAttribute(0, { // pos
             rendering::SHDR_VEC2,
             1
@@ -169,6 +175,10 @@ void eg::Application::run() {
     vertexBufferLayout.setAttribute(1, { // color
             rendering::SHDR_VEC3,
             1
+    });
+    vertexBufferLayout.setAttribute(2, { // texture coordinates
+        rendering::SHDR_VEC2,
+        1
     });
 
     rendering::ShaderUniformLayout shaderUniformLayout = {
@@ -182,6 +192,11 @@ void eg::Application::run() {
                     {
                         "u_matrices",
                         rendering::SHADER_BINDING_TYPE_UNIFORM_BUFFER,
+                        1
+                    },
+                    {
+                        "texSampler",
+                        rendering::SHADER_BINDING_TYPE_SAMPLER_ARRAY,
                         1
                     }
             }
@@ -198,11 +213,12 @@ void eg::Application::run() {
                                            }, vertexBufferLayout, shaderUniformLayout);
 
 
+    // texture is 512 x 137
     float vertices[] = {
-            -150.0f, -150.0f, 1.0f, 0.0f, 0.0f, // bottom left
-            150.0f, -150.0f, 1.0f, 0.0f, 0.0f, // bottom right
-            150.0f, 150.0f, 1.0f, 0.0f, 0.0f, // top right
-            -150.0f, 150.0f, 1.0f, 0.0f, 0.0f // top left
+            -(512.0f / 2), -(137.0f / 2), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
+            (512.0f / 2), -(137.0f / 2), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,// bottom right
+            (512.0f / 2), (137.0f / 2), 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,// top right
+            -(512.0f / 2), (137.0f / 2), 1.0f, 0.0f, 0.0f, 1.0f, 1.0f// top left
     };
 
     const u16 indices[] = {
@@ -233,6 +249,7 @@ void eg::Application::run() {
 
         auto frameData = vkGraphics->begin();
         shader->setUniformBuffer("u_matrices", uniformBuffers[vkGraphics->getFrameInFlight()]);
+        shader->setSamplerArray("texSampler", texture.get(), 1);
         vkGraphics->tempDrawIndexed(shader, vertexBuffer, indexBuffer);
         vkGraphics->end(frameData);
 

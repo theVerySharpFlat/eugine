@@ -442,7 +442,8 @@ namespace eg::rendering::VKWrapper {
                            shader->getPushConstantsSize(), shader->getPushConstantsBuffer());
 
         for (auto& descriptorInfo: shader->m_descriptorBindingNameToSetIndexMap) {
-            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipelineLayout(), 0, 1,
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipelineLayout(),
+                                    descriptorInfo.second.setNum, 1,
                                     &descriptorInfo.second.descriptorSet, 0,
                                     nullptr);
         }

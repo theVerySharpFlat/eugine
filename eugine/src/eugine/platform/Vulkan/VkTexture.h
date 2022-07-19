@@ -19,6 +19,9 @@ namespace eg::rendering::VKWrapper {
         void init(const char* path);
         void destruct();
 
+        VkImageView getImageView() { return m_imageView; }
+        VkSampler getSampler() { return m_sampler; }
+
         static void transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
         static void copyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, u32 width, u32 height);
 

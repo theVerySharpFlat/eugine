@@ -263,19 +263,22 @@ namespace eg::rendering::VKWrapper {
                 m_descriptorBindingNameToSetIndexMap[binding.name].setNum = i;
 
                 VkDescriptorType descriptorType;
+                VkShaderStageFlags stageFlags;
                 switch (binding.type) {
                     case SHADER_BINDING_TYPE_SAMPLER_ARRAY:
                         descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                        stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
                         break;
                     case SHADER_BINDING_TYPE_UNIFORM_BUFFER:
                         descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                        stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
                         break;
                     default: EG_ASSERT(false, "incorrect descriptor type. THIS SHOULD NEVER HAPPEN!!!");
                         break;
                 }
 
                 VkDescriptorSetLayoutBinding descriptorSetLayoutBinding{};
-                descriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+                descriptorSetLayoutBinding.stageFlags = stageFlags;
                 descriptorSetLayoutBinding.binding = 0;
                 descriptorSetLayoutBinding.descriptorCount = binding.arrayCount;
                 descriptorSetLayoutBinding.descriptorType = descriptorType;
@@ -288,7 +291,7 @@ namespace eg::rendering::VKWrapper {
 
                 if (vkCreateDescriptorSetLayout(m_device.getDevice(), &descriptorSetLayoutCreateInfo, nullptr,
                                                 m_descriptorSetLayouts + i) != VK_SUCCESS) {
-                    error("failed to create descriptor set layout {} for shader \"{}\"", i, source.vs.name);
+                    error("failed to create descriptor set layout index {} for shader \"{}\"", i, source.vs.name);
                 }
 
                 i++;
@@ -437,6 +440,41 @@ namespace eg::rendering::VKWrapper {
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         descriptorWrite.descriptorCount = 1;
         descriptorWrite.pBufferInfo = &bufferInfo;
+
+        vkUpdateDescriptorSets(m_device.getDevice(), 1, &descriptorWrite, 0, nullptr);
+    }
+
+    void VkShader::setSamplerArray(const char* name, VkTexture* textures, u32 count) {
+        auto found = m_descriptorBindingNameToSetIndexMap.find(name);
+        if (found == m_descriptorBindingNameToSetIndexMap.end()) {
+            error("could not find texture array \"{}\" in shader layout!!!", name);
+            return;
+        }
+
+        DescriptorSetInfo& info = found->second;
+
+        if (!m_descriptorSetAllocators[m_currentFrameInFlight].textureArrayAllocator.allocateDescriptorSet(
+                &info.descriptorSet, m_descriptorSetLayouts[info.setNum])) {
+            error("failed to allocate descriptor set for sampler array \"{}\"!!!", name);
+            return;
+        }
+
+        auto imageInfos = (VkDescriptorImageInfo*) alloca(sizeof(VkDescriptorImageInfo) * count);
+        for(u32 i = 0; i < count; i++) {
+            imageInfos[i] = VkDescriptorImageInfo{};
+            imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfos[i].imageView = textures[i].getImageView();
+            imageInfos[i].sampler = textures[i].getSampler();
+        }
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = info.descriptorSet;
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrite.descriptorCount = count;
+        descriptorWrite.pImageInfo = imageInfos;
 
         vkUpdateDescriptorSets(m_device.getDevice(), 1, &descriptorWrite, 0, nullptr);
     }

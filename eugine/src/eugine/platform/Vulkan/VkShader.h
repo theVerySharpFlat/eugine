@@ -11,6 +11,7 @@
 #include <eugine/rendering/VertexBufferLayout.h>
 #include <shaderc/shaderc.hpp>
 
+#include "VkTexture.h"
 #include "VKAPI.h"
 
 namespace eg::rendering::VKWrapper{
@@ -42,6 +43,8 @@ namespace eg::rendering::VKWrapper{
         void unBind() const override;
 
         void setUniformBuffer(const char* name, Ref<VkUniformBuffer> uniformBuffer);
+
+        void setSamplerArray(const char* name, VkTexture* textures, u32 count);
 
         void setPushConstantUniform(const char* name, const void* data, u32 size);
 
