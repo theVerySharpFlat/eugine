@@ -35,7 +35,7 @@ namespace eg::rendering::VKWrapper {
 
         ~VKAPI();
 
-        void setClearColor(glm::vec3 color) override {}
+        void setClearColor(glm::vec3 color) override { m_clearColor = color; }
 
         void clear() override {}
 
@@ -115,6 +115,8 @@ namespace eg::rendering::VKWrapper {
         };
         FrameObjectsContainer m_frameObjects[maxFramesInFlight];
         u32 frameNumber = 0;
+
+        glm::vec3 m_clearColor = {0.0f, 0.0f, 0.0f};
 
 #ifdef NDEBUG
         void setupDebugMessenger() {}

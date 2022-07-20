@@ -239,6 +239,8 @@ void eg::Application::run() {
 
     auto texture = vkGraphics->createTexture("res/textures/Vulkan/vulkan.png");
 
+    vkGraphics->setClearColor({0.0f, 1.0f, 0.0f});
+
     while (m_running) {
         static auto startTime = std::chrono::high_resolution_clock::now();
         auto currentTime = std::chrono::high_resolution_clock::now();

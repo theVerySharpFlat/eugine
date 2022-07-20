@@ -9,6 +9,7 @@
 #include "VkUniformBuffer.h"
 
 #include <glm/gtc/type_ptr.hpp>
+#include <vulkan/vulkan_core.h>
 
 namespace eg::rendering::VKWrapper {
     VkShader::VkShader(VkDevice& device, VkRenderPass& renderPass, VkWindow& window,
@@ -222,8 +223,8 @@ namespace eg::rendering::VKWrapper {
         colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
         colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
         colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+        colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+        colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
         colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
 
         VkPipelineColorBlendStateCreateInfo colorBlending{};

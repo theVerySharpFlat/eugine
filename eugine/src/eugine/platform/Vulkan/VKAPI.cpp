@@ -351,7 +351,7 @@ namespace eg::rendering::VKWrapper {
             error("failed to begin command buffer!");
         }
 
-        VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+        VkClearValue clearColor = {{{m_clearColor.x, m_clearColor.y, m_clearColor.z, 1.0f}}};
         // begin renderpass
         VkRenderPassBeginInfo renderPassBeginInfo{};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
