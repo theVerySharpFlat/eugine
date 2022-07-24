@@ -38,6 +38,9 @@ namespace eg::rendering::VKWrapper {
 
         VkSurfaceKHR& getSurface() { return m_surface; }
 
+        u32 getImageCount() const { return m_imageCount; }
+        u32 getMinImageCount() const { return m_minImageCount; }
+
     private:
         friend class VKAPI;
         friend class VkRenderPass;
@@ -62,6 +65,9 @@ namespace eg::rendering::VKWrapper {
 
         std::vector<VkImage> m_swapchainImages;
         std::vector<VkImageView> m_swapchainImageViews;
+
+        u32 m_minImageCount = 0;
+        u32 m_imageCount = 0;
 
         std::vector<VkFramebuffer> m_framebuffers;
 

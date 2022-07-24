@@ -20,6 +20,7 @@
 #include "VkTexture.h"
 #include "VkDescriptorSetAllocator.h"
 #include "VkUniformBuffer.h"
+#include "VkImguiSystem.h"
 
 #include "eugine/rendering/VertexBuffer.h"
 #include "eugine/rendering/Shader.h"
@@ -88,10 +89,12 @@ namespace eg::rendering::VKWrapper {
 
         u32 getFrameInFlight() const { return frameNumber; }
 
+        VkImguiSystem& getImGuiSystem() { return m_imguiSystem; }
+
     private:
         friend class VkDevice;
-
         friend class VkWindow;
+        friend class VkImguiSystem;
 
         Window& m_window;
 
@@ -104,6 +107,8 @@ namespace eg::rendering::VKWrapper {
         VkRenderPass m_renderPass;
 
         VkCommandPool m_commandPool;
+
+        VkImguiSystem m_imguiSystem;
 
         VmaAllocator m_allocator;
 

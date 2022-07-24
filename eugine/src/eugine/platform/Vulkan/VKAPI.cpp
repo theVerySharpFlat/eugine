@@ -66,7 +66,7 @@ namespace eg::rendering::VKWrapper {
 
     VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE),
                                    m_device(*this), m_vkWindow(*this, m_device, m_renderPass, m_window),
-                                   m_renderPass(m_device, m_vkWindow), m_commandPool(VK_NULL_HANDLE) {
+                                   m_renderPass(m_device, m_vkWindow), m_commandPool(VK_NULL_HANDLE), m_imguiSystem(*this) {
 
         EG_ASSERT(volkInitialize() == VK_SUCCESS, "failed to initialize volk!!!")
 
@@ -125,6 +125,8 @@ namespace eg::rendering::VKWrapper {
                                                            1.0f, 0.0f, 20
                                                    });
         }
+
+        m_imguiSystem.init();
     }
 
 
@@ -539,6 +541,7 @@ namespace eg::rendering::VKWrapper {
         m_vkWindow.createFrameBuffers();
         // trace("time to recreate: {}", glfwGetTime());
         // trace("here");
+        m_imguiSystem.onSwapchainRecreation();
     }
 
     VKAPI::~VKAPI() {
@@ -548,6 +551,8 @@ namespace eg::rendering::VKWrapper {
             allocators.textureArrayAllocator.destruct();
             allocators.uniformBufferAllocator.destruct();
         }
+
+        m_imguiSystem.shutdown();
 
         for (auto& frameObjects: m_frameObjects) {
             vkDestroySemaphore(m_device.getDevice(), frameObjects.imageAvailableSemaphore, nullptr);

@@ -99,6 +99,9 @@ namespace eg::rendering::VKWrapper {
             imageCount = surfaceCapabilities.maxImageCount;
         }
 
+        m_minImageCount = surfaceCapabilities.minImageCount;
+        m_imageCount = imageCount;
+
         auto queueFamilyIndices = m_device.getQueueFamilyIndices();
         const u32 indicesCount = 2;
         u32 indicesArray[indicesCount] = {queueFamilyIndices.graphicsFamily.value(), queueFamilyIndices.presentFamily.value()};

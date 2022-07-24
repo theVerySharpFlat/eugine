@@ -250,9 +250,15 @@ void eg::Application::run() {
         uniformBuffers[vkGraphics->getFrameInFlight()]->setData(&uniformBufferData, sizeof(uniformBufferData));
 
         auto frameData = vkGraphics->begin();
+
         shader->setUniformBuffer("u_matrices", uniformBuffers[vkGraphics->getFrameInFlight()]);
         shader->setSamplerArray("texSampler", texture.get(), 1);
         vkGraphics->tempDrawIndexed(shader, vertexBuffer, indexBuffer);
+
+        vkGraphics->getImGuiSystem().begin();
+        static bool showDemo = true;
+        ImGui::ShowDemoWindow(&showDemo);
+        vkGraphics->getImGuiSystem().end();
         vkGraphics->end(frameData);
 
         const float moveSpeed = 0.5f;

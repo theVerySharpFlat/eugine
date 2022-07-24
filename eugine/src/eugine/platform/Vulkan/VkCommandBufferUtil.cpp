@@ -33,7 +33,7 @@ namespace eg::rendering::VKWrapper::CommandBufferUtil {
         submitInfo.pCommandBuffers = &buffer;
 
         VkFence fence;
-        VkFenceCreateInfo fenceCreateInfo;
+        VkFenceCreateInfo fenceCreateInfo{};
         fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         vkCreateFence(device, &fenceCreateInfo, nullptr, &fence);
 

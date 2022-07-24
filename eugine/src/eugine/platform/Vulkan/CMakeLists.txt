@@ -12,4 +12,5 @@ target_sources(eugine PRIVATE
         VkCommandBufferUtil.cpp
         VkUniformBuffer.cpp
         VkDescriptorSetAllocator.cpp
+        VkImguiSystem.cpp
         )

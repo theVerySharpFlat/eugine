@@ -145,6 +145,7 @@ namespace eg::rendering::VKWrapper {
         VkFence fence = CommandBufferUtil::endSingleTimeCommands(m_device.getDevice(), m_device.getGraphicsQueue(), commandBuffer);
         vkWaitForFences(m_device.getDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
         vkDestroyFence(m_device.getDevice(), fence, nullptr);
+        vkFreeCommandBuffers(m_device.getDevice(), m_commandPool, 1, &commandBuffer);
 
         vmaDestroyBuffer(m_allocator, stagingBuffer, stagingBufferAllocation);
 
