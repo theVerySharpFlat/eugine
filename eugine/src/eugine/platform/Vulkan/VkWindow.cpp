@@ -24,7 +24,7 @@ namespace eg::rendering::VKWrapper {
 
     VkSurfaceFormatKHR VkWindow::chooseSurfaceFormat(VkSurfaceFormatKHR* formats, u32 count) {
         for (int i = 0; i < count; i++) {
-            if (formats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
+            if (formats[i].format == VK_FORMAT_B8G8R8A8_UNORM &&
                 formats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
                 // trace("going with preferred surface format");
                 return formats[i];
