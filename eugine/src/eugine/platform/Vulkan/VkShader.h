@@ -39,12 +39,17 @@ namespace eg::rendering::VKWrapper{
         u32 getPushConstantsSize() const { return m_pushConstantBufferSize; }
         u8* getPushConstantsBuffer() { return m_pushConstantBuffer; }
 
+        void resetDescriptorBindState();
+
         void bind() const override;
         void unBind() const override;
 
+        void setUniformBuffer(const char* name, Ref<UniformBuffer> uniformBuffer) override;
         void setUniformBuffer(const char* name, Ref<VkUniformBuffer> uniformBuffer);
 
-        void setSamplerArray(const char* name, VkTexture* textures, u32 count);
+        void setTextureArray(const char* name, Ref <Texture>* textures, u32 count) override;
+
+        void setSamplerArray(const char* name, VkTexture** textures, u32 count);
 
         void setPushConstantUniform(const char* name, const void* data, u32 size);
 
@@ -87,14 +92,15 @@ namespace eg::rendering::VKWrapper{
 
         u32 m_pushConstantBufferSize = 0;
         u8* m_pushConstantBuffer = nullptr;
-        std::unordered_map<const char*, u8*> m_pushConstantNamesToBufPtrMap;
+        std::unordered_map<std::string, u8*> m_pushConstantNamesToBufPtrMap;
 
         struct DescriptorSetInfo {
             u32 setNum = 0;
             VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+            bool needRebind = true;
         };
 
-        std::unordered_map<const char*, DescriptorSetInfo> m_descriptorBindingNameToSetIndexMap;
+        std::unordered_map<std::string, DescriptorSetInfo> m_descriptorBindingNameToSetIndexMap;
         VkDescriptorSetLayout* m_descriptorSetLayouts = nullptr;
         u32 m_descriptorSetLayoutsCount = 0;
         VKAPI::DescriptorSetAllocatorCombination* m_descriptorSetAllocators;

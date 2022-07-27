@@ -110,6 +110,12 @@ namespace eg::rendering::VKWrapper {
         return VK_FORMAT_R32_SINT;
     }
 
+    void VkShader::resetDescriptorBindState() {
+        for (auto& info: m_descriptorBindingNameToSetIndexMap) {
+            info.second.needRebind = true;
+        }
+    }
+
     static VkVertexInputBindingDescription vertexBufferLayoutToInputBindingDescription(VertexBufferLayout& layout) {
         VkVertexInputBindingDescription bindingDescription{};
         bindingDescription.binding = 0;
@@ -234,6 +240,7 @@ namespace eg::rendering::VKWrapper {
         colorBlending.pAttachments = &colorBlendAttachment;
 
         m_pushConstantBufferSize = calculateShaderUniformLayoutSize(uniformLayout);
+        trace("m_pushConstantBufferSize: {}", m_pushConstantBufferSize);
         m_pushConstantBuffer = (u8*) malloc(m_pushConstantBufferSize);
 
         if (m_pushConstantBufferSize > 128) {
@@ -261,7 +268,9 @@ namespace eg::rendering::VKWrapper {
         {
             u32 i = 0;
             for (auto& binding: uniformLayout.bindings) {
-                m_descriptorBindingNameToSetIndexMap[binding.name].setNum = i;
+                m_descriptorBindingNameToSetIndexMap[binding.name] = {i, VK_NULL_HANDLE, true};
+
+                trace("binding name: \"{}\"", binding.name);
 
                 VkDescriptorType descriptorType;
                 VkShaderStageFlags stageFlags;
@@ -301,8 +310,13 @@ namespace eg::rendering::VKWrapper {
 
         VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
         pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-        pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
-        pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstant;
+        if(uniformLayout.uniforms.size() != 0) {
+            pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
+            pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstant;
+        } else {
+            pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+            pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
+        }
         pipelineLayoutCreateInfo.setLayoutCount = m_descriptorSetLayoutsCount;
         pipelineLayoutCreateInfo.pSetLayouts = m_descriptorSetLayouts;
 
@@ -357,9 +371,12 @@ namespace eg::rendering::VKWrapper {
         if (optimize)
             options.SetOptimizationLevel(shaderc_optimization_level_size);
 
-        shaderc::SpvCompilationResult spirvResult = compiler.CompileGlslToSpv(source.data, source.size,
-                                                                              type, source.name, "main",
-                                                                              options);
+        // options.AddMacroDefinition("EG_VULKAN");
+        shaderc::PreprocessedSourceCompilationResult preprocessed = compiler.PreprocessGlsl(source.data, source.size,
+                                                                                            type, source.name, options);
+
+        shaderc::SpvCompilationResult spirvResult = compiler.CompileGlslToSpv(
+                {preprocessed.cbegin(), preprocessed.cend()}, type, source.name, "main", options);
         if (spirvResult.GetCompilationStatus() != shaderc_compilation_status_success) {
             error("failed to compile file \"{}\"", source.name);
             error("errors: {}", spirvResult.GetErrorMessage());
@@ -413,11 +430,12 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkShader::setUniformBuffer(const char* name, Ref <VkUniformBuffer> uniformBuffer) {
-        auto found = m_descriptorBindingNameToSetIndexMap.find(name);
+        auto found = m_descriptorBindingNameToSetIndexMap.find(std::string(name));
         if (found == m_descriptorBindingNameToSetIndexMap.end()) {
             error("could not find uniform buffer \"{}\" in shader layout!!!", name);
             return;
         }
+        //trace("done finding");
 
         DescriptorSetInfo& info = found->second;
 
@@ -443,9 +461,11 @@ namespace eg::rendering::VKWrapper {
         descriptorWrite.pBufferInfo = &bufferInfo;
 
         vkUpdateDescriptorSets(m_device.getDevice(), 1, &descriptorWrite, 0, nullptr);
+
+        info.needRebind = true;
     }
 
-    void VkShader::setSamplerArray(const char* name, VkTexture* textures, u32 count) {
+    void VkShader::setSamplerArray(const char* name, VkTexture** textures, u32 count) {
         auto found = m_descriptorBindingNameToSetIndexMap.find(name);
         if (found == m_descriptorBindingNameToSetIndexMap.end()) {
             error("could not find texture array \"{}\" in shader layout!!!", name);
@@ -461,11 +481,11 @@ namespace eg::rendering::VKWrapper {
         }
 
         auto imageInfos = (VkDescriptorImageInfo*) alloca(sizeof(VkDescriptorImageInfo) * count);
-        for(u32 i = 0; i < count; i++) {
+        for (u32 i = 0; i < count; i++) {
             imageInfos[i] = VkDescriptorImageInfo{};
             imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfos[i].imageView = textures[i].getImageView();
-            imageInfos[i].sampler = textures[i].getSampler();
+            imageInfos[i].imageView = textures[i]->getImageView();
+            imageInfos[i].sampler = textures[i]->getSampler();
         }
 
         VkWriteDescriptorSet descriptorWrite{};
@@ -478,6 +498,8 @@ namespace eg::rendering::VKWrapper {
         descriptorWrite.pImageInfo = imageInfos;
 
         vkUpdateDescriptorSets(m_device.getDevice(), 1, &descriptorWrite, 0, nullptr);
+
+        info.needRebind = true;
     }
 
     void VkShader::setMat4(const char* name, const glm::mat4& mat) {
@@ -526,5 +548,17 @@ namespace eg::rendering::VKWrapper {
 
     void VkShader::setIntArray(const char* name, const i32* value, u32 count) {
         setPushConstantUniform(name, value, getSizeOfType(SHDR_INT) * count);
+    }
+
+    void VkShader::setUniformBuffer(const char* name, Ref <UniformBuffer> uniformBuffer) {
+        setUniformBuffer(name, std::dynamic_pointer_cast<VkUniformBuffer>(uniformBuffer));
+    }
+
+    void VkShader::setTextureArray(const char* name, Ref <Texture>* textures, u32 count) {
+        auto vkTextures = (VkTexture**) alloca(sizeof(VkTexture*) * count);
+        for (u32 i = 0; i < count; i++) {
+            vkTextures[i] = std::dynamic_pointer_cast<VkTexture>(textures[i]).get();
+        }
+        setSamplerArray(name, vkTextures, count);
     }
 }

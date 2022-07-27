@@ -198,4 +198,9 @@ namespace eg::rendering::VKWrapper {
         vkDestroyImageView(m_device.getDevice(), m_imageView, nullptr);
         vmaDestroyImage(m_allocator, m_image, m_imageAllocation);
     }
+
+    bool VkTexture::operator==(const Texture& texture) const {
+        auto vkTexture = (VkTexture&) texture; // pray conversion works. Seriously
+        return vkTexture.m_image == m_image;
+    }
 }

@@ -64,9 +64,13 @@ namespace eg::rendering::VKWrapper {
         return (i32) props.limits.maxPerStageDescriptorSamplers;
     }
 
+    Ref<VKAPI> VKAPI::singleton = nullptr;
     VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE),
                                    m_device(*this), m_vkWindow(*this, m_device, m_renderPass, m_window),
                                    m_renderPass(m_device, m_vkWindow), m_commandPool(VK_NULL_HANDLE), m_imguiSystem(*this) {
+
+        EG_ASSERT(singleton == nullptr, "vulkan api already initialized!");
+        singleton = std::shared_ptr<VKAPI>(this);
 
         EG_ASSERT(volkInitialize() == VK_SUCCESS, "failed to initialize volk!!!")
 
@@ -440,14 +444,20 @@ namespace eg::rendering::VKWrapper {
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipeline());
 
-        vkCmdPushConstants(commandBuffer, shader->getPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0,
-                           shader->getPushConstantsSize(), shader->getPushConstantsBuffer());
+        if(shader->getPushConstantsSize() > 0) {
+            vkCmdPushConstants(commandBuffer, shader->getPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0,
+                               shader->getPushConstantsSize(), shader->getPushConstantsBuffer());
+             trace("pconstants");
+        }
 
         for (auto& descriptorInfo: shader->m_descriptorBindingNameToSetIndexMap) {
-            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipelineLayout(),
-                                    descriptorInfo.second.setNum, 1,
-                                    &descriptorInfo.second.descriptorSet, 0,
-                                    nullptr);
+            if(descriptorInfo.second.needRebind) {
+                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipelineLayout(),
+                                        descriptorInfo.second.setNum, 1,
+                                        &descriptorInfo.second.descriptorSet, 0,
+                                        nullptr);
+                descriptorInfo.second.needRebind = false;
+            }
         }
 
         VkBuffer vertexBuffers[] = {vertexBuffer->getBuffer()};
@@ -457,6 +467,60 @@ namespace eg::rendering::VKWrapper {
         vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT16);
 
         //vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, indexBuffer->getCount(), 1, 0, 0, 0);
+    }
+
+    void VKAPI::bindShader(Ref<VkShader> shader) {
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
+
+        if(m_currentBoundShader) {
+            m_currentBoundShader->resetDescriptorBindState();
+        }
+
+        VkExtent2D swapchainExtent = m_vkWindow.getSwapchainExtent();
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = (float) swapchainExtent.width;
+        viewport.height = (float) swapchainExtent.height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+        VkRect2D scissorRect = {};
+        scissorRect.extent = swapchainExtent;
+        scissorRect.offset = {0, 0};
+        vkCmdSetScissor(commandBuffer, 0, 1, &scissorRect);
+
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipeline());
+
+        if(shader->getPushConstantsSize() > 0)
+        vkCmdPushConstants(commandBuffer, shader->getPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0,
+                           shader->getPushConstantsSize(), shader->getPushConstantsBuffer());
+
+        m_currentBoundShader = shader;
+    }
+
+    void VKAPI::drawIndexed(Ref<VkVertexBuffer> vertexBuffer, Ref<VkIndexBuffer> indexBuffer) {
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
+        auto& shader = m_currentBoundShader;
+
+        for (auto& descriptorInfo : shader->m_descriptorBindingNameToSetIndexMap) {
+            if(descriptorInfo.second.needRebind) {
+                vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipelineLayout(),
+                                        descriptorInfo.second.setNum, 1,
+                                        &descriptorInfo.second.descriptorSet, 0,
+                                        nullptr);
+                descriptorInfo.second.needRebind = false;
+            }
+        }
+
+        VkBuffer vertexBuffers[] = {vertexBuffer->getBuffer()};
+        VkDeviceSize offsets[] = {0};
+        vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+        vkCmdBindIndexBuffer(commandBuffer, indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT16);
+
         vkCmdDrawIndexed(commandBuffer, indexBuffer->getCount(), 1, 0, 0, 0);
     }
 

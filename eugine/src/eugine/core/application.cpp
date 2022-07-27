@@ -26,6 +26,7 @@
 #include "eugine/platform/Vulkan/VKAPI.h"
 #include "eugine/platform/Vulkan/VkShader.h"
 #include <glm/gtx/string_cast.hpp>
+#include "eugine/rendering/Renderer2D.h"
 
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 
@@ -83,8 +84,8 @@ eg::Application::Application() {
     m_window = std::unique_ptr<Window>(Window::create());
     m_window->setEventCallback(BIND_EVENT_FN(Application::onEvent));
 
-    m_renderAPI = rendering::GraphicsAPI::create(*m_window);
-    info("Max Textures Per Shader: {}", m_renderAPI->getMaxTexturesPerShader());
+    //m_renderAPI = rendering::GraphicsAPI::create(*m_window);
+    //info("Max Textures Per Shader: {}", m_renderAPI->getMaxTexturesPerShader());
 
     m_window->setVSync(true);
 
@@ -165,7 +166,7 @@ eg::Application::Application() {
 eg::Application::~Application() {}
 
 void eg::Application::run() {
-    auto vkGraphics = (eg::rendering::VKWrapper::VKAPI*) m_renderAPI.get();
+    /*auto vkGraphics = (eg::rendering::VKWrapper::VKAPI*) m_renderAPI.get();
 
     rendering::VertexBufferLayout vertexBufferLayout(3);
     vertexBufferLayout.setAttribute(0, { // pos
@@ -237,29 +238,51 @@ void eg::Application::run() {
     auto uniformBuffer1 = vkGraphics->createUniformBuffer((void*)&uniformBufferData, sizeof(uniformBufferData), rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
     std::array<Ref<rendering::VKWrapper::VkUniformBuffer>, 2> uniformBuffers = {uniformBuffer0, uniformBuffer1};
 
+
+    vkGraphics->setClearColor({0.0f, 1.0f, 0.0f});*/
+
+    Ref<eg::rendering::VKWrapper::VKAPI> vkGraphics = std::static_pointer_cast<eg::rendering::VKWrapper::VKAPI>(rendering::GraphicsAPI::create(*m_window));
+    auto renderer = rendering::Renderer2D(vkGraphics, {10, 0});
+
     auto texture = vkGraphics->createTexture("res/textures/Vulkan/vulkan.png");
 
-    vkGraphics->setClearColor({0.0f, 1.0f, 0.0f});
-
     while (m_running) {
+        // trace("frame");
         static auto startTime = std::chrono::high_resolution_clock::now();
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
-        uniformBufferData.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        auto frameData = vkGraphics->begin();
+        renderer.begin(*m_camera);
+        renderer.queueQuad({
+                                   {0.0f, 0.0f},
+                                   {300.0f, 300.0f},
+                                   texture,
+                                   {0.0f, 0.0f},
+                                   {1.0f, 0.0f, 0.0f, 1.0f},
+                                   1.0f,
+                                   0.0f
+        });
+        renderer.end();
+        vkGraphics->end(frameData);
+
+     /*   uniformBufferData.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         uniformBuffers[vkGraphics->getFrameInFlight()]->setData(&uniformBufferData, sizeof(uniformBufferData));
 
         auto frameData = vkGraphics->begin();
 
         shader->setUniformBuffer("u_matrices", uniformBuffers[vkGraphics->getFrameInFlight()]);
-        shader->setSamplerArray("texSampler", texture.get(), 1);
-        vkGraphics->tempDrawIndexed(shader, vertexBuffer, indexBuffer);
+        auto texturePTR = texture.get();
+        shader->setSamplerArray("texSampler", &texturePTR , 1);
+        //vkGraphics->tempDrawIndexed(shader, vertexBuffer, indexBuffer);
+        vkGraphics->bindShader(shader);
+        vkGraphics->drawIndexed(vertexBuffer, indexBuffer);
 
         vkGraphics->getImGuiSystem().begin();
         static bool showDemo = true;
         ImGui::ShowDemoWindow(&showDemo);
         vkGraphics->getImGuiSystem().end();
-        vkGraphics->end(frameData);
+        vkGraphics->end(frameData);*/
 
         const float moveSpeed = 0.5f;
         if(Input::isKeyPressed(EG_KEY_LEFT)) {
@@ -275,7 +298,7 @@ void eg::Application::run() {
             m_camera->moveCamera({0.0f, -moveSpeed});
         }
 
-        shader->setMat4("u_projection", m_camera->getProjectionTimesView());
+        // shader->setMat4("u_projection", m_camera->getProjectionTimesView());
 
 //        static auto startTime = std::chrono::high_resolution_clock::now();
 //
@@ -368,7 +391,9 @@ void eg::Application::run() {
         m_renderAPI->swapBuffers();*/
         m_window->onUpdate();
     }
-    vkGraphics->deviceWaitIdle();
+    //vkGraphics->deviceWaitIdle();
+    rendering::VKWrapper::VKAPI::get()->deviceWaitIdle();
+    rendering::VKWrapper::VKAPI::destroy();
 }
 
 void eg::Application::onEvent(eg::Event& e) {

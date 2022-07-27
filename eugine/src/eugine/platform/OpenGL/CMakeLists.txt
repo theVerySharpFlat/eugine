@@ -8,4 +8,5 @@ target_sources(eugine PRIVATE
         wrapper/IndexBuffer.cpp
         wrapper/Texture.cpp
         wrapper/GLAPI.cpp
+        wrapper/UniformBuffer.cpp
         )

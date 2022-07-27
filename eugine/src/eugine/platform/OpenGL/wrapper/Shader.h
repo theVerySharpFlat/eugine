@@ -4,6 +4,7 @@
 #include <eugine/core/core.h>
 #include <eugine/rendering/Shader.h>
 #include "glm/ext/matrix_float4x4.hpp"
+#include "Texture.h"
 
 namespace eg {
     namespace GLWrapper {
@@ -15,6 +16,9 @@ namespace eg {
 
             void bind() const override;
             void unBind() const override;
+
+            void setTextureArray(const char* name, Ref<rendering::Texture>* textures, u32 count) override {}
+            void setUniformBuffer(const char* name, Ref<rendering::UniformBuffer> uniformBuffer) override {};
 
             void setMat4(const char* name, const glm::mat4& mat) override;
             void setMat3(const char* name, const glm::mat3& mat) override;

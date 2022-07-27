@@ -1,258 +1,152 @@
-//
-// Created by aiden on 5/6/22.
-//
-
-#include "Renderer2D.h"
-#include "glm/ext/matrix_transform.hpp"
-#include <incbin.h>
-#include <imgui/imgui.h>
 #include <iostream>
+#include "Renderer2D.h"
+#include "Renderer2DLowLevel.h"
 
-INCTXT(VertexShader, "eugine/rendering/shaders/Renderer2D/shader.vert");
-INCTXT(FragmentShader, "eugine/rendering/shaders/Renderer2D/shader.frag");
+#include "incbin.h"
+
+INCTXT(QuadShaderFragSource, "eugine/rendering/shaders/Renderer2D/quadShader.frag");
+INCTXT(QuadShaderVertSource, "eugine/rendering/shaders/Renderer2D/quadShader.vert");
+//
 
 namespace eg::rendering {
-    Ref <Renderer2D> Renderer2D::create(const Settings &settings) {
-        return Ref<Renderer2D>(new Renderer2D(settings));
-    }
+    Renderer2D::Renderer2D(Ref <GraphicsAPI> graphicsAPI, Renderer2D::Settings settings) : m_graphicsAPI(graphicsAPI),
+                                                                                           m_settings(settings) {
+        if (m_settings.maxTextures == 0)
+            m_settings.maxTextures = m_graphicsAPI->getMaxTexturesPerShader();
 
-    void Renderer2D::begin(eg::Ref<Camera2D> camera) {
-        m_batchData.camera = camera;
-        m_renderData.shader->setMat4("projxview", m_batchData.camera->getProjectionTimesView());
+        m_quadVertexData = (QuadVertex*) malloc(sizeof(QuadVertex) * 4 * settings.maxQuadsPerBatch);
+        m_indexData = (IndicesData*) malloc(sizeof(IndicesData) * settings.maxQuadsPerBatch);
+        m_textures = new Ref<Texture>[m_settings.maxTextures];
 
-        m_frameData.batchCount = 0;
-        m_frameData.indexCount = 0;
-        m_frameData.vertexCount = 0;
-        m_frameData.quadCount = 0;
-        batchReset();
-    }
+        m_lowLevelRenderer = Renderer2DLowLevel::create(graphicsAPI, settings);
 
-    void Renderer2D::batchReset() {
-        m_batchData.vertexDataPtr = m_renderData.vertices;
-        m_batchData.indexDataptr = m_renderData.indices;
-        m_batchData.quadCount = 0;
-        m_batchData.vertexCount = 0;
-        m_batchData.indexCount = 0;
-        m_batchData.texIndex = 0;
-    }
-
-    void Renderer2D::submitQuad(glm::vec2 position, glm::vec2 dimensions, float rotation, glm::vec4 color, const Ref<Texture>& texture) {
-        if ((((u8 *) m_batchData.vertexDataPtr - (u8 *) m_renderData.vertices) /
-             m_renderData.vbo->getLayout().getStride()) >= m_renderData.maxVertexCount) {
-            flush();
-        }
-
-        if(m_batchData.texIndex >= m_renderData.maxTextures) {
-            flush();
-        }
-
-        // check if texture is already in the list
-        // -1.0f means solid color
-        float index = -1.0f;
-        if(texture != nullptr) {
-            for(int i = 0; i < m_batchData.texIndex; i++) {
-                if(*m_renderData.textures[i] == *texture) {
-                    index = (float)i;
+        Shader::ShaderProgramSource shaderProgramSource{
+                {
+                        "eugine/rendering/shaders/quadShader.vert",
+                        gQuadShaderVertSourceData,
+                        gQuadShaderVertSourceSize - 1
+                },
+                {
+                        "eugine/rendering/shaders/quadShader.frag",
+                        gQuadShaderFragSourceData,
+                        gQuadShaderFragSourceSize - 1
                 }
-            }
-
-            if(index == -1.0f) {
-                m_renderData.textures[m_batchData.texIndex] = texture;
-                index = (float)m_batchData.texIndex;
-                m_batchData.texIndex++;
-            }
-        }
-
-        glm::mat2 transform{
-            cosf(rotation), -sinf(rotation),
-            sin(rotation), cos(rotation)
         };
 
-        glm::vec2 vertex = {
-            -dimensions.x / 2,
-            +dimensions.y / 2
+        std::cout << "vertex shader:\n" << std::string(gQuadShaderVertSourceData, gQuadShaderVertSourceSize)
+                  << std::endl;
+
+        std::initializer_list<ShaderBindingDescription> shaderBindingDescriptions = {
+                {
+                        "PerFrameUBO",
+                        SHADER_BINDING_TYPE_UNIFORM_BUFFER,
+                        1
+                },
+                {
+                        "TextureArray",
+                        SHADER_BINDING_TYPE_SAMPLER_ARRAY,
+                        4
+                }
         };
 
-        vertex = transform * vertex + position;
-        m_batchData.vertexDataPtr[0] = vertex.x; // top left
-        m_batchData.vertexDataPtr[1] = vertex.y;
-        m_batchData.vertexDataPtr[2] = color.r;
-        m_batchData.vertexDataPtr[3] = color.g;
-        m_batchData.vertexDataPtr[4] = color.b;
-        m_batchData.vertexDataPtr[5] = color.a;
-        m_batchData.vertexDataPtr[6] = 0.0f;
-        m_batchData.vertexDataPtr[7] = 1.0f;
-        m_batchData.vertexDataPtr[8] = (float) index;
-        m_batchData.vertexDataPtr += 9;
+        VertexBufferLayout vboLayout(5);
+        vboLayout.setAttribute(0, {SHDR_VEC2, 1});
+        vboLayout.setAttribute(1, {SHDR_VEC2, 1});
+        vboLayout.setAttribute(2, {SHDR_VEC4, 1});
+        vboLayout.setAttribute(3, {SHDR_FLOAT, 1});
+        vboLayout.setAttribute(4, {SHDR_UINT, 1});
 
 
-        vertex = {
-            -dimensions.x / 2,
-            -dimensions.y / 2
+        m_shader = Shader::create(shaderProgramSource, {{}, shaderBindingDescriptions}, vboLayout);
+    };
+
+    static glm::vec2 rotate2D(const glm::vec2& point, const glm::vec2& center, const float& angle) {
+        float cosVal = glm::cos(angle);
+        float sinVal = glm::sin(angle);
+
+        return {
+                (point.x - center.x) * cosVal - (point.y - center.y) * sinVal + center.x,
+                (point.x - center.x) * sinVal + (point.y - center.y) * cosVal + center.y
         };
-        vertex = transform * vertex + position;
-        m_batchData.vertexDataPtr[0] = vertex.x; // bottom left
-        m_batchData.vertexDataPtr[1] = vertex.y;
-        m_batchData.vertexDataPtr[2] = color.r;
-        m_batchData.vertexDataPtr[3] = color.g;
-        m_batchData.vertexDataPtr[4] = color.b;
-        m_batchData.vertexDataPtr[5] = color.a;
-        m_batchData.vertexDataPtr[6] = 0.0f;
-        m_batchData.vertexDataPtr[7] = 0.0f;
-        m_batchData.vertexDataPtr[8] = (float) index;
-        m_batchData.vertexDataPtr += 9;
-
-        vertex = {
-            +dimensions.x / 2,
-            -dimensions.y / 2
-        };
-        vertex = transform * vertex + position;
-        m_batchData.vertexDataPtr[0] = vertex.x; // bottom right
-        m_batchData.vertexDataPtr[1] = vertex.y;
-        m_batchData.vertexDataPtr[2] = color.r;
-        m_batchData.vertexDataPtr[3] = color.g;
-        m_batchData.vertexDataPtr[4] = color.b;
-        m_batchData.vertexDataPtr[5] = color.a;
-        m_batchData.vertexDataPtr[6] = 1.0f;
-        m_batchData.vertexDataPtr[7] = 0.0f;
-        m_batchData.vertexDataPtr[8] = (float) index;
-        m_batchData.vertexDataPtr += 9;
-
-
-        vertex = {
-            +dimensions.x / 2,
-            +dimensions.y / 2
-        };
-        vertex = transform * vertex + position;
-        m_batchData.vertexDataPtr[0] = vertex.x; // top right
-        m_batchData.vertexDataPtr[1] = vertex.y;
-        m_batchData.vertexDataPtr[2] = color.r;
-        m_batchData.vertexDataPtr[3] = color.g;
-        m_batchData.vertexDataPtr[4] = color.b;
-        m_batchData.vertexDataPtr[5] = color.a;
-        m_batchData.vertexDataPtr[6] = 1.0f;
-        m_batchData.vertexDataPtr[7] = 1.0f;
-        m_batchData.vertexDataPtr[8] = (float) index;
-        m_batchData.vertexDataPtr += 9;
-
-        m_batchData.indexDataptr[0] = m_batchData.vertexCount + 0; // top left
-        m_batchData.indexDataptr[1] = m_batchData.vertexCount + 1; // bottom left
-        m_batchData.indexDataptr[2] = m_batchData.vertexCount + 2; // bottom right
-        m_batchData.indexDataptr[3] = m_batchData.vertexCount + 0; // top left
-        m_batchData.indexDataptr[4] = m_batchData.vertexCount + 3; // top right
-        m_batchData.indexDataptr[5] = m_batchData.vertexCount + 2; // bottom right
-        m_batchData.indexDataptr += 6;
-
-        m_batchData.quadCount += 1;
-        m_batchData.vertexCount += 4;
-        m_batchData.indexCount += 6;
     }
 
-    void Renderer2D::end() {
-        if (m_batchData.quadCount)
+    void Renderer2D::queueQuad(Renderer2D::Quad quad) {
+        // trace("max textures: {}", m_settings.maxTextures);
+        if (m_batchData.currentQuadIndex >= m_settings.maxQuadsPerBatch ||
+            m_batchData.currentTextureIndex >= m_settings.maxTextures) {
             flush();
+        }
 
-        m_prevFrameData = m_frameData;
+        QuadVertex baseVertex{};
+        baseVertex.color = quad.color;
+        baseVertex.fragmentAlphaBlendFactor = quad.fragmentAlphaMultiplier;
+        baseVertex.textureIndex = m_batchData.currentTextureIndex;
+
+        QuadVertex bottomLeftVertex = baseVertex;
+        bottomLeftVertex.position = rotate2D(
+                {quad.center.x - quad.dimensions.x / 2, quad.center.y - quad.dimensions.y / 2},
+                quad.center,
+                quad.rotation
+                );
+        bottomLeftVertex.texCoord = {1.0f, 0.0f};
+
+        QuadVertex bottomRightVertex = baseVertex;
+        bottomRightVertex.position = rotate2D(
+                {quad.center.x + quad.dimensions.x / 2, quad.center.y - quad.dimensions.y / 2},
+                quad.center,
+                quad.rotation
+                );
+        bottomRightVertex.texCoord = {0.0f, 0.0f};
+
+        QuadVertex topRightVertex = baseVertex;
+        topRightVertex.position = rotate2D(
+                {quad.center.x + quad.dimensions.x / 2, quad.center.y + quad.dimensions.y / 2},
+                quad.center,
+                quad.rotation
+                );
+        topRightVertex.texCoord = {0.0f, 1.0f};
+
+        QuadVertex topLeftVertex = baseVertex;
+        topLeftVertex.position = rotate2D(
+                {quad.center.x - quad.dimensions.x / 2, quad.center.y + quad.dimensions.y / 2},
+                quad.center,
+                quad.rotation
+                );
+        topLeftVertex.texCoord = {1.0f, 1.0f};
+
+        m_quadVertexData[m_batchData.currentQuadIndex + 0] = bottomLeftVertex;
+        m_quadVertexData[m_batchData.currentQuadIndex + 1] = bottomRightVertex;
+        m_quadVertexData[m_batchData.currentQuadIndex + 2] = topRightVertex;
+        m_quadVertexData[m_batchData.currentQuadIndex + 3] = topLeftVertex;
+
+        m_indexData[m_batchData.currentQuadIndex] = IndicesData(m_batchData.currentQuadIndex);
+        m_textures[m_batchData.currentTextureIndex] = quad.texture;
+
+        m_batchData.currentQuadIndex++;
+        m_batchData.currentTextureIndex++;
     }
 
     void Renderer2D::flush() {
-        m_renderData.shader->bind();
-        
-        // set samplers
-        i32* samplers = (i32*)alloca(sizeof(i32) * m_renderData.maxTextures);
-        for(int i = 0; i < m_renderData.maxTextures; i++) {
-            samplers[i] = i;
+        m_lowLevelRenderer->drawCall(m_quadVertexData, m_indexData, m_batchData.currentQuadIndex, m_textures,
+                                     m_batchData.currentTextureIndex);
+        m_batchData.currentQuadIndex = 0;
+        m_batchData.currentTextureIndex = 0;
+    }
+
+    void Renderer2D::begin(Camera2D& camera) {
+        m_lowLevelRenderer->begin(camera, m_shader);
+    }
+
+    void Renderer2D::end() {
+        if (m_batchData.currentQuadIndex != 0) {
+            flush();
         }
-        m_renderData.shader->setIntArray("samplers", samplers, m_renderData.maxTextures);
-        
-        // set textures
-        for(int i = 0; i < m_batchData.texIndex; i++) {
-            m_renderData.textures[i]->bind(i);
-        }
-
-        // load vertices and indices into buffers
-        m_renderData.vbo->setData(m_renderData.vertices,
-                                  ((u8*) m_batchData.vertexDataPtr - (u8*) m_renderData.vertices));
-        m_renderData.ibo->setData(m_renderData.indices,
-                                  ((u8*) m_batchData.indexDataptr - (u8*) m_renderData.indices));
-        
-        m_renderData.vao->setBuffer(*m_renderData.vbo);
-        m_renderData.ibo->setElementCount(m_batchData.indexDataptr - m_renderData.indices);
-
-        m_lowLevelRenderer->drawIndexed(m_renderData.vao, m_renderData.ibo, m_renderData.shader);
-
-        m_frameData.batchCount++;
-        m_frameData.indexCount += m_batchData.indexCount;
-        m_frameData.quadCount += m_batchData.quadCount;
-        m_frameData.vertexCount += m_batchData.vertexCount;
-
-        batchReset();
+        m_lowLevelRenderer->end();
     }
 
     Renderer2D::~Renderer2D() {
-        free(m_renderData.vertices);
-        free(m_renderData.indices);
-        delete[] m_renderData.textures;
-    }
-
-    Renderer2D::Renderer2D(const Settings &settings) {
-        m_lowLevelRenderer = LowLevelRenderer::create();
-
-        VertexBufferLayout layout = {
-                { // position
-                        SHDR_FLOAT,
-                        2
-                },
-                { // color
-                        SHDR_FLOAT,
-                        4
-                },
-                { // texture coords
-                        SHDR_FLOAT,
-                        2
-                },
-                { // texture index
-                        SHDR_FLOAT,
-                        1
-                }
-        };
-
-        m_renderData.maxVertexCount = settings.maxQuads * 4;
-        m_renderData.verticesByteSize = layout.getStride() * m_renderData.maxVertexCount;
-        m_renderData.vertices = (float*)malloc(m_renderData.verticesByteSize);
-
-        m_renderData.maxIndexCount = settings.maxQuads * 6;
-        m_renderData.indicesByteSize = sizeof(u32) * m_renderData.maxIndexCount;
-        m_renderData.indices = (u32*)malloc(m_renderData.indicesByteSize);
-
-        m_renderData.vbo = VertexBuffer::create(m_renderData.vertices, m_renderData.verticesByteSize, layout);
-        m_renderData.ibo = IndexBuffer::create(m_renderData.indices, m_renderData.indicesByteSize);
-        m_renderData.vao = VertexArray::create();
-
-        m_renderData.vao->setBuffer(*m_renderData.vbo);
-
-        m_renderData.shader = Shader::create({
-                                                     {
-                                                             "ashadervert",
-                                                             gVertexShaderData,
-                                                             gVertexShaderSize
-                                                     },
-                                                     {
-                                                             "ashaderfrag",
-                                                             gFragmentShaderData,
-                                                             gFragmentShaderSize
-                                                     }
-                                             });
-
-        m_renderData.maxTextures = settings.maxTextures;
-        m_renderData.textures = new Ref<Texture>[settings.maxTextures];
-    }
-
-    void Renderer2D::imguiDbg() {
-        ImGui::Begin("renderer");
-        ImGui::Text("%d batches", m_prevFrameData.batchCount);
-        ImGui::Text("%d vertices", m_prevFrameData.vertexCount);
-        ImGui::Text("%d indices", m_prevFrameData.indexCount);
-        ImGui::End();
+        free(m_quadVertexData);
+        free(m_indexData);
+        delete[] m_textures;
     }
 }

@@ -13,4 +13,6 @@ target_sources(eugine PRIVATE
         VkUniformBuffer.cpp
         VkDescriptorSetAllocator.cpp
         VkImguiSystem.cpp
+        VkDynamicBufferFrameAllocator.cpp
+        VkRenderer2DLowLevel.cpp
         )

@@ -3,7 +3,6 @@
 //
 
 #include "VkIndexBuffer.h"
-
 #include "VkBufferUtil.h"
 
 namespace eg::rendering::VKWrapper {
@@ -21,47 +20,14 @@ namespace eg::rendering::VKWrapper {
                                      BufferUtil::BUFFER_DYNAMIC, size,
                                      &m_buffer, &m_allocation, &m_allocationInfo);
 
-            VkMemoryPropertyFlags memoryPropertyFlags;
-            vmaGetAllocationMemoryProperties(allocator, m_allocation, &memoryPropertyFlags);
-
-            if (memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) {
-                memcpy(m_allocationInfo.pMappedData, (const void*) data, size);
-            } else {
-                VkBuffer stagingBuffer;
-                VmaAllocation stagingBufferAllocation;
-                VmaAllocationInfo stagingBufferAllocationInfo;
-
-                BufferUtil::createBuffer(allocator, VMA_MEMORY_USAGE_AUTO, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                                         BufferUtil::BUFFER_STAGING, size, &stagingBuffer, &stagingBufferAllocation,
-                                         &stagingBufferAllocationInfo);
-
-                memcpy(stagingBufferAllocationInfo.pMappedData, (const void*) data, size);
-
-                BufferUtil::copyBuffer(device, commandPool, stagingBuffer, m_buffer, size);
-
-                vmaDestroyBuffer(allocator, stagingBuffer, stagingBufferAllocation);
-            }
-
         } else if (usageHint == VertexBuffer::VB_USAGE_HINT_STATIC) {
-            VkBuffer stagingBuffer;
-            VmaAllocation stagingBufferAllocation;
-            {
-                VmaAllocationInfo stagingBufferAllocationInfo;
-
-                BufferUtil::createBuffer(m_allocator, VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
-                                         VK_BUFFER_USAGE_TRANSFER_SRC_BIT, BufferUtil::BUFFER_STAGING, size,
-                                         &stagingBuffer, &stagingBufferAllocation, &stagingBufferAllocationInfo);
-
-                memcpy(stagingBufferAllocationInfo.pMappedData, (const void*) data, size);
-            }
-
             BufferUtil::createBuffer(m_allocator, VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
                                      VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, BufferUtil::BUFFER_STATIC, size,
                                      &m_buffer, &m_allocation);
+        }
 
-            BufferUtil::copyBuffer(m_device, m_commandPool, stagingBuffer, m_buffer, size);
-
-            vmaDestroyBuffer(allocator, stagingBuffer, stagingBufferAllocation);
+        if(data != nullptr) {
+            setData(data, count);
         }
     }
 
@@ -113,7 +79,12 @@ namespace eg::rendering::VKWrapper {
         }
     }
 
+    void VkIndexBuffer::free() {
+        if(m_buffer != VK_NULL_HANDLE)
+            vmaDestroyBuffer(m_allocator, m_buffer, m_allocation);
+    }
+
     VkIndexBuffer::~VkIndexBuffer() {
-        vmaDestroyBuffer(m_allocator, m_buffer, m_allocation);
+        free();
     }
 }

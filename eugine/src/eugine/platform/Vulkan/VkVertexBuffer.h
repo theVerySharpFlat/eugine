@@ -22,6 +22,15 @@ namespace eg::rendering::VKWrapper {
 
         VkBuffer& getBuffer() { return m_buffer; }
 
+        u32 getSize() { return m_size; }
+        u32 getMaxSize() { return m_maxSize; }
+
+        void free();
+
+        VkVertexBuffer& operator=(const VkVertexBuffer& vertexBuffer) {
+            return *this;
+        }
+
     private:
         VmaAllocator& m_allocator;
         VkDevice& m_device;
@@ -29,6 +38,7 @@ namespace eg::rendering::VKWrapper {
         VkCommandPool m_commandPool;
 
         u32 m_maxSize;
+        u32 m_size;
         VertexBuffer::UsageHints m_usageHint;
 
         VkBuffer m_buffer = VK_NULL_HANDLE;

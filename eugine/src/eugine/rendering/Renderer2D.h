@@ -7,77 +7,78 @@
 
 #include "GraphicsAPI.h"
 #include "Camera2D.h"
-#include "eugine/rendering/Camera.h"
-#include "glm/glm.hpp"
 #include "Texture.h"
-#include "LowLevelRenderer.h"
 
 namespace eg::rendering {
+    class Renderer2DLowLevel;
+    class Shader;
+
     class Renderer2D {
     public:
         struct Settings {
-            u32 maxQuads;
-            i32 maxTextures;
+            u16 maxQuadsPerBatch;
+            u16 maxTextures = 0; // 0 = maximum supported samplers per shader stage
         };
-        static Ref<Renderer2D> create(const Settings& settings);
-
-        void begin(Ref<Camera2D> camera);
-        void submitQuad(glm::vec2 position, glm::vec2 dimensions, float rotation, glm::vec4 color, const Ref<Texture>& texture);
-        void flush();
-        void end();
-        
-        void imguiDbg();
-
+        Renderer2D(Ref<GraphicsAPI> graphicsAPI, Settings settings);
         ~Renderer2D();
-    private:
-        Renderer2D(const Settings& settings);
 
-        struct RenderData {
-            float* vertices;
-            u32 verticesByteSize;
-            u32 maxVertexCount;
-            u32* indices;
-            u32 indicesByteSize;
-            u32 maxIndexCount;
+        void begin(Camera2D& camera);
+        void end();
 
-            Ref<Shader> shader;
+        struct Quad {
+            glm::vec2 center;
+            glm::vec2 dimensions;
 
-            Ref<VertexBuffer> vbo;
-            Ref<IndexBuffer> ibo;
-            Ref<VertexArray> vao;
+            Ref<Texture> texture;
+            glm::vec2 tilingFactor;
 
-            u32 maxTextures;
-            Ref<Texture>* textures;
+            glm::vec4 color;
+            float fragmentAlphaMultiplier;
 
+            float rotation;
         };
-        RenderData m_renderData = {};
+        void queueQuad(Quad quad);
+
+        void flush();
+
+        struct QuadVertex {
+            glm::vec2 position;
+            glm::vec2 texCoord;
+            glm::vec4 color;
+            float fragmentAlphaBlendFactor;
+            u32 textureIndex;
+        };
+
+        struct IndicesData {
+            u16 indices[6]{};
+
+            explicit IndicesData(u16 quadIndex) {
+                indices[0] = 0 + quadIndex;
+                indices[1] = 1 + quadIndex;
+                indices[2] = 2 + quadIndex;
+                indices[3] = 2 + quadIndex;
+                indices[4] = 3 + quadIndex;
+                indices[5] = 0 + quadIndex;
+            }
+        };
+
+    private:
+        Ref<GraphicsAPI> m_graphicsAPI;
+
+        Settings m_settings;
 
         struct BatchData {
-            float* vertexDataPtr;
-            u32* indexDataptr;
-
-            u32 texIndex;
-
-            u32 quadCount;
-            u32 vertexCount;
-            u32 indexCount;
-            
-            Ref<Camera2D> camera;
+            u16 currentQuadIndex = 0;
+            u16 currentTextureIndex = 0;
         };
-        BatchData m_batchData = {};
-        
-        struct FrameData {
-            u32 quadCount;
-            u32 vertexCount;
-            u32 indexCount;
-            u32 batchCount;
-        };
-        FrameData m_frameData = {};
-        FrameData m_prevFrameData = {};
+        BatchData m_batchData{};
 
-        Ref<LowLevelRenderer> m_lowLevelRenderer;
-        
-        void batchReset();
+        QuadVertex* m_quadVertexData = nullptr;
+        IndicesData* m_indexData = nullptr;
+        Ref<rendering::Texture>* m_textures = nullptr;
+
+        Ref<Renderer2DLowLevel> m_lowLevelRenderer = nullptr;
+        Ref<Shader> m_shader = nullptr;
     };
 };
 

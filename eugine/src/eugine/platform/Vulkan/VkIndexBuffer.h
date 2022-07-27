@@ -18,9 +18,14 @@ namespace eg::rendering::VKWrapper {
         ~VkIndexBuffer();
 
         void setData(const u16* data, u32 count);
+        void free();
 
         VkBuffer getBuffer() { return m_buffer; }
         u32 getCount() { return m_count; }
+
+        VkIndexBuffer& operator=(const VkIndexBuffer& ibo) {
+            return *this;
+        }
 
     private:
         VkBuffer m_buffer = VK_NULL_HANDLE;

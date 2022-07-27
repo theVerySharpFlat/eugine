@@ -19,9 +19,14 @@ namespace eg::rendering::VKWrapper {
 
         void setData(void* data, u32 size);
 
-        VkBuffer& getBuffer() { return m_buffer; }
+        void free();
 
+        VkBuffer& getBuffer() { return m_buffer; }
         u32 getSize() { return m_currentSize; }
+
+        VkUniformBuffer& operator=(const VkUniformBuffer& ubo) {
+            return *this;
+        }
 
     private:
         VmaAllocator& m_allocator;

@@ -10,4 +10,6 @@ target_sources(eugine PRIVATE
         LowLevelRenderer.cpp
         GraphicsAPI.cpp
         Renderer2D.cpp
+        Renderer2DLowLevel.cpp
+        UniformBuffer.cpp
         )

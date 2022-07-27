@@ -9,8 +9,8 @@ namespace eg::GLWrapper {
         Texture(const fs::path& path);
         ~Texture();
         
-        void bind(u32 slot) const override;
-        void unBind() const override;
+        void bind(u32 slot) const;
+        void unBind() const;
 
         bool operator==(const ::eg::rendering::Texture& texture) const override; 
 

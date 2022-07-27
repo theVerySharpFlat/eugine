@@ -33,8 +33,13 @@ namespace eg::rendering::VKWrapper {
     class VKAPI : public ::eg::rendering::GraphicsAPI {
     public:
         VKAPI(Window& window);
-
         ~VKAPI();
+
+        static Ref<VKAPI> get() { return singleton; }
+        static void destroy() { delete (singleton.get()); singleton = nullptr; }
+    private:
+        static Ref<VKAPI> singleton;
+    public:
 
         void setClearColor(glm::vec3 color) override { m_clearColor = color; }
 
@@ -55,6 +60,11 @@ namespace eg::rendering::VKWrapper {
         void tempDraw(Ref<VkShader> shader);
         void tempDraw(Ref<VkShader> shader, Ref<VkVertexBuffer> vertexBuffer);
         void tempDrawIndexed(Ref<VkShader> shader, Ref<VkVertexBuffer> vertexBuffer, Ref<VkIndexBuffer> indexBuffer);
+
+        Ref<VkShader> m_currentBoundShader = nullptr;
+        void bindShader(Ref<VkShader> shader);
+
+        void drawIndexed(Ref<VkVertexBuffer> vertexBuffer, Ref<VkIndexBuffer> indexBuffer);
 
         void end(FrameData frameData);
 
@@ -95,6 +105,7 @@ namespace eg::rendering::VKWrapper {
         friend class VkDevice;
         friend class VkWindow;
         friend class VkImguiSystem;
+        friend class VkRenderer2DLowLevel;
 
         Window& m_window;
 
