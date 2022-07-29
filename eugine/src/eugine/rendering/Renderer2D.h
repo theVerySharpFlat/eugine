@@ -19,7 +19,7 @@ namespace eg::rendering {
             u16 maxQuadsPerBatch;
             u16 maxTextures = 0; // 0 = maximum supported samplers per shader stage
         };
-        Renderer2D(Ref<GraphicsAPI> graphicsAPI, Settings settings);
+        Renderer2D(GraphicsAPI& graphicsAPI, Settings settings);
         ~Renderer2D();
 
         void begin(Camera2D& camera);
@@ -63,7 +63,7 @@ namespace eg::rendering {
         };
 
     private:
-        Ref<GraphicsAPI> m_graphicsAPI;
+        GraphicsAPI& m_graphicsAPI;
 
         Settings m_settings;
 

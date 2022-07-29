@@ -35,10 +35,10 @@ namespace eg::rendering::VKWrapper {
         VKAPI(Window& window);
         ~VKAPI();
 
-        static Ref<VKAPI> get() { return singleton; }
-        static void destroy() { delete (singleton.get()); singleton = nullptr; }
+        static VKAPI* get() { return singleton; }
+        static void destroy() { delete singleton; }
     private:
-        static Ref<VKAPI> singleton;
+        static VKAPI* singleton;
     public:
 
         void setClearColor(glm::vec3 color) override { m_clearColor = color; }
@@ -47,7 +47,7 @@ namespace eg::rendering::VKWrapper {
 
         void swapBuffers() override {}
 
-        inline void deviceWaitIdle() { m_device.waitIdle(); }
+        inline void deviceWaitIdle() override { m_device.waitIdle(); }
 
         i32 getMaxTexturesPerShader() const override;
 
@@ -55,7 +55,8 @@ namespace eg::rendering::VKWrapper {
             u32 imageIndex;
         };
 
-        FrameData begin();
+        void begin() override;
+        void end() override;
 
         void tempDraw(Ref<VkShader> shader);
         void tempDraw(Ref<VkShader> shader, Ref<VkVertexBuffer> vertexBuffer);
@@ -66,7 +67,6 @@ namespace eg::rendering::VKWrapper {
 
         void drawIndexed(Ref<VkVertexBuffer> vertexBuffer, Ref<VkIndexBuffer> indexBuffer);
 
-        void end(FrameData frameData);
 
         u32 acquireImage(bool& success);
 
@@ -128,6 +128,8 @@ namespace eg::rendering::VKWrapper {
             VkSemaphore imageAvailableSemaphore;
             VkSemaphore renderFinishedSemaphore;
             VkFence inFlightFence;
+
+            FrameData frameData;
         };
         FrameObjectsContainer m_frameObjects[maxFramesInFlight];
         u32 frameNumber = 0;

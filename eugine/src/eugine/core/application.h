@@ -19,6 +19,7 @@
 #include "eugine/rendering/Texture.h"
 #include "eugine/rendering/GraphicsAPI.h"
 #include "eugine/rendering/Renderer2D.h"
+#include "eugine/rendering/RenderManager2D.h"
 
 namespace eg {
     class EG_API Application {
@@ -69,6 +70,8 @@ namespace eg {
         Ref<rendering::Texture> m_texture = nullptr;
 
         Ref<rendering::Renderer2D> m_renderer2;
+
+        rendering::RenderManager2D m_renderManager{};
 
         bool onKeyEvent(KeyPressedEvent& e);
 

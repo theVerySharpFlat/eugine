@@ -14,7 +14,7 @@
 namespace eg::rendering {
     class Renderer2DLowLevel {
     public:
-        static Ref<Renderer2DLowLevel> create(Ref<GraphicsAPI> graphicsAPI, Renderer2D::Settings settings);
+        static Ref<Renderer2DLowLevel> create(GraphicsAPI& graphicsAPI, Renderer2D::Settings settings);
 
         virtual void begin(Camera2D camera, Ref<Shader> shader) = 0;
         virtual void

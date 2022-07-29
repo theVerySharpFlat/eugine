@@ -13,6 +13,11 @@ namespace eg::GLWrapper {
         void setClearColor(glm::vec3 color) override;
         void clear() override;
 
+        void begin() override {}
+        void end() override {}
+
+        void deviceWaitIdle() override {}
+
         void swapBuffers() override;
 
         i32 getMaxTexturesPerShader() const override;

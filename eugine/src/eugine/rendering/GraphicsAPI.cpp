@@ -8,12 +8,12 @@ namespace eg::rendering {
         return EG_API_VK;
     }
 
-    Ref<GraphicsAPI> GraphicsAPI::create(Window& window) {
+    GraphicsAPI* GraphicsAPI::create(Window& window) {
         GraphicsAPIID api = getPreferredGraphicsAPI();
         if(api == EG_API_OGL)
-            return createRef<GLWrapper::OGLAPI>(window);
+            return new GLWrapper::OGLAPI(window);
         else if(api == EG_API_VK)
-            return createRef<VKWrapper::VKAPI>(window);
+            return new VKWrapper::VKAPI(window);
         else
             EG_ASSERT(false, "Invalid graphics API");
 

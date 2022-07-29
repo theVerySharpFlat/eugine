@@ -197,6 +197,7 @@ namespace eg::rendering::VKWrapper {
         vkDestroySampler(m_device.getDevice(), m_sampler, nullptr);
         vkDestroyImageView(m_device.getDevice(), m_imageView, nullptr);
         vmaDestroyImage(m_allocator, m_image, m_imageAllocation);
+        trace("VkTexture::destruct()");
     }
 
     bool VkTexture::operator==(const Texture& texture) const {

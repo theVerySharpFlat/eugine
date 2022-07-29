@@ -14,10 +14,17 @@ namespace eg::rendering {
 
     class GraphicsAPI {
     public:
-        static Ref<GraphicsAPI> create(Window& window);
+        static GraphicsAPI* create(Window& window);
+
+        virtual ~GraphicsAPI(){};
 
         virtual void setClearColor(glm::vec3 color) = 0;
         virtual void clear() = 0;
+
+        virtual void begin() = 0;
+        virtual void end() = 0;
+
+        virtual void deviceWaitIdle() = 0;
 
         virtual void swapBuffers() = 0;
 

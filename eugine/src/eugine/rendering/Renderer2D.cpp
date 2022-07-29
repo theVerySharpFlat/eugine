@@ -9,10 +9,10 @@ INCTXT(QuadShaderVertSource, "eugine/rendering/shaders/Renderer2D/quadShader.ver
 //
 
 namespace eg::rendering {
-    Renderer2D::Renderer2D(Ref <GraphicsAPI> graphicsAPI, Renderer2D::Settings settings) : m_graphicsAPI(graphicsAPI),
+    Renderer2D::Renderer2D(GraphicsAPI& graphicsAPI, Renderer2D::Settings settings) : m_graphicsAPI(graphicsAPI),
                                                                                            m_settings(settings) {
         if (m_settings.maxTextures == 0)
-            m_settings.maxTextures = m_graphicsAPI->getMaxTexturesPerShader();
+            m_settings.maxTextures = m_graphicsAPI.getMaxTexturesPerShader();
 
         m_quadVertexData = (QuadVertex*) malloc(sizeof(QuadVertex) * 4 * settings.maxQuadsPerBatch);
         m_indexData = (IndicesData*) malloc(sizeof(IndicesData) * settings.maxQuadsPerBatch);
@@ -147,6 +147,9 @@ namespace eg::rendering {
     Renderer2D::~Renderer2D() {
         free(m_quadVertexData);
         free(m_indexData);
+        for(u32 i = 0; i < m_settings.maxTextures; i++) {
+            m_textures[i] = nullptr;
+        }
         delete[] m_textures;
     }
 }

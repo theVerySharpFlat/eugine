@@ -64,13 +64,14 @@ namespace eg::rendering::VKWrapper {
         return (i32) props.limits.maxPerStageDescriptorSamplers;
     }
 
-    Ref<VKAPI> VKAPI::singleton = nullptr;
+    VKAPI* VKAPI::singleton = nullptr;
+
     VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE),
                                    m_device(*this), m_vkWindow(*this, m_device, m_renderPass, m_window),
                                    m_renderPass(m_device, m_vkWindow), m_commandPool(VK_NULL_HANDLE), m_imguiSystem(*this) {
 
         EG_ASSERT(singleton == nullptr, "vulkan api already initialized!");
-        singleton = std::shared_ptr<VKAPI>(this);
+        singleton = this;
 
         EG_ASSERT(volkInitialize() == VK_SUCCESS, "failed to initialize volk!!!")
 
@@ -322,7 +323,7 @@ namespace eg::rendering::VKWrapper {
         }
     }
 
-    VKAPI::FrameData VKAPI::begin() {
+    void VKAPI::begin() {
         // trace("waiting for frame {}", frameNumber);
         vkWaitForFences(m_device.getDevice(), 1, &(m_frameObjects[frameNumber].inFlightFence), VK_TRUE, UINT64_MAX);
         // trace("waiting for frame{} complete", frameNumber);
@@ -332,18 +333,17 @@ namespace eg::rendering::VKWrapper {
         // trace("finished resetting allocations");
 
         bool imageAcquireSuccess = false;
-        u32 imageIndex = acquireImage(imageAcquireSuccess);
+        m_frameObjects[frameNumber].frameData.imageIndex = acquireImage(imageAcquireSuccess);
         if (!imageAcquireSuccess) {
-            return {UINT32_MAX};
+            warn("vulkan: failed to aquire image!");
+            return;
         }
         // trace("acquired image");
         vkResetFences(m_device.getDevice(), 1, &(m_frameObjects[frameNumber].inFlightFence));
 
         // trace("command buffer reset: {}", (void*)m_frameObjects[frameNumber].m_commandBuffer);
         vkResetCommandBuffer(m_frameObjects[frameNumber].commandBuffer, 0);
-        beginCommandBufferRecording(imageIndex);
-
-        return {imageIndex};
+        beginCommandBufferRecording(m_frameObjects[frameNumber].frameData.imageIndex);
     }
 
     void VKAPI::beginCommandBufferRecording(u32 imageIndex) {
@@ -471,6 +471,10 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VKAPI::bindShader(Ref<VkShader> shader) {
+        if(!shader) {
+            m_currentBoundShader = nullptr;
+            return;
+        }
         VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
 
         if(m_currentBoundShader) {
@@ -534,8 +538,8 @@ namespace eg::rendering::VKWrapper {
         }
     }
 
-    void VKAPI::end(VKAPI::FrameData frameData) {
-        endCommandBufferRecording(frameData.imageIndex);
+    void VKAPI::end() {
+        endCommandBufferRecording(m_frameObjects[frameNumber].frameData.imageIndex);
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -568,7 +572,7 @@ namespace eg::rendering::VKWrapper {
         VkSwapchainKHR swapchains[] = {m_vkWindow.getSwapchain()};
         presentInfoKhr.swapchainCount = 1;
         presentInfoKhr.pSwapchains = swapchains;
-        presentInfoKhr.pImageIndices = &frameData.imageIndex;
+        presentInfoKhr.pImageIndices = &m_frameObjects[frameNumber].frameData.imageIndex;
         presentInfoKhr.pResults = nullptr;
 
         VkResult result = vkQueuePresentKHR(m_device.getPresentQueue(), &presentInfoKhr);
@@ -609,6 +613,10 @@ namespace eg::rendering::VKWrapper {
     }
 
     VKAPI::~VKAPI() {
+        if(m_currentBoundShader != nullptr) {
+            m_currentBoundShader = nullptr;
+        }
+        warn("~VKAPI()");
         vmaDestroyAllocator(m_allocator);
 
         for (auto& allocators: m_descriptorSetAllocators) {

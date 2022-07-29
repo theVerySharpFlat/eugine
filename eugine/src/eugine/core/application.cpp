@@ -161,90 +161,19 @@ eg::Application::Application() {
     //imgui
     m_imGuiLayer = new ImGuiLayer();
     pushOverlay(m_imGuiLayer);*/
+    rendering::Renderer2D::Settings settings {
+        10,
+        0
+    };
+    m_renderManager.init(m_window.get(), settings);
 }
 
-eg::Application::~Application() {}
+eg::Application::~Application() {
+    m_renderManager.shutdown();
+}
 
 void eg::Application::run() {
-    /*auto vkGraphics = (eg::rendering::VKWrapper::VKAPI*) m_renderAPI.get();
-
-    rendering::VertexBufferLayout vertexBufferLayout(3);
-    vertexBufferLayout.setAttribute(0, { // pos
-            rendering::SHDR_VEC2,
-            1
-    });
-    vertexBufferLayout.setAttribute(1, { // color
-            rendering::SHDR_VEC3,
-            1
-    });
-    vertexBufferLayout.setAttribute(2, { // texture coordinates
-        rendering::SHDR_VEC2,
-        1
-    });
-
-    rendering::ShaderUniformLayout shaderUniformLayout = {
-            {
-                    {
-                        "u_projection",
-                        rendering::SHDR_MAT4
-                    }
-            },
-            {
-                    {
-                        "u_matrices",
-                        rendering::SHADER_BINDING_TYPE_UNIFORM_BUFFER,
-                        1
-                    },
-                    {
-                        "texSampler",
-                        rendering::SHADER_BINDING_TYPE_SAMPLER_ARRAY,
-                        1
-                    }
-            }
-    };
-
-    auto shader = vkGraphics->createShader({
-                                                   {
-                                                           "superBasic.vs", vertexShaderData,   strlen(vertexShaderData)
-                                                   },
-                                                   {
-                                                           "superBasic.fs", fragmentShaderData, strlen(
-                                                           fragmentShaderData)
-                                                   }
-                                           }, vertexBufferLayout, shaderUniformLayout);
-
-
-    // texture is 512 x 137
-    float vertices[] = {
-            -(512.0f / 2), -(137.0f / 2), 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-            (512.0f / 2), -(137.0f / 2), 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,// bottom right
-            (512.0f / 2), (137.0f / 2), 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,// top right
-            -(512.0f / 2), (137.0f / 2), 1.0f, 0.0f, 0.0f, 1.0f, 1.0f// top left
-    };
-
-    const u16 indices[] = {
-            0, 1, 2, 2, 3, 0
-    };
-
-    struct UniformBufferData {
-        glm::mat4 model;
-    } uniformBufferData{};
-
-    auto vertexBuffer = vkGraphics->createVertexBuffer((void*) vertices, sizeof(vertices),
-                                                       rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
-    auto indexBuffer = vkGraphics->createIndexBuffer(indices, 6, rendering::VertexBuffer::VB_USAGE_HINT_STATIC);
-
-    auto uniformBuffer0 = vkGraphics->createUniformBuffer((void*)&uniformBufferData, sizeof(uniformBufferData), rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
-    auto uniformBuffer1 = vkGraphics->createUniformBuffer((void*)&uniformBufferData, sizeof(uniformBufferData), rendering::VertexBuffer::VB_USAGE_HINT_DYNAMIC);
-    std::array<Ref<rendering::VKWrapper::VkUniformBuffer>, 2> uniformBuffers = {uniformBuffer0, uniformBuffer1};
-
-
-    vkGraphics->setClearColor({0.0f, 1.0f, 0.0f});*/
-
-    Ref<eg::rendering::VKWrapper::VKAPI> vkGraphics = std::static_pointer_cast<eg::rendering::VKWrapper::VKAPI>(rendering::GraphicsAPI::create(*m_window));
-    auto renderer = rendering::Renderer2D(vkGraphics, {10, 0});
-
-    auto texture = vkGraphics->createTexture("res/textures/Vulkan/vulkan.png");
+    auto texture = rendering::Texture::create("res/textures/Vulkan/vulkan.png");
 
     while (m_running) {
         // trace("frame");
@@ -252,37 +181,21 @@ void eg::Application::run() {
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
-        auto frameData = vkGraphics->begin();
-        renderer.begin(*m_camera);
-        renderer.queueQuad({
-                                   {0.0f, 0.0f},
-                                   {300.0f, 300.0f},
-                                   texture,
-                                   {0.0f, 0.0f},
-                                   {1.0f, 0.0f, 0.0f, 1.0f},
-                                   1.0f,
-                                   0.0f
-        });
-        renderer.end();
-        vkGraphics->end(frameData);
+        m_renderManager.begin();
 
-     /*   uniformBufferData.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        uniformBuffers[vkGraphics->getFrameInFlight()]->setData(&uniformBufferData, sizeof(uniformBufferData));
+            m_renderManager.renderer().begin(*m_camera);
+                m_renderManager.renderer().queueQuad({
+                                                             {0.0f ,0.0f},
+                                                             {300.0f, 300.0f},
+                                                             texture,
+                                                             {1.0f, 1.0f},
+                                                             {1.0f, 0.0f, 0.0f, 1.0f},
+                                                             1.0f,
+                                                             0.0f
+                });
+            m_renderManager.renderer().end();
 
-        auto frameData = vkGraphics->begin();
-
-        shader->setUniformBuffer("u_matrices", uniformBuffers[vkGraphics->getFrameInFlight()]);
-        auto texturePTR = texture.get();
-        shader->setSamplerArray("texSampler", &texturePTR , 1);
-        //vkGraphics->tempDrawIndexed(shader, vertexBuffer, indexBuffer);
-        vkGraphics->bindShader(shader);
-        vkGraphics->drawIndexed(vertexBuffer, indexBuffer);
-
-        vkGraphics->getImGuiSystem().begin();
-        static bool showDemo = true;
-        ImGui::ShowDemoWindow(&showDemo);
-        vkGraphics->getImGuiSystem().end();
-        vkGraphics->end(frameData);*/
+        m_renderManager.end();
 
         const float moveSpeed = 0.5f;
         if(Input::isKeyPressed(EG_KEY_LEFT)) {
@@ -298,102 +211,10 @@ void eg::Application::run() {
             m_camera->moveCamera({0.0f, -moveSpeed});
         }
 
-        // shader->setMat4("u_projection", m_camera->getProjectionTimesView());
 
-//        static auto startTime = std::chrono::high_resolution_clock::now();
-//
-//        auto currentTime = std::chrono::high_resolution_clock::now();
-//        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
-//
-//        float timeIntPart;
-//        time = std::modf(time, &timeIntPart);
-//
-//        if((long)timeIntPart % 2) {
-//            vertices[2] = vertices[7] = vertices[12] = vertices[17] = 1.0f;
-//            vertices[3] = vertices[8] = vertices[13] = vertices[18] = 0.0f;
-//        } else {
-//            vertices[2] = vertices[7] = vertices[12] = vertices[17] = 0.0f;
-//            vertices[3] = vertices[8] = vertices[13] = vertices[18] = 1.0f;
-//        }
-//
-//
-//        vertexBuffer->setData((void*) vertices, sizeof(vertices));
-//        indexBuffer->setData(indices, 6);
-
-        /* m_renderAPI->setClearColor({1.0, 0.0, 1.0});
-        m_renderAPI->clear();
-        for(Layer* layer : m_layerStack){
-            layer -> onUpdate();
-        }
-
-        const float moveSpeed = 3.0f;
-        if(Input::isKeyPressed(EG_KEY_LEFT)) {
-            m_camera->moveCamera({-moveSpeed, 0.0f});
-        }
-        if(Input::isKeyPressed(EG_KEY_RIGHT)) {
-            m_camera->moveCamera({moveSpeed, 0.0f});
-        }
-        if(Input::isKeyPressed(EG_KEY_UP)) {
-            m_camera->moveCamera({0.0f, moveSpeed});
-        }
-        if(Input::isKeyPressed(EG_KEY_DOWN)) {
-            m_camera->moveCamera({0.0f, -moveSpeed});
-        }
-
-        m_renderer2->begin(m_camera);
-
-        auto now = std::chrono::high_resolution_clock::now();
-        auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
-        auto value = now_ms.time_since_epoch();
-        double time = value.count();
-
-        static double lastTime = time;
-
-        glm::vec2 center = {
-            30 * cos(time / 300),
-            30 * sin(time / 300)
-        };
-        m_renderer2->submitQuad(center, {100, 100}, 0.0f, {1.0, 1.0, 1.0, 0.0}, m_texture);
-
-
-        m_renderer2->submitQuad({-100, 100}, {100, 100}, 2 * M_PI * (time - lastTime) / 1000, {1.0f, 0.0f, 0.0f, 1.0f}, nullptr);
-        m_renderer2->submitQuad({-100, 100}, {10, 10}, 0.0f, {0.0f, 0.0f, 1.0f, 1.0f}, nullptr);
-
-        for(int i = 0; i < 10; i++) {
-            for(int j = 0; j < 30; j++) {
-                m_renderer2->submitQuad(
-                        {j * 100, i * 100},
-                        {100, 100},
-                        2 * M_PI * (time - lastTime) / 2000,
-                        {
-                            (i + j) % 2 ? 0.0 : 1.0,
-                            (i + j) % 2 ? 0.0 : 1.0,
-                            (i + j) % 2 ? 1.0 : 1.0,
-                            (i + j) % 2 ? 0.1 : 0.0
-                        },
-                            m_textures[(i * 30 + j) % 56]
-                        );
-            }
-        }
-
-        m_renderer2->submitQuad({200, 200}, {400, 400}, 0.0f, {0.0, 0.0, 1.0, 0.5}, nullptr);
-
-        m_renderer2->end();
-        // exit(0);
-
-        m_imGuiLayer->begin();
-        for(Layer* layer : m_layerStack)
-            layer -> onImGuiRender();
-
-        m_renderer2->imguiDbg();
-
-        m_imGuiLayer->end();
-        m_renderAPI->swapBuffers();*/
         m_window->onUpdate();
     }
-    //vkGraphics->deviceWaitIdle();
-    rendering::VKWrapper::VKAPI::get()->deviceWaitIdle();
-    rendering::VKWrapper::VKAPI::destroy();
+
 }
 
 void eg::Application::onEvent(eg::Event& e) {
