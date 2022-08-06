@@ -53,12 +53,12 @@ namespace eg::rendering {
             u16 indices[6]{};
 
             explicit IndicesData(u16 quadIndex) {
-                indices[0] = 0 + quadIndex;
-                indices[1] = 1 + quadIndex;
-                indices[2] = 2 + quadIndex;
-                indices[3] = 2 + quadIndex;
-                indices[4] = 3 + quadIndex;
-                indices[5] = 0 + quadIndex;
+                indices[0] = 0 + 4 * quadIndex;
+                indices[1] = 1 + 4 * quadIndex;
+                indices[2] = 2 + 4 * quadIndex;
+                indices[3] = 2 + 4 * quadIndex;
+                indices[4] = 3 + 4 * quadIndex;
+                indices[5] = 0 + 4 * quadIndex;
             }
         };
 

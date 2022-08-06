@@ -6,7 +6,8 @@
 #include "eugine/platform/Vulkan/VkRenderer2DLowLevel.h"
 
 namespace eg::rendering {
-    Ref <Renderer2DLowLevel> Renderer2DLowLevel::create(GraphicsAPI& graphicsAPI, Renderer2D::Settings settings) {
+    Ref<Renderer2DLowLevel> Renderer2DLowLevel::create(GraphicsAPI& graphicsAPI, Renderer2D::Settings settings) {
+        trace("in graphicsAPI::create(): {}", settings.maxTextures);
         return eg::createRef<VKWrapper::VkRenderer2DLowLevel>((VKWrapper::VKAPI&)graphicsAPI, settings);
     }
 }

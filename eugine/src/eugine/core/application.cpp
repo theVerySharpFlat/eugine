@@ -186,12 +186,12 @@ void eg::Application::run() {
             m_renderManager.renderer().begin(*m_camera);
                 m_renderManager.renderer().queueQuad({
                                                              {0.0f ,0.0f},
-                                                             {300.0f, 300.0f},
+                                                             {800.0f, 300.0f},
                                                              texture,
                                                              {1.0f, 1.0f},
                                                              {1.0f, 0.0f, 0.0f, 1.0f},
                                                              1.0f,
-                                                             0.0f
+                                                             glm::radians(45.0f)
                 });
             m_renderManager.renderer().end();
 

@@ -27,8 +27,9 @@ namespace eg::rendering::VKWrapper {
     }
 
     VkDescriptorPool VkDescriptorSetAllocator::getFreePool() {
+        trace("allocate pool!!!");
         if (m_poolIterator != m_pools.end() || !m_pools.empty()) {
-            // trace("already a pool");
+             trace("already a pool");
             VkDescriptorPool pool = *m_poolIterator;
             return pool;
         } else {
@@ -72,6 +73,9 @@ namespace eg::rendering::VKWrapper {
             }
 
             m_pools.push_back(descriptorPool);
+
+            m_poolIterator = m_pools.end();
+            m_poolIterator--;
 
             return descriptorPool;
         }

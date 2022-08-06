@@ -20,6 +20,7 @@ namespace eg::rendering::VKWrapper {
         ~VkTexture();
 
         void init(const char* path);
+        void initFromData(const u8* data, u32 size, const char* name);
 
         void destruct();
 

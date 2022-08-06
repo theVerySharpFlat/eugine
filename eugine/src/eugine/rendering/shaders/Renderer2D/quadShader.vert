@@ -24,7 +24,7 @@ layout(binding = 0, set = 0) uniform PerFrameUBO {
 
 void main() {
     gl_Position = projxview * vec4(position, 0.0, 1.0);
-    // gl_Position.y *= -1;
+    gl_Position.y *= -1;
 
     out_color = color;
     out_fragmentAlphaBlendFactor = fragmentAlphaBlendFactor;

@@ -96,6 +96,7 @@ namespace eg::rendering::VKWrapper{
 
         struct DescriptorSetInfo {
             u32 setNum = 0;
+            u32 arrayCount = 1;
             VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
             bool needRebind = true;
         };

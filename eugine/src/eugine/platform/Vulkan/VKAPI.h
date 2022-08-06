@@ -96,6 +96,7 @@ namespace eg::rendering::VKWrapper {
         Ref<VkUniformBuffer> createUniformBuffer(void* data, u32 size, VertexBuffer::UsageHints usageHint);
 
         Ref<VkTexture> createTexture(const char* path);
+        Ref<VkTexture> createTextureFromData(const u8* data, u32 size, const char* name);
 
         u32 getFrameInFlight() const { return frameNumber; }
 

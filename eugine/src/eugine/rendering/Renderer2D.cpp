@@ -6,19 +6,20 @@
 
 INCTXT(QuadShaderFragSource, "eugine/rendering/shaders/Renderer2D/quadShader.frag");
 INCTXT(QuadShaderVertSource, "eugine/rendering/shaders/Renderer2D/quadShader.vert");
-//
+
 
 namespace eg::rendering {
     Renderer2D::Renderer2D(GraphicsAPI& graphicsAPI, Renderer2D::Settings settings) : m_graphicsAPI(graphicsAPI),
                                                                                            m_settings(settings) {
         if (m_settings.maxTextures == 0)
             m_settings.maxTextures = m_graphicsAPI.getMaxTexturesPerShader();
+        trace("in Renderer2D maxTextures: {}", m_settings.maxTextures);
 
         m_quadVertexData = (QuadVertex*) malloc(sizeof(QuadVertex) * 4 * settings.maxQuadsPerBatch);
         m_indexData = (IndicesData*) malloc(sizeof(IndicesData) * settings.maxQuadsPerBatch);
         m_textures = new Ref<Texture>[m_settings.maxTextures];
 
-        m_lowLevelRenderer = Renderer2DLowLevel::create(graphicsAPI, settings);
+        m_lowLevelRenderer = Renderer2DLowLevel::create(graphicsAPI, m_settings);
 
         Shader::ShaderProgramSource shaderProgramSource{
                 {
@@ -43,9 +44,9 @@ namespace eg::rendering {
                         1
                 },
                 {
-                        "TextureArray",
+                        "samplers",
                         SHADER_BINDING_TYPE_SAMPLER_ARRAY,
-                        4
+                        128
                 }
         };
 
@@ -100,7 +101,7 @@ namespace eg::rendering {
 
         QuadVertex topRightVertex = baseVertex;
         topRightVertex.position = rotate2D(
-                {quad.center.x + quad.dimensions.x / 2, quad.center.y + quad.dimensions.y / 2},
+                {quad.center.x + quad.dimensions.x / 2 + 100, quad.center.y + quad.dimensions.y / 2},
                 quad.center,
                 quad.rotation
                 );
@@ -114,10 +115,10 @@ namespace eg::rendering {
                 );
         topLeftVertex.texCoord = {1.0f, 1.0f};
 
-        m_quadVertexData[m_batchData.currentQuadIndex + 0] = bottomLeftVertex;
-        m_quadVertexData[m_batchData.currentQuadIndex + 1] = bottomRightVertex;
-        m_quadVertexData[m_batchData.currentQuadIndex + 2] = topRightVertex;
-        m_quadVertexData[m_batchData.currentQuadIndex + 3] = topLeftVertex;
+        m_quadVertexData[m_batchData.currentQuadIndex * 4 + 0] = bottomLeftVertex;
+        m_quadVertexData[m_batchData.currentQuadIndex * 4 + 1] = bottomRightVertex;
+        m_quadVertexData[m_batchData.currentQuadIndex * 4 + 2] = topRightVertex;
+        m_quadVertexData[m_batchData.currentQuadIndex * 4 + 3] = topLeftVertex;
 
         m_indexData[m_batchData.currentQuadIndex] = IndicesData(m_batchData.currentQuadIndex);
         m_textures[m_batchData.currentTextureIndex] = quad.texture;

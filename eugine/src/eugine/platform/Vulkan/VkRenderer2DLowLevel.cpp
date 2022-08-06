@@ -6,6 +6,10 @@
 #include "VkVertexBuffer.h"
 #include "VkShader.h"
 
+#include "incbin.h"
+
+INCBIN(WhiteTexturePNG, "eugine/rendering/textures/WhiteTexture.png");
+
 namespace eg::rendering::VKWrapper {
     Ref<VkVertexBuffer> VkRenderer2DLowLevel::createVertexBufferFN(void* userData) {
         auto* self = static_cast<VkRenderer2DLowLevel*>(userData);
@@ -28,7 +32,10 @@ namespace eg::rendering::VKWrapper {
 
     VkRenderer2DLowLevel::VkRenderer2DLowLevel(VKAPI& vkapi, rendering::Renderer2D::Settings settings) : m_api(vkapi),
                                                                                                          m_settings(
-                                                                                                                 settings){}
+                                                                                                                 settings){
+        trace("in VkRenderer2DLowLevel constructor: {}", settings.maxTextures);
+        m_defaultTexture = vkapi.createTextureFromData(gWhiteTexturePNGData, gWhiteTexturePNGSize, "WhiteTexture.png");
+    }
 
 
     void VkRenderer2DLowLevel::begin(Camera2D camera, Ref<Shader> shader) {
@@ -56,7 +63,7 @@ namespace eg::rendering::VKWrapper {
         vertexBuffer->setData((void*) quadVertexData, sizeof(Renderer2D::QuadVertex) * 4 * quadCount);
         indexBuffer->setData((const u16*) indicesData, sizeof(Renderer2D::IndicesData) * quadCount);
 
-        m_api.m_currentBoundShader->setTextureArray("TextureArray", textures, textureCount);
+        m_api.m_currentBoundShader->setTextureArray("samplers", textures, textureCount);
 
         m_api.drawIndexed(vertexBuffer, indexBuffer);
     }

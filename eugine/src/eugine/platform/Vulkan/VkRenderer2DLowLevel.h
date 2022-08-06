@@ -43,6 +43,8 @@ namespace eg::rendering::VKWrapper {
                 static_cast<u32>(m_api.maxFramesInFlight),
                 VkDynamicBufferFrameAllocator<VkUniformBuffer>{createUniformBufferFN, this}
         };
+
+        Ref<VkTexture> m_defaultTexture = nullptr;
     };
 }
 

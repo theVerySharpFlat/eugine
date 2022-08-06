@@ -268,7 +268,7 @@ namespace eg::rendering::VKWrapper {
         {
             u32 i = 0;
             for (auto& binding: uniformLayout.bindings) {
-                m_descriptorBindingNameToSetIndexMap[binding.name] = {i, VK_NULL_HANDLE, true};
+                m_descriptorBindingNameToSetIndexMap[binding.name] = {i, binding.arrayCount, VK_NULL_HANDLE, true};
 
                 trace("binding name: \"{}\"", binding.name);
 
@@ -480,12 +480,18 @@ namespace eg::rendering::VKWrapper {
             return;
         }
 
-        auto imageInfos = (VkDescriptorImageInfo*) alloca(sizeof(VkDescriptorImageInfo) * count);
+        auto imageInfos = (VkDescriptorImageInfo*) alloca(sizeof(VkDescriptorImageInfo) * info.arrayCount);
         for (u32 i = 0; i < count; i++) {
             imageInfos[i] = VkDescriptorImageInfo{};
             imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             imageInfos[i].imageView = textures[i]->getImageView();
             imageInfos[i].sampler = textures[i]->getSampler();
+        }
+        for(u32 i = count; i < info.arrayCount; i++) {
+            imageInfos[i] = VkDescriptorImageInfo{};
+            imageInfos[i].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfos[i].imageView = textures[0]->getImageView();
+            imageInfos[i].sampler = textures[0]->getSampler();
         }
 
         VkWriteDescriptorSet descriptorWrite{};
@@ -494,10 +500,11 @@ namespace eg::rendering::VKWrapper {
         descriptorWrite.dstBinding = 0;
         descriptorWrite.dstArrayElement = 0;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        descriptorWrite.descriptorCount = count;
+        descriptorWrite.descriptorCount = info.arrayCount;
         descriptorWrite.pImageInfo = imageInfos;
 
         vkUpdateDescriptorSets(m_device.getDevice(), 1, &descriptorWrite, 0, nullptr);
+        trace("updating set {}", info.setNum);
 
         info.needRebind = true;
     }

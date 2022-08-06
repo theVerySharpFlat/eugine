@@ -124,10 +124,10 @@ namespace eg::rendering::VKWrapper {
 
         for (auto& allocators: m_descriptorSetAllocators) {
             allocators.textureArrayAllocator.init({
-                                                          0.0f, 4.0f, 20
+                                                          0.0f, 128.0f, 20
                                                   });
             allocators.uniformBufferAllocator.init({
-                                                           1.0f, 0.0f, 20
+                                                           1.0f, 128.0f, 20
                                                    });
         }
 
@@ -297,6 +297,12 @@ namespace eg::rendering::VKWrapper {
     Ref <VkTexture> VKAPI::createTexture(const char* path) {
         auto temp = createRef<VkTexture>(m_device, m_allocator, m_commandPool);
         temp->init(path);
+        return temp;
+    }
+
+    Ref<VkTexture> VKAPI::createTextureFromData(const u8* data, u32 size, const char* name) {
+        auto temp = createRef<VkTexture>(m_device, m_allocator, m_commandPool);
+        temp->initFromData(data, size, name);
         return temp;
     }
 

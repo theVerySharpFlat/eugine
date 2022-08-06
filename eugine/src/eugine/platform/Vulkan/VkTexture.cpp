@@ -92,8 +92,14 @@ namespace eg::rendering::VKWrapper {
             return;
         }
 
+        initFromData((u8*)imageFileContents.c_str(), imageFileContents.size(), path);
+
+    }
+
+    void VkTexture::initFromData(const u8* data, u32 size, const char* name) {
+
         i32 width, height, nrChannels;
-        const unsigned char* img = stbi_load_from_memory((uint8_t*) imageFileContents.c_str(), imageFileContents.size(),
+        const unsigned char* img = stbi_load_from_memory(data, (int)size,
                                                          &width, &height, &nrChannels, STBI_rgb_alpha);
         m_width = width;
         m_height = height;
@@ -132,7 +138,7 @@ namespace eg::rendering::VKWrapper {
 
         VkResult imageCreateResult = vmaCreateImage(m_allocator, &imageCreateInfo, &allocationCreateInfo, &m_image, &m_imageAllocation, &m_imageAllocationInfo);
         if(imageCreateResult != VK_SUCCESS) {
-            error("failed to create VkImage for texture \"{}\"", path);
+            error("failed to create VkImage for texture \"{}\"", name);
             return;
         }
 
@@ -165,7 +171,7 @@ namespace eg::rendering::VKWrapper {
         imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
         if(vkCreateImageView(m_device.getDevice(), &imageViewCreateInfo, nullptr, &m_imageView) != VK_SUCCESS) {
-            error("failed to create image view for \"{}\"", path);
+            error("failed to create image view for \"{}\"", name);
             return;
         }
 
