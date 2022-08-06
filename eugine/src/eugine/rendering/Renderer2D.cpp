@@ -101,7 +101,7 @@ namespace eg::rendering {
 
         QuadVertex topRightVertex = baseVertex;
         topRightVertex.position = rotate2D(
-                {quad.center.x + quad.dimensions.x / 2 + 100, quad.center.y + quad.dimensions.y / 2},
+                {quad.center.x + quad.dimensions.x / 2, quad.center.y + quad.dimensions.y / 2},
                 quad.center,
                 quad.rotation
                 );

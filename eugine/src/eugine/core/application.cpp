@@ -158,22 +158,23 @@ eg::Application::Application() {
 
     m_renderer2 = rendering::Renderer2D::create({500, m_renderAPI->getMaxTexturesPerShader()});
 
-    //imgui
-    m_imGuiLayer = new ImGuiLayer();
-    pushOverlay(m_imGuiLayer);*/
+     */
     rendering::Renderer2D::Settings settings {
         10,
         0
     };
     m_renderManager.init(m_window.get(), settings);
+    pushOverlay(m_renderManager.getImguiLayer());
+    m_renderManager.imguiInit();
 }
 
 eg::Application::~Application() {
+    m_renderManager.imguiShutdown();
     m_renderManager.shutdown();
 }
 
 void eg::Application::run() {
-    auto texture = rendering::Texture::create("res/textures/Vulkan/vulkan.png");
+    auto texture = rendering::Texture::create("res/textures/brick.jpg");
 
     while (m_running) {
         // trace("frame");
@@ -191,9 +192,24 @@ void eg::Application::run() {
                                                              {1.0f, 1.0f},
                                                              {1.0f, 0.0f, 0.0f, 1.0f},
                                                              1.0f,
-                                                             glm::radians(45.0f)
+                                                             glm::radians(0.0f)
                 });
-            m_renderManager.renderer().end();
+                m_renderManager.renderer().queueQuad({
+                                                             {-300.0f ,-400.0f},
+                                                             {333.0f, 300.0f},
+                                                             texture,
+                                                             {1.0f, 1.0f},
+                                                             {1.0f, 0.0f, 0.0f, 1.0f},
+                                                             1.0f,
+                                                             glm::radians(0.0f)
+                                                     });
+
+        m_renderManager.renderer().end();
+
+        m_renderManager.imguiBegin();
+        for(Layer* layer : m_layerStack)
+            layer -> onImGuiRender();
+        m_renderManager.imguiEnd();
 
         m_renderManager.end();
 

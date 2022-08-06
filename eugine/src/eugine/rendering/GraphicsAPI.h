@@ -29,6 +29,11 @@ namespace eg::rendering {
         virtual void swapBuffers() = 0;
 
         virtual i32 getMaxTexturesPerShader() const = 0;
+
+        virtual void imguiInit() = 0;
+        virtual void imguiShutdown() = 0;
+        virtual void imguiBegin() = 0;
+        virtual void imguiEnd() = 0;
     };
 }
 

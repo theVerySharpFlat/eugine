@@ -48,7 +48,6 @@ namespace eg {
         std::unique_ptr<Window> m_window;
 
         //layers
-        ImGuiLayer *m_imGuiLayer;
         LayerStack m_layerStack;
 
         //event handling

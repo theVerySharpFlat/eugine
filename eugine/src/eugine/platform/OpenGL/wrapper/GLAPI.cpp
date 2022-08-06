@@ -2,6 +2,10 @@
 #include "error.h"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "eugine/core/application.h"
+
+#include "imgui/backends/imgui_impl_glfw.h"
+#include "imgui/backends/imgui_impl_opengl3.h"
 
 namespace eg::GLWrapper {
     OGLAPI::OGLAPI(Window& window) : m_window(window){
@@ -40,5 +44,25 @@ namespace eg::GLWrapper {
         i32 count;
         GLCall(glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &count));
         return count;
+    }
+
+    void OGLAPI::imguiInit() {
+        // Setup Platform/Renderer backends
+        Application& application = Application::get();
+        GLFWwindow* window = static_cast<GLFWwindow*>(application.getWindow().getNativeWindow());
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init("#version 410");
+    }
+
+    void OGLAPI::imguiShutdown() {
+        ImGui_ImplOpenGL3_Shutdown();
+    }
+
+    void OGLAPI::imguiBegin() {
+        ImGui_ImplOpenGL3_NewFrame();
+    }
+
+    void OGLAPI::imguiEnd() {
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 }

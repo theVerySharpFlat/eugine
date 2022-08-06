@@ -102,6 +102,11 @@ namespace eg::rendering::VKWrapper {
 
         VkImguiSystem& getImGuiSystem() { return m_imguiSystem; }
 
+        void imguiInit() override { m_imguiSystem.init(); }
+        void imguiShutdown() override { m_imguiSystem.shutdown(); }
+        void imguiBegin() override { m_imguiSystem.begin(); }
+        void imguiEnd() override { m_imguiSystem.end(); }
+
     private:
         friend class VkDevice;
         friend class VkWindow;

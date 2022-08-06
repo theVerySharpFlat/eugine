@@ -21,7 +21,15 @@ namespace eg::GLWrapper {
         void swapBuffers() override;
 
         i32 getMaxTexturesPerShader() const override;
-    
+
+        void imguiInit() override;
+
+        void imguiShutdown() override;
+
+        void imguiBegin() override;
+
+        void imguiEnd() override;
+
     private:
         Window& m_window;
     };

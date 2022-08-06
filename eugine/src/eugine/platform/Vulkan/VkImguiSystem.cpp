@@ -35,6 +35,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkImguiSystem::init() {
+        /*
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO();
@@ -57,6 +58,7 @@ namespace eg::rendering::VKWrapper {
             style.WindowRounding = 0.0f;
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
+        */
 
         ImGui_ImplVulkan_LoadFunctions(imguiLoadFN, this);
 
@@ -125,28 +127,28 @@ namespace eg::rendering::VKWrapper {
 
     void VkImguiSystem::shutdown() {
         ImGui_ImplVulkan_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImGui::DestroyContext();
+        // ImGui_ImplGlfw_Shutdown();
+        // ImGui::DestroyContext();
 
         vkDestroyDescriptorPool(m_api.m_device.getDevice(), m_pool, nullptr);
     }
 
     void VkImguiSystem::begin() {
         ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+        // ImGui_ImplGlfw_NewFrame();
+        // ImGui::NewFrame();
     }
 
     void VkImguiSystem::end() {
-        ImGui::Render();
+        // ImGui::Render();
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_api.m_frameObjects[m_api.frameNumber].commandBuffer);
 
-        ImGuiIO& io = ImGui::GetIO();
+        /* ImGuiIO& io = ImGui::GetIO();
         if(io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
             GLFWwindow* backup_current_context = glfwGetCurrentContext();
             ImGui::UpdatePlatformWindows();
             ImGui::RenderPlatformWindowsDefault();
             glfwMakeContextCurrent(backup_current_context);
-        }
+        }*/
     }
 }

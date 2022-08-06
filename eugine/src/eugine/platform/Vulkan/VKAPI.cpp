@@ -131,7 +131,7 @@ namespace eg::rendering::VKWrapper {
                                                    });
         }
 
-        m_imguiSystem.init();
+        // m_imguiSystem.init();
     }
 
 
@@ -630,7 +630,7 @@ namespace eg::rendering::VKWrapper {
             allocators.uniformBufferAllocator.destruct();
         }
 
-        m_imguiSystem.shutdown();
+        // m_imguiSystem.shutdown();
 
         for (auto& frameObjects: m_frameObjects) {
             vkDestroySemaphore(m_device.getDevice(), frameObjects.imageAvailableSemaphore, nullptr);
