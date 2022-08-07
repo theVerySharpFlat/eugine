@@ -35,15 +35,24 @@ namespace eg::rendering::VKWrapper {
                                                                                                                  settings){
         trace("in VkRenderer2DLowLevel constructor: {}", settings.maxTextures);
         m_defaultTexture = vkapi.createTextureFromData(gWhiteTexturePNGData, gWhiteTexturePNGSize, "WhiteTexture.png");
+
+        for(auto& combo : m_descriptorSetAllocators) {
+            combo.textureArrayAllocator.init({0.0f, 128.0f, 5});
+            combo.uniformBufferAllocator.init({1.0f, 0.0f, 5});
+        }
     }
 
 
     void VkRenderer2DLowLevel::begin(Camera2D camera, Ref<Shader> shader) {
         auto vkShader = std::static_pointer_cast<VkShader>(shader);
+        vkShader->setDescriptorAllocatorCombinations(m_descriptorSetAllocators.data());
 
         m_uniformBufferAllocators[m_api.getFrameInFlight()].resetAllocations();
         m_indexBufferAllocators[m_api.getFrameInFlight()].resetAllocations();
         m_vertexBufferAllocators[m_api.getFrameInFlight()].resetAllocations();
+
+        m_descriptorSetAllocators[m_api.getFrameInFlight()].uniformBufferAllocator.resetAllocations();
+        m_descriptorSetAllocators[m_api.getFrameInFlight()].textureArrayAllocator.resetAllocations();
 
         m_api.bindShader(vkShader);
 
@@ -72,7 +81,10 @@ namespace eg::rendering::VKWrapper {
     }
 
     VkRenderer2DLowLevel::~VkRenderer2DLowLevel() {
-
+        for(auto& combo : m_descriptorSetAllocators) {
+            combo.textureArrayAllocator.destruct();
+            combo.uniformBufferAllocator.destruct();
+        }
     }
 
 }

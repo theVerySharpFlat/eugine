@@ -182,6 +182,7 @@ void eg::Application::run() {
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
+        trace("frame begin");
         m_renderManager.begin();
 
             m_renderManager.renderer().begin(*m_camera);
@@ -212,6 +213,7 @@ void eg::Application::run() {
         m_renderManager.imguiEnd();
 
         m_renderManager.end();
+        trace("frame done");
 
         const float moveSpeed = 0.5f;
         if(Input::isKeyPressed(EG_KEY_LEFT)) {

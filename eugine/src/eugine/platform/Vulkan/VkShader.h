@@ -33,6 +33,8 @@ namespace eg::rendering::VKWrapper{
                   ShaderUniformLayout uniformLayout);
         void destruct();
 
+        void setDescriptorAllocatorCombinations(VKAPI::DescriptorSetAllocatorCombination* allocatorCombinations) { m_descriptorSetAllocators = allocatorCombinations; }
+
         VkPipeline& getPipeline() { return m_pipeline; }
         VkPipelineLayout& getPipelineLayout() { return m_pipelineLayout; }
 

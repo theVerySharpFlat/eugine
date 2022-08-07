@@ -9,6 +9,7 @@
 
 #include "VKAPI.h"
 #include "VkDynamicBufferFrameAllocator.h"
+#include "VkDescriptorSetAllocator.h"
 
 namespace eg::rendering::VKWrapper {
     class VkRenderer2DLowLevel : public Renderer2DLowLevel {
@@ -45,6 +46,17 @@ namespace eg::rendering::VKWrapper {
         };
 
         Ref<VkTexture> m_defaultTexture = nullptr;
+
+        std::array<VKAPI::DescriptorSetAllocatorCombination, VKAPI::maxFramesInFlight> m_descriptorSetAllocators = {
+                VKAPI::DescriptorSetAllocatorCombination {
+                        VkDescriptorSetAllocator(m_api.m_device),
+                        VkDescriptorSetAllocator(m_api.m_device)
+                },
+                VKAPI::DescriptorSetAllocatorCombination {
+                        VkDescriptorSetAllocator(m_api.m_device),
+                        VkDescriptorSetAllocator(m_api.m_device)
+                }
+        };
     };
 }
 

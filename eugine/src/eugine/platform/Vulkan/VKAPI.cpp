@@ -80,7 +80,7 @@ namespace eg::rendering::VKWrapper {
         appInfo.pApplicationName = "Vulkan App";
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.pEngineName = "Eugine";
-        appInfo.apiVersion = VK_API_VERSION_1_0;
+        appInfo.apiVersion = VK_API_VERSION_1_1;
 
         std::vector<const char*> extensions = getRequiredInstanceExtensions();
 
@@ -334,8 +334,8 @@ namespace eg::rendering::VKWrapper {
         vkWaitForFences(m_device.getDevice(), 1, &(m_frameObjects[frameNumber].inFlightFence), VK_TRUE, UINT64_MAX);
         // trace("waiting for frame{} complete", frameNumber);
         // trace("resetting allocations for frame {}", frameNumber);
-        m_descriptorSetAllocators[frameNumber].uniformBufferAllocator.resetAllocations();
-        m_descriptorSetAllocators[frameNumber].textureArrayAllocator.resetAllocations();
+//        m_descriptorSetAllocators[frameNumber].uniformBufferAllocator.resetAllocations();
+//        m_descriptorSetAllocators[frameNumber].textureArrayAllocator.resetAllocations();
         // trace("finished resetting allocations");
 
         bool imageAcquireSuccess = false;
