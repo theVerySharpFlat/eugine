@@ -13,4 +13,13 @@ namespace eg::rendering {
         else
             return nullptr;
     }
+
+    Ref<Texture> Texture::create(const u8* data, u32 size, const char* name) {
+        if(rendering::getPreferredGraphicsAPI() == EG_API_OGL)
+            return createRef<GLWrapper::Texture>(name); // TODO: Port this to opengl
+        else if(rendering::getPreferredGraphicsAPI() == EG_API_VK)
+            return VKWrapper::VKAPI::get()->createTextureFromData(data, size, name);
+        else
+            return nullptr;
+    }
 }

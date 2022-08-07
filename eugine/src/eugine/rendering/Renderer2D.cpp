@@ -8,6 +8,8 @@
 
 INCTXT(QuadShaderFragSource, "eugine/rendering/shaders/Renderer2D/quadShader.frag");
 INCTXT(QuadShaderVertSource, "eugine/rendering/shaders/Renderer2D/quadShader.vert");
+INCBIN(WhiteTexturePNG, "eugine/rendering/textures/WhiteTexture.png");
+//
 
 
 namespace eg::rendering {
@@ -59,8 +61,10 @@ namespace eg::rendering {
         vboLayout.setAttribute(3, {SHDR_FLOAT, 1});
         vboLayout.setAttribute(4, {SHDR_UINT, 1});
 
-
         m_shader = Shader::create(shaderProgramSource, {{}, shaderBindingDescriptions}, vboLayout);
+
+        m_defaultTexture = Texture::create(gWhiteTexturePNGData, gWhiteTexturePNGSize, "WhiteTexture.png");
+        m_textures[0] = m_defaultTexture;
     };
 
     static glm::vec2 rotate2D(const glm::vec2& point, const glm::vec2& center, const float& angle) {
@@ -83,7 +87,11 @@ namespace eg::rendering {
         QuadVertex baseVertex{};
         baseVertex.color = quad.color;
         baseVertex.fragmentAlphaBlendFactor = quad.fragmentAlphaMultiplier;
-        baseVertex.textureIndex = m_batchData.currentTextureIndex;
+        if(quad.texture != nullptr) {
+            baseVertex.textureIndex = m_batchData.currentTextureIndex;
+        } else {
+            baseVertex.textureIndex = 0;
+        }
 
         QuadVertex bottomLeftVertex = baseVertex;
         bottomLeftVertex.position = rotate2D(
@@ -123,10 +131,14 @@ namespace eg::rendering {
         m_quadVertexData[m_batchData.currentQuadIndex * 4 + 3] = topLeftVertex;
 
         m_indexData[m_batchData.currentQuadIndex] = IndicesData(m_batchData.currentQuadIndex);
-        m_textures[m_batchData.currentTextureIndex] = quad.texture;
+
+        if(quad.texture != nullptr) {
+            // trace(m_batchData.currentTextureIndex);
+            m_textures[m_batchData.currentTextureIndex] = quad.texture;
+            m_batchData.currentTextureIndex++;
+        }
 
         m_batchData.currentQuadIndex++;
-        m_batchData.currentTextureIndex++;
 
         m_frameStats.quadCount++;
     }
@@ -135,7 +147,7 @@ namespace eg::rendering {
         m_lowLevelRenderer->drawCall(m_quadVertexData, m_indexData, m_batchData.currentQuadIndex, m_textures,
                                      m_batchData.currentTextureIndex);
         m_batchData.currentQuadIndex = 0;
-        m_batchData.currentTextureIndex = 0;
+        m_batchData.currentTextureIndex = 1;
 
         m_frameStats.batchCount++;
     }

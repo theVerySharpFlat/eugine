@@ -187,23 +187,23 @@ void eg::Application::run() {
 
             m_renderManager.renderer().begin(*m_camera);
                 m_renderManager.renderer().queueQuad({
+                                                             {-300.0f ,-100.0f},
+                                                             {333.0f, 300.0f},
+                                                             nullptr,
+                                                             {1.0f, 1.0f},
+                                                             {1.0f, 0.0f, 0.0f, 1.0f},
+                                                             1.0f,
+                                                             glm::radians(30.0f)
+                                                     });
+                m_renderManager.renderer().queueQuad({
                                                              {0.0f ,0.0f},
                                                              {800.0f, 300.0f},
                                                              texture,
                                                              {1.0f, 1.0f},
-                                                             {1.0f, 0.0f, 0.0f, 1.0f},
-                                                             1.0f,
+                                                             {1.0f, 1.0f, 0.0f, 0.5f},
+                                                             0.5f,
                                                              glm::radians(0.0f)
                 });
-                m_renderManager.renderer().queueQuad({
-                                                             {-300.0f ,-400.0f},
-                                                             {333.0f, 300.0f},
-                                                             texture,
-                                                             {1.0f, 1.0f},
-                                                             {1.0f, 0.0f, 0.0f, 1.0f},
-                                                             1.0f,
-                                                             glm::radians(0.0f)
-                                                     });
 
         m_renderManager.renderer().end();
 

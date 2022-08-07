@@ -8,7 +8,6 @@
 
 #include "incbin.h"
 
-INCBIN(WhiteTexturePNG, "eugine/rendering/textures/WhiteTexture.png");
 
 namespace eg::rendering::VKWrapper {
     Ref <VkVertexBuffer> VkRenderer2DLowLevel::createVertexBufferFN(void* userData) {
@@ -38,7 +37,6 @@ namespace eg::rendering::VKWrapper {
                                                                                                          m_settings(
                                                                                                                  settings) {
         trace("in VkRenderer2DLowLevel constructor: {}", settings.maxTextures);
-        m_defaultTexture = vkapi.createTextureFromData(gWhiteTexturePNGData, gWhiteTexturePNGSize, "WhiteTexture.png");
 
         for (auto& combo: m_descriptorSetAllocators) {
             combo.textureArrayAllocator.init({0.0f, 128.0f, 5});

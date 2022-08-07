@@ -71,7 +71,7 @@ namespace eg::rendering {
 
         struct BatchData {
             u16 currentQuadIndex = 0;
-            u16 currentTextureIndex = 0;
+            u16 currentTextureIndex = 1;
         };
         BatchData m_batchData{};
 
@@ -81,6 +81,7 @@ namespace eg::rendering {
 
         Ref<Renderer2DLowLevel> m_lowLevelRenderer = nullptr;
         Ref<Shader> m_shader = nullptr;
+        Ref<Texture> m_defaultTexture = nullptr;
 
         struct FrameStats {
             u32 batchCount = 0;

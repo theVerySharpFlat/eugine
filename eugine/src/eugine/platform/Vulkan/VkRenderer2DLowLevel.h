@@ -47,8 +47,6 @@ namespace eg::rendering::VKWrapper {
                 VkDynamicBufferFrameAllocator<VkUniformBuffer>{createUniformBufferFN, this}
         };
 
-        Ref<VkTexture> m_defaultTexture = nullptr;
-
         std::array<VKAPI::DescriptorSetAllocatorCombination, VKAPI::maxFramesInFlight> m_descriptorSetAllocators = {
                 VKAPI::DescriptorSetAllocatorCombination {
                         VkDescriptorSetAllocator(m_api.m_device),

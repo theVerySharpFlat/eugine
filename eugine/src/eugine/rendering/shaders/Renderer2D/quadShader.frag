@@ -12,5 +12,8 @@ layout(location = 0) out vec4 fragColor;
 layout(set = 1, binding = 0) uniform sampler2D samplers[128];
 
 void main() {
-    fragColor = /*vec4(texCoord, 1.0f, 1.0f);*/texture(samplers[textureIndex], texCoord);
+    vec4 texelColor = texture(samplers[textureIndex], texCoord);
+    fragColor = mix(texelColor, color, color.a);
+    fragColor.a = texelColor.a;
+    fragColor.a *= fragmentAlphaBlendFactor;
 }
