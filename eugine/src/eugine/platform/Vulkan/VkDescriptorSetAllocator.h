@@ -28,6 +28,8 @@ namespace eg::rendering::VKWrapper {
         bool allocateDescriptorSet(VkDescriptorSet* descriptorSet, VkDescriptorSetLayout descriptorSetLayout);
         void resetAllocations();
 
+        u32 numPools() const { return m_pools.size(); }
+
     private:
         VkDevice& m_device;
 

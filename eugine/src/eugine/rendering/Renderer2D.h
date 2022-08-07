@@ -25,6 +25,8 @@ namespace eg::rendering {
         void begin(Camera2D& camera);
         void end();
 
+        void imguiDebug();
+
         struct Quad {
             glm::vec2 center;
             glm::vec2 dimensions;
@@ -79,6 +81,12 @@ namespace eg::rendering {
 
         Ref<Renderer2DLowLevel> m_lowLevelRenderer = nullptr;
         Ref<Shader> m_shader = nullptr;
+
+        struct FrameStats {
+            u32 batchCount = 0;
+            u32 quadCount = 0;
+        };
+        FrameStats m_frameStats = {};
     };
 };
 

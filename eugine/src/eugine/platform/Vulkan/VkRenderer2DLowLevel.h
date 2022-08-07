@@ -25,6 +25,8 @@ namespace eg::rendering::VKWrapper {
 
         void end() override;
 
+        void imguiDebug() override;
+
     private:
         VKAPI& m_api;
         rendering::Renderer2D::Settings m_settings;

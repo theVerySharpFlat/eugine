@@ -80,7 +80,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     VkUniformBuffer::~VkUniformBuffer() {
-        trace("destructor of ubo called!");
+        // trace("destructor of ubo called!");
         free();
     }
 }

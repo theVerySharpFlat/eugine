@@ -2,6 +2,8 @@
 #include "Renderer2D.h"
 #include "Renderer2DLowLevel.h"
 
+#include "imgui/imgui.h"
+
 #include "incbin.h"
 
 INCTXT(QuadShaderFragSource, "eugine/rendering/shaders/Renderer2D/quadShader.frag");
@@ -125,6 +127,8 @@ namespace eg::rendering {
 
         m_batchData.currentQuadIndex++;
         m_batchData.currentTextureIndex++;
+
+        m_frameStats.quadCount++;
     }
 
     void Renderer2D::flush() {
@@ -132,9 +136,12 @@ namespace eg::rendering {
                                      m_batchData.currentTextureIndex);
         m_batchData.currentQuadIndex = 0;
         m_batchData.currentTextureIndex = 0;
+
+        m_frameStats.batchCount++;
     }
 
     void Renderer2D::begin(Camera2D& camera) {
+        m_frameStats = {};
         m_lowLevelRenderer->begin(camera, m_shader);
     }
 
@@ -143,6 +150,25 @@ namespace eg::rendering {
             flush();
         }
         m_lowLevelRenderer->end();
+    }
+
+    void Renderer2D::imguiDebug() {
+        m_lowLevelRenderer->imguiDebug();
+        ImGui::Begin("Renderer2D");
+
+        if(ImGui::TreeNode("Renderer2D::Settings")) {
+            ImGui::Text("Max Textures Per Batch: %d", m_settings.maxTextures);
+            ImGui::Text("Max Quads Per Batch: %d", m_settings.maxQuadsPerBatch);
+            ImGui::TreePop();
+        }
+
+        if(ImGui::TreeNode("Renderer2D::FrameStats")) {
+            ImGui::Text("Quad count: %d", m_frameStats.quadCount);
+            ImGui::Text("Batch Count: %d", m_frameStats.batchCount);
+            ImGui::TreePop();
+        }
+
+        ImGui::End();
     }
 
     Renderer2D::~Renderer2D() {

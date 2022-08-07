@@ -50,6 +50,8 @@ namespace eg::rendering::VKWrapper {
             }
         }
 
+        u32 numAllocations() const { return m_buffers.size(); }
+
     private:
         BufferCreateFN m_bufferCreateFN;
         void* m_udata;

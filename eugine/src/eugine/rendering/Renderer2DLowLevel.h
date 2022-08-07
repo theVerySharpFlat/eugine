@@ -14,12 +14,16 @@
 namespace eg::rendering {
     class Renderer2DLowLevel {
     public:
-        static Ref<Renderer2DLowLevel> create(GraphicsAPI& graphicsAPI, Renderer2D::Settings settings);
+        static Ref <Renderer2DLowLevel> create(GraphicsAPI& graphicsAPI, Renderer2D::Settings settings);
 
-        virtual void begin(Camera2D camera, Ref<Shader> shader) = 0;
+        virtual void begin(Camera2D camera, Ref <Shader> shader) = 0;
+
         virtual void
         drawCall(Renderer2D::QuadVertex* quadVertexData, Renderer2D::IndicesData* indicesData, u32 quadCount,
-                 Ref<rendering::Texture>* textures, u32 textureCount) = 0;
+                 Ref <rendering::Texture>* textures, u32 textureCount) = 0;
+
+        virtual void imguiDebug() = 0;
+
         virtual void end() = 0;
     };
 }

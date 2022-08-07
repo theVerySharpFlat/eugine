@@ -504,7 +504,7 @@ namespace eg::rendering::VKWrapper {
         descriptorWrite.pImageInfo = imageInfos;
 
         vkUpdateDescriptorSets(m_device.getDevice(), 1, &descriptorWrite, 0, nullptr);
-        trace("updating set {}", info.setNum);
+        //trace("updating set {}", info.setNum);
 
         info.needRebind = true;
     }
