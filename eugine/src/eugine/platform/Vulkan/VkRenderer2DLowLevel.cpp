@@ -72,7 +72,7 @@ namespace eg::rendering::VKWrapper {
         auto indexBuffer = m_indexBufferAllocators[m_api.getFrameInFlight()].allocate();
 
         vertexBuffer->setData((void*) quadVertexData, sizeof(Renderer2D::QuadVertex) * 4 * quadCount);
-        indexBuffer->setData((const u16*) indicesData, sizeof(Renderer2D::IndicesData) * quadCount);
+        indexBuffer->setData((const u16*) indicesData, 6 * quadCount);
 
         m_api.m_currentBoundShader->setTextureArray("samplers", textures, textureCount);
 

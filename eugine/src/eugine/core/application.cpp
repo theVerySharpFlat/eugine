@@ -152,23 +152,26 @@ eg::Application::Application() {
             "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_K.png",
             "res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_Q.png"
     };
-    /* for(int i = 0; i < m_textures.size(); i++) {
-        m_textures[i] = rendering::Texture::create(textureNames[i]);
-    }
 
-    m_renderer2 = rendering::Renderer2D::create({500, m_renderAPI->getMaxTexturesPerShader()});
+
+    /*m_renderer2 = rendering::Renderer2D::create({500, m_renderAPI->getMaxTexturesPerShader()});
 
      */
     rendering::Renderer2D::Settings settings {
-        10,
+        1000,
         0
     };
     m_renderManager.init(m_window.get(), settings);
     pushOverlay(m_renderManager.getImguiLayer());
     m_renderManager.imguiInit();
+    for(int i = 0; i < m_textures.size(); i++) {
+        m_textures[i] = rendering::Texture::create(textureNames[i]);
+    }
 }
 
 eg::Application::~Application() {
+    for(auto& tex : m_textures)
+        tex = nullptr;
     m_renderManager.imguiShutdown();
     m_renderManager.shutdown();
 }
@@ -186,24 +189,20 @@ void eg::Application::run() {
         m_renderManager.begin();
 
             m_renderManager.renderer().begin(*m_camera);
-                m_renderManager.renderer().queueQuad({
-                                                             {-300.0f ,-100.0f},
-                                                             {333.0f, 300.0f},
-                                                             nullptr,
-                                                             {1.0f, 1.0f},
-                                                             {1.0f, 0.0f, 0.0f, 1.0f},
-                                                             1.0f,
-                                                             glm::radians(30.0f)
-                                                     });
-                m_renderManager.renderer().queueQuad({
-                                                             {0.0f ,0.0f},
-                                                             {800.0f, 300.0f},
-                                                             texture,
-                                                             {1.0f, 1.0f},
-                                                             {1.0f, 1.0f, 0.0f, 0.5f},
-                                                             0.5f,
-                                                             glm::radians(0.0f)
-                });
+
+            for(u32 i = 0; i < 100; i++) {
+                for(u32 j = 0; j < 100; j++) {
+                    m_renderManager.renderer().queueQuad({
+                                                                 {100 * i, 100 * j},
+                                                                 {100.0f, 100.0f},
+                                                                 m_textures[(i * 100 + j) % 56],
+                                                                 {1.0f, 1.0f},
+                                                                 {1.0f, 1.0f, 0.0f, 0.5f},
+                                                                 0.5f,
+                                                                 time * glm::radians(180.0f)
+                    });
+                }
+            }
 
         m_renderManager.renderer().end();
 
@@ -216,18 +215,18 @@ void eg::Application::run() {
         m_renderManager.end();
         // trace("frame done");
 
-        const float moveSpeed = 0.5f;
+        const float moveSpeed = 7.0f;
         if(Input::isKeyPressed(EG_KEY_LEFT)) {
-            m_camera->moveCamera({-moveSpeed, 0.0f});
+            m_camera->moveCamera({-moveSpeed * time, 0.0f});
         }
         if(Input::isKeyPressed(EG_KEY_RIGHT)) {
-            m_camera->moveCamera({moveSpeed, 0.0f});
+            m_camera->moveCamera({moveSpeed * time, 0.0f});
         }
         if(Input::isKeyPressed(EG_KEY_UP)) {
-            m_camera->moveCamera({0.0f, moveSpeed});
+            m_camera->moveCamera({0.0f, moveSpeed * time});
         }
         if(Input::isKeyPressed(EG_KEY_DOWN)) {
-            m_camera->moveCamera({0.0f, -moveSpeed});
+            m_camera->moveCamera({0.0f, -moveSpeed * time});
         }
 
 

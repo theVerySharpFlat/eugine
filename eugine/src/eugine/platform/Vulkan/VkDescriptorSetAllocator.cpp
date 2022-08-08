@@ -27,9 +27,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     VkDescriptorPool VkDescriptorSetAllocator::getFreePool() {
-        // trace("allocate pool!!!");
-        if (m_poolIterator != m_pools.end() || !m_pools.empty()) {
-             // trace("already a pool");
+        if (m_poolIterator != m_pools.end()) {
             VkDescriptorPool pool = *m_poolIterator;
             return pool;
         } else {
@@ -97,6 +95,7 @@ namespace eg::rendering::VKWrapper {
             case VK_ERROR_OUT_OF_POOL_MEMORY:
             {
                 m_poolIterator++;
+
                 currentFreePool = getFreePool();
                 descriptorSetAllocateInfo.descriptorPool = currentFreePool;
 
