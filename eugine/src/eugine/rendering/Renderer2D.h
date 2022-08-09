@@ -33,7 +33,8 @@ namespace eg::rendering {
             glm::vec2 dimensions;
 
             Ref<Texture> texture;
-            glm::vec2 tilingFactor;
+            glm::vec2 textureBottomLeft = {0.0f, 0.0f};
+            glm::vec2 textureTopRight = {1.0f, 1.0f};
 
             glm::vec4 color;
             float fragmentAlphaMultiplier;

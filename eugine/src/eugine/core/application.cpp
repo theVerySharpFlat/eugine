@@ -194,6 +194,7 @@ void eg::Application::run() {
                                                                  {100 * i, 100 * j},
                                                                  {100.0f, 100.0f},
                                                                  m_textures[(i * 100 + j) % 56],
+                                                                 {0.0f, 0.0f},
                                                                  {1.0f, 1.0f},
                                                                  {1.0f, 1.0f, 0.0f, 0.5f},
                                                                  0.5f,
@@ -201,6 +202,17 @@ void eg::Application::run() {
                     });
                 }
             }
+
+            m_renderManager.renderer().queueQuad({
+                                                         {-300.0f, -300.0f},
+                                                         {300.0f, 300.0f},
+                                                         texture,
+                                                         {0.0f, 0.0f},
+                                                         {3.0f, 3.0f},
+                                                         {1.0f, 0.0f, 1.0f, 0.0f},
+                                                         1.0f,
+                                                         glm::radians(0.0f)
+            });
 
         m_renderManager.renderer().end();
 
