@@ -110,7 +110,7 @@ namespace eg::rendering {
                 quad.center,
                 quad.rotation
                 );
-        bottomLeftVertex.texCoord = {1.0f, 0.0f};
+        bottomLeftVertex.texCoord = {0.0f, 1.0f};
 
         QuadVertex bottomRightVertex = baseVertex;
         bottomRightVertex.position = rotate2D(
@@ -118,7 +118,7 @@ namespace eg::rendering {
                 quad.center,
                 quad.rotation
                 );
-        bottomRightVertex.texCoord = {0.0f, 0.0f};
+        bottomRightVertex.texCoord = {1.0f, 1.0f};
 
         QuadVertex topRightVertex = baseVertex;
         topRightVertex.position = rotate2D(
@@ -126,7 +126,7 @@ namespace eg::rendering {
                 quad.center,
                 quad.rotation
                 );
-        topRightVertex.texCoord = {0.0f, 1.0f};
+        topRightVertex.texCoord = {1.0f, 0.0f};
 
         QuadVertex topLeftVertex = baseVertex;
         topLeftVertex.position = rotate2D(
@@ -134,7 +134,7 @@ namespace eg::rendering {
                 quad.center,
                 quad.rotation
                 );
-        topLeftVertex.texCoord = {1.0f, 1.0f};
+        topLeftVertex.texCoord = {0.0f, 0.0f};
 
         m_quadVertexData[m_batchData.currentQuadIndex * 4 + 0] = bottomLeftVertex;
         m_quadVertexData[m_batchData.currentQuadIndex * 4 + 1] = bottomRightVertex;

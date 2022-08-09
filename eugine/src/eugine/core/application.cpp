@@ -197,7 +197,7 @@ void eg::Application::run() {
                                                                  {1.0f, 1.0f},
                                                                  {1.0f, 1.0f, 0.0f, 0.5f},
                                                                  0.5f,
-                                                                 time * glm::radians(180.0f)
+                                                                 glm::radians(0.0f)
                     });
                 }
             }
