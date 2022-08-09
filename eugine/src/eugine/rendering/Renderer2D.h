@@ -18,6 +18,7 @@ namespace eg::rendering {
         struct Settings {
             u16 maxQuadsPerBatch;
             u16 maxTextures = 0; // 0 = maximum supported samplers per shader stage
+            bool textureRedundancyCheck;
         };
         Renderer2D(GraphicsAPI& graphicsAPI, Settings settings);
         ~Renderer2D();

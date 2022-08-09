@@ -87,8 +87,19 @@ namespace eg::rendering {
         QuadVertex baseVertex{};
         baseVertex.color = quad.color;
         baseVertex.fragmentAlphaBlendFactor = quad.fragmentAlphaMultiplier;
+        bool redundantTexture = false;
         if(quad.texture != nullptr) {
             baseVertex.textureIndex = m_batchData.currentTextureIndex;
+            if(m_settings.textureRedundancyCheck) {
+                for(u32 i = 0; i < m_batchData.currentTextureIndex; i++) {
+                    if(m_textures[i] == quad.texture) {
+                        baseVertex.textureIndex = i;
+                        redundantTexture = true;
+                        break;
+                    }
+                }
+            }
+            m_textures[m_batchData.currentTextureIndex] = quad.texture;
         } else {
             baseVertex.textureIndex = 0;
         }
@@ -132,15 +143,12 @@ namespace eg::rendering {
 
         m_indexData[m_batchData.currentQuadIndex] = IndicesData(m_batchData.currentQuadIndex);
 
-        if(quad.texture != nullptr) {
-            // trace(m_batchData.currentTextureIndex);
-            m_textures[m_batchData.currentTextureIndex] = quad.texture;
+        m_batchData.currentQuadIndex++;
+        m_frameStats.quadCount++;
+
+        if(quad.texture != nullptr && !redundantTexture) {
             m_batchData.currentTextureIndex++;
         }
-
-        m_batchData.currentQuadIndex++;
-
-        m_frameStats.quadCount++;
     }
 
     void Renderer2D::flush() {
@@ -171,6 +179,7 @@ namespace eg::rendering {
         if(ImGui::TreeNode("Renderer2D::Settings")) {
             ImGui::Text("Max Textures Per Batch: %d", m_settings.maxTextures);
             ImGui::Text("Max Quads Per Batch: %d", m_settings.maxQuadsPerBatch);
+            ImGui::Checkbox("Texture redundancy checking", &m_settings.textureRedundancyCheck);
             ImGui::TreePop();
         }
 

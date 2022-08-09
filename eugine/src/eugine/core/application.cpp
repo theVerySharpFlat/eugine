@@ -154,12 +154,10 @@ eg::Application::Application() {
     };
 
 
-    /*m_renderer2 = rendering::Renderer2D::create({500, m_renderAPI->getMaxTexturesPerShader()});
-
-     */
     rendering::Renderer2D::Settings settings {
         1000,
-        0
+        0,
+        true
     };
     m_renderManager.init(m_window.get(), settings);
     pushOverlay(m_renderManager.getImguiLayer());
@@ -213,9 +211,8 @@ void eg::Application::run() {
         m_renderManager.imguiEnd();
 
         m_renderManager.end();
-        // trace("frame done");
 
-        const float moveSpeed = 7.0f;
+        const float moveSpeed = 3.0f;
         if(Input::isKeyPressed(EG_KEY_LEFT)) {
             m_camera->moveCamera({-moveSpeed * time, 0.0f});
         }
@@ -264,11 +261,6 @@ bool eg::Application::onWindowClose(eg::WindowCloseEvent& e) {
 }
 
 bool eg::Application::onKeyEvent(eg::KeyPressedEvent& e) {
-//    if(e.getKeyCode() == EG_KEY_RIGHT) {
-//        m_camera.setPosition(m_camera.getPosition() + glm::vec2(0.0, 5.0));
-//    } else if(e.getKeyCode() == EG_KEY_LEFT) {
-//        m_camera.setPosition(m_camera.getPosition() + glm::vec2(0.0, -5.0));
-//    }
     return true;
 }
 
