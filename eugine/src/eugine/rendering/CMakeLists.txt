@@ -3,11 +3,9 @@ target_sources(eugine PRIVATE
         Camera2D.cpp
         VertexBuffer.cpp
         VertexBufferLayout.cpp
-        VertexArray.cpp
         Shader.cpp
         Texture.cpp
         IndexBuffer.cpp
-        LowLevelRenderer.cpp
         GraphicsAPI.cpp
         Renderer2D.cpp
         Renderer2DLowLevel.cpp

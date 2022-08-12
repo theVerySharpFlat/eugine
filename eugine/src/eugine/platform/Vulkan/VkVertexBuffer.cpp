@@ -8,11 +8,13 @@
 
 namespace eg::rendering::VKWrapper {
     VkVertexBuffer::VkVertexBuffer(VkDevice& device, VkCommandPool commandPool, VmaAllocator& allocator, void* data,
-                                   u32 size, VertexBuffer::UsageHints usageHint) : m_allocator(allocator),
-                                                                                   m_device(device),
-                                                                                   m_commandPool(commandPool),
-                                                                                   m_maxSize(size), m_size(m_maxSize),
-                                                                                   m_usageHint(usageHint) {
+                                   u32 size, VertexBuffer::UsageHints usageHint, VertexBufferLayout& layout)
+            : m_allocator(allocator),
+              m_device(device),
+              m_commandPool(commandPool),
+              m_maxSize(size), m_size(m_maxSize),
+              m_usageHint(usageHint),
+              m_layout(layout) {
         if (usageHint == VertexBuffer::VB_USAGE_HINT_DYNAMIC) {
             BufferUtil::createBuffer(m_allocator, VMA_MEMORY_USAGE_AUTO,
                                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -27,12 +29,16 @@ namespace eg::rendering::VKWrapper {
                                      &m_buffer, &m_allocation);
         }
 
-        if(data != nullptr) {
-            setData(data, size);
+        if (data != nullptr) {
+            _setData(data, size);
         }
     }
 
     void VkVertexBuffer::setData(void* data, u32 size) {
+        _setData(data, size);
+    }
+
+    void VkVertexBuffer::_setData(void* data, u32 size) {
         if (size > m_maxSize) {
             error("failed to update vertex buffer: size is greater than maxSize");
             return;
@@ -80,11 +86,19 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkVertexBuffer::free() {
-        if(m_buffer != VK_NULL_HANDLE)
+        if (m_buffer != VK_NULL_HANDLE)
             vmaDestroyBuffer(m_allocator, m_buffer, m_allocation);
     }
 
     VkVertexBuffer::~VkVertexBuffer() {
         free();
+    }
+
+    void VkVertexBuffer::setLayout(const VertexBufferLayout& layout) {
+        m_layout = layout;
+    }
+
+    const VertexBufferLayout& VkVertexBuffer::getLayout() const {
+        return m_layout;
     }
 }

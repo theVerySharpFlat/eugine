@@ -9,19 +9,27 @@
 #include "vk_mem_alloc.h"
 
 #include "eugine/rendering/VertexBuffer.h"
+#include "eugine/rendering/IndexBuffer.h"
 
 namespace eg::rendering::VKWrapper {
     class VkDevice;
-    class VkIndexBuffer {
+
+    class VkIndexBuffer : public ::eg::rendering::IndexBuffer {
     public:
-        VkIndexBuffer(VkDevice& device, VkCommandPool commandPool, VmaAllocator& allocator, const u16* data, u32 count, VertexBuffer::UsageHints usageHint);
+        VkIndexBuffer(VkDevice& device, VkCommandPool commandPool, VmaAllocator& allocator, const u16* data, u32 count,
+                      VertexBuffer::UsageHints usageHint);
+
         ~VkIndexBuffer();
 
-        void setData(const u16* data, u32 count);
+        void setData(const u16* data, u32 count) override;
+
         void free();
 
         VkBuffer getBuffer() { return m_buffer; }
-        u32 getCount() { return m_count; }
+
+        u32 getCount() const { return m_count; }
+        u32 getElementCount() const override { return getCount(); }
+        u32 getMaxElementCount() const override { return m_maxCount; }
 
         VkIndexBuffer& operator=(const VkIndexBuffer& ibo) {
             return *this;

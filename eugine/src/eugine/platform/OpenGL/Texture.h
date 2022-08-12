@@ -3,10 +3,11 @@
 
 #include "eugine/rendering/Texture.h"
 
-namespace eg::GLWrapper {
+namespace eg::rendering::GLWrapper {
     class Texture : public ::eg::rendering::Texture{
     public:
         Texture(const fs::path& path);
+        Texture(const u8* data, u32 size, const char* name);
         ~Texture();
         
         void bind(u32 slot) const;

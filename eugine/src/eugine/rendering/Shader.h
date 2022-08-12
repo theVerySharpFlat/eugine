@@ -48,9 +48,6 @@ namespace eg::rendering {
 
         static Ref<Shader> create(const ShaderProgramSource& source, ShaderUniformLayout layout, VertexBufferLayout vertexBufferLayout);
 
-        virtual void bind() const = 0;
-        virtual void unBind() const = 0;
-
         virtual void setTextureArray(const char* name, Ref<Texture>* textures, u32 count) = 0;
         virtual void setUniformBuffer(const char* name, Ref<UniformBuffer> uniformBuffer) = 0;
 

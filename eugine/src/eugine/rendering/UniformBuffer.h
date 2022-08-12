@@ -5,10 +5,14 @@
 #ifndef EUGINE_UNIFORMBUFFER_H
 #define EUGINE_UNIFORMBUFFER_H
 
+#include "VertexBuffer.h"
+
 namespace eg::rendering {
     class UniformBuffer {
     public:
-        virtual ~UniformBuffer() = 0;
+        static Ref<UniformBuffer> create(void* data, u32 size, VertexBuffer::UsageHints usageHints);
+        virtual void setData(void* data, u32 size) = 0;
+        virtual ~UniformBuffer() {};
     };
 }
 

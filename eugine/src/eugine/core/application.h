@@ -11,11 +11,9 @@
 #include "eugine/core/window.h"
 #include "eugine/core/layerStack.h"
 
-#include "eugine/platform/OpenGL/wrapper/Renderer.h"
-#include "eugine/platform/OpenGL/wrapper/Texture.h"
+#include "eugine/platform/OpenGL/Texture.h"
 #include "eugine/rendering/Camera2D.h"
 #include "eugine/rendering/IndexBuffer.h"
-#include "eugine/rendering/LowLevelRenderer.h"
 #include "eugine/rendering/Texture.h"
 #include "eugine/rendering/GraphicsAPI.h"
 #include "eugine/rendering/Renderer2D.h"

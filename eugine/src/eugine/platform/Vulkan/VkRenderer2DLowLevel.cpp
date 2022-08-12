@@ -11,12 +11,13 @@
 
 namespace eg::rendering::VKWrapper {
     Ref <VkVertexBuffer> VkRenderer2DLowLevel::createVertexBufferFN(void* userData) {
+        VertexBufferLayout layout{0};
         auto* self = static_cast<VkRenderer2DLowLevel*>(userData);
         return createRef<VkVertexBuffer>(self->m_api.m_device, self->m_api.m_commandPool, self->m_api.m_allocator,
                                          nullptr,
                                          self->m_settings.maxQuadsPerBatch * sizeof(rendering::Renderer2D::QuadVertex) *
                                          4,
-                                         VertexBuffer::VB_USAGE_HINT_DYNAMIC);
+                                         VertexBuffer::VB_USAGE_HINT_DYNAMIC, layout);
     }
 
     Ref <VkIndexBuffer> VkRenderer2DLowLevel::createIndexBufferFN(void* userData) {

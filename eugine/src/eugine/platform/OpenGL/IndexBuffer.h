@@ -5,24 +5,25 @@
 #ifndef EUGINE_INDEXBUFFER_H
 #define EUGINE_INDEXBUFFER_H
 
-#include <eugine/rendering/IndexBuffer.h>
+#include "eugine/rendering/IndexBuffer.h"
 
-namespace eg::GLWrapper {
+namespace eg::rendering::GLWrapper {
     class IndexBuffer : public ::eg::rendering::IndexBuffer{
     public:
-        IndexBuffer(u32 *data, u32 size);
+        IndexBuffer(u16 *data, u32 size, rendering::VertexBuffer::UsageHints usageHints);
         ~IndexBuffer();
 
         u32 getElementCount() const override { return m_elementCount; }
-        void setElementCount(u32 count) override { m_elementCount = count; }
+        u32 getMaxElementCount() const override { return m_maxCount; }
 
-        void bind() const override;
-        void unBind() const override;
+        void bind();
+        void unBind();
 
-        void setData(u32 *data, u32 size) override;
+        void setData(const u16 *data, u32 count) override;
 
     private:
         u32 m_elementCount = 0;
+        const u32 m_maxCount;
         u32 m_ID = 0;
     };
 }

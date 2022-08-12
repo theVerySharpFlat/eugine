@@ -13,8 +13,7 @@
 #define GL_UNSIGNED_INT 0x1405
 #define GL_FLOAT 0x1406
 
-namespace eg {
-    namespace GLWrapper {
+namespace eg::rendering::GLWrapper {
 
         struct VertexAttrib {
             u32 type = 0x0000;
@@ -38,7 +37,6 @@ namespace eg {
 
             std::vector<VertexAttrib> m_attributes;
         };
-    }
 }
 
 #endif //EUGINE_VERTEXBUFFERLAYOUT_H

@@ -54,10 +54,12 @@ namespace eg {
         }
 
         m_window = glfwCreateWindow((int)m_data.width, (int)m_data.height, m_data.title.c_str(), nullptr, nullptr);
-        // glfwMakeContextCurrent(m_window);
+        if(api == rendering::EG_API_OGL) {
+             glfwMakeContextCurrent(m_window);
 
-        // int status = gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
-        // EG_CORE_ASSERT(status, "Failed to initialize Glad");
+             int status = gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+             EG_CORE_ASSERT(status, "Failed to initialize Glad");
+        }
 
         glfwSetWindowUserPointer(m_window, &m_data);
 
@@ -158,7 +160,7 @@ namespace eg {
 
     void LinuxWindow::onUpdate() {
         glfwPollEvents();
-        // glfwSwapBuffers(m_window);
+        glfwSwapBuffers(m_window);
     }
 
     unsigned int LinuxWindow::getWidth() const {

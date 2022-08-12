@@ -371,7 +371,7 @@ namespace eg::rendering::VKWrapper {
         if (optimize)
             options.SetOptimizationLevel(shaderc_optimization_level_size);
 
-        // options.AddMacroDefinition("EG_VULKAN");
+        options.AddMacroDefinition("EG_VULKAN");
         shaderc::PreprocessedSourceCompilationResult preprocessed = compiler.PreprocessGlsl(source.data, source.size,
                                                                                             type, source.name, options);
 
@@ -414,9 +414,6 @@ namespace eg::rendering::VKWrapper {
         free(m_descriptorSetLayouts);
     }
 
-    void VkShader::bind() const {}
-
-    void VkShader::unBind() const {}
 
     void VkShader::setPushConstantUniform(const char* name, const void* data, u32 size) {
         auto it = m_pushConstantNamesToBufPtrMap.find(name);

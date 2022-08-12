@@ -43,9 +43,6 @@ namespace eg::rendering::VKWrapper{
 
         void resetDescriptorBindState();
 
-        void bind() const override;
-        void unBind() const override;
-
         void setUniformBuffer(const char* name, Ref<UniformBuffer> uniformBuffer) override;
         void setUniformBuffer(const char* name, Ref<VkUniformBuffer> uniformBuffer);
 

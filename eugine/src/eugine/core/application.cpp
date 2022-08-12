@@ -4,12 +4,11 @@
 
 
 #include "application.h"
-#include "eugine/platform/OpenGL/wrapper/Texture.h"
-#include "eugine/platform/OpenGL/wrapper/Shader.h"
+#include "eugine/platform/OpenGL/Texture.h"
+#include "eugine/platform/OpenGL/Shader.h"
 #include "eugine/rendering/IndexBuffer.h"
 #include "eugine/rendering/Texture.h"
 #include "eugine/rendering/Types.h"
-#include "eugine/rendering/VertexArray.h"
 #include "eugine/rendering/VertexBuffer.h"
 #include "eugine/rendering/VertexBufferLayout.h"
 #include "eugine/util/filesystem.h"
@@ -216,11 +215,11 @@ void eg::Application::run() {
 
         m_renderManager.renderer().end();
 
-        m_renderManager.imguiBegin();
+        /*m_renderManager.imguiBegin();
         m_renderManager.renderer().imguiDebug();
         for(Layer* layer : m_layerStack)
             layer -> onImGuiRender();
-        m_renderManager.imguiEnd();
+        m_renderManager.imguiEnd();*/
 
         m_renderManager.end();
 
@@ -237,7 +236,6 @@ void eg::Application::run() {
         if(Input::isKeyPressed(EG_KEY_DOWN)) {
             m_camera->moveCamera({0.0f, -moveSpeed * time});
         }
-
 
         m_window->onUpdate();
     }

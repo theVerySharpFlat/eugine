@@ -1,7 +1,5 @@
 #version 450
 
-#define EG_VULKAN
-
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec2 texCoord;
 layout(location = 2) in vec4 color;
@@ -18,13 +16,17 @@ layout(binding = 0, set = 0) uniform PerFrameUBO {
     mat4 projxview;
 };
 #else
-//TODO: opengl version of uniforms in 2d quad rendering shader
+uniform mat4 projxview;
 #endif
 
 
 void main() {
     gl_Position = projxview * vec4(position, 0.0, 1.0);
+    gl_Position.z = 0.0f;
+
+#ifdef EG_VULKAN
     gl_Position.y *= -1;
+#endif
 
     out_color = color;
     out_fragmentAlphaBlendFactor = fragmentAlphaBlendFactor;

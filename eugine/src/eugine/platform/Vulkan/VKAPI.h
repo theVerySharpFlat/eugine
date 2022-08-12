@@ -91,7 +91,7 @@ namespace eg::rendering::VKWrapper {
         Ref<::eg::rendering::VKWrapper::VkShader>
         createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout, ShaderUniformLayout uniformLayout);
 
-        Ref<VkVertexBuffer> createVertexBuffer(void* data, u32 size, rendering::VertexBuffer::UsageHints usageHint);
+        Ref<VkVertexBuffer> createVertexBuffer(void* data, u32 size, VertexBufferLayout& layout, rendering::VertexBuffer::UsageHints usageHint);
         Ref<VkIndexBuffer> createIndexBuffer(const u16* data, u32 count, rendering::VertexBuffer::UsageHints usageHint);
         Ref<VkUniformBuffer> createUniformBuffer(void* data, u32 size, VertexBuffer::UsageHints usageHint);
 

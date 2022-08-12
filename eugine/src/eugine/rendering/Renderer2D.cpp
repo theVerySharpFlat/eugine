@@ -9,7 +9,6 @@
 INCTXT(QuadShaderFragSource, "eugine/rendering/shaders/Renderer2D/quadShader.frag");
 INCTXT(QuadShaderVertSource, "eugine/rendering/shaders/Renderer2D/quadShader.vert");
 INCBIN(WhiteTexturePNG, "eugine/rendering/textures/WhiteTexture.png");
-//
 
 
 namespace eg::rendering {
@@ -23,7 +22,14 @@ namespace eg::rendering {
         m_indexData = (IndicesData*) malloc(sizeof(IndicesData) * settings.maxQuadsPerBatch);
         m_textures = new Ref<Texture>[m_settings.maxTextures];
 
-        m_lowLevelRenderer = Renderer2DLowLevel::create(graphicsAPI, m_settings);
+        VertexBufferLayout vboLayout(5);
+        vboLayout.setAttribute(0, {SHDR_VEC2, 1});
+        vboLayout.setAttribute(1, {SHDR_VEC2, 1});
+        vboLayout.setAttribute(2, {SHDR_VEC4, 1});
+        vboLayout.setAttribute(3, {SHDR_FLOAT, 1});
+        vboLayout.setAttribute(4, {SHDR_UINT, 1});
+
+        m_lowLevelRenderer = Renderer2DLowLevel::create(graphicsAPI, m_settings, vboLayout);
 
         Shader::ShaderProgramSource shaderProgramSource{
                 {
@@ -54,14 +60,15 @@ namespace eg::rendering {
                 }
         };
 
-        VertexBufferLayout vboLayout(5);
-        vboLayout.setAttribute(0, {SHDR_VEC2, 1});
-        vboLayout.setAttribute(1, {SHDR_VEC2, 1});
-        vboLayout.setAttribute(2, {SHDR_VEC4, 1});
-        vboLayout.setAttribute(3, {SHDR_FLOAT, 1});
-        vboLayout.setAttribute(4, {SHDR_UINT, 1});
+        std::initializer_list<ShaderUniform> shaderUniforms = {
+                {
+                    "projxview",
+                    SHDR_MAT4
+                }
+        };
 
-        m_shader = Shader::create(shaderProgramSource, {{}, shaderBindingDescriptions}, vboLayout);
+
+        m_shader = Shader::create(shaderProgramSource, {shaderUniforms, shaderBindingDescriptions}, vboLayout);
 
         m_defaultTexture = Texture::create(gWhiteTexturePNGData, gWhiteTexturePNGSize, "WhiteTexture.png");
         m_textures[0] = m_defaultTexture;

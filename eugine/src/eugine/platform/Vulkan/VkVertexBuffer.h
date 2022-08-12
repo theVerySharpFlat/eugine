@@ -13,12 +13,16 @@
 
 namespace eg::rendering::VKWrapper {
     class VkDevice;
-    class VkVertexBuffer {
+
+    class VkVertexBuffer : public ::eg::rendering::VertexBuffer {
     public:
-        VkVertexBuffer(VkDevice& device, VkCommandPool commandPool, VmaAllocator& allocator, void* data, u32 size, VertexBuffer::UsageHints usageHint);
+        VkVertexBuffer(VkDevice& device, VkCommandPool commandPool, VmaAllocator& allocator, void* data, u32 size,
+                       VertexBuffer::UsageHints usageHint, VertexBufferLayout& layout);
+
         ~VkVertexBuffer();
 
-        void setData(void* data, u32 size);
+        void setData(void* data, u32 size) override;
+        void _setData(void* data, u32 size);
 
         VkBuffer& getBuffer() { return m_buffer; }
 
@@ -30,6 +34,9 @@ namespace eg::rendering::VKWrapper {
         VkVertexBuffer& operator=(const VkVertexBuffer& vertexBuffer) {
             return *this;
         }
+
+        void setLayout(const VertexBufferLayout& layout) override;
+        const VertexBufferLayout& getLayout() const override;
 
     private:
         VmaAllocator& m_allocator;
@@ -44,6 +51,8 @@ namespace eg::rendering::VKWrapper {
         VkBuffer m_buffer = VK_NULL_HANDLE;
         VmaAllocation m_allocation = VK_NULL_HANDLE;
         VmaAllocationInfo m_allocationInfo{};
+
+        VertexBufferLayout& m_layout;
     };
 }
 

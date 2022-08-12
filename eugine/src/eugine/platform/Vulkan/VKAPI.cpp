@@ -281,8 +281,8 @@ namespace eg::rendering::VKWrapper {
     }
 
     Ref <VkVertexBuffer>
-    VKAPI::createVertexBuffer(void* data, u32 size, rendering::VertexBuffer::UsageHints usageHint) {
-        return eg::createRef<VkVertexBuffer>(m_device, m_commandPool, m_allocator, data, size, usageHint);
+    VKAPI::createVertexBuffer(void* data, u32 size, VertexBufferLayout& layout, rendering::VertexBuffer::UsageHints usageHint) {
+        return eg::createRef<VkVertexBuffer>(m_device, m_commandPool, m_allocator, data, size, usageHint, layout);
     }
 
     Ref <VkIndexBuffer>

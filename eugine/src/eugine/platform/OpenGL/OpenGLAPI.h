@@ -4,16 +4,16 @@
 #include "eugine/rendering/GraphicsAPI.h"
 #include "eugine/core/window.h"
 
-namespace eg::GLWrapper {
-    class OGLAPI : public ::eg::rendering::GraphicsAPI {
+namespace eg::rendering::GLWrapper {
+    class OpenGLAPI : public ::eg::rendering::GraphicsAPI {
     public:
-        OGLAPI(Window& window); 
-        ~OGLAPI() = default;
+        OpenGLAPI(Window& window);
+        ~OpenGLAPI() = default;
 
         void setClearColor(glm::vec3 color) override;
         void clear() override;
 
-        void begin() override {}
+        void begin() override { clear(); }
         void end() override {}
 
         void deviceWaitIdle() override {}

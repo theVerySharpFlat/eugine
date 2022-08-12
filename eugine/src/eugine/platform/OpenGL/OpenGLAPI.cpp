@@ -1,14 +1,14 @@
-#include "eugine/platform/OpenGL/wrapper/GLAPI.h"
+#include "OpenGLAPI.h"
 #include "error.h"
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
 #include "eugine/core/application.h"
 
 #include "imgui/backends/imgui_impl_glfw.h"
 #include "imgui/backends/imgui_impl_opengl3.h"
 
-namespace eg::GLWrapper {
-    OGLAPI::OGLAPI(Window& window) : m_window(window){
+namespace eg::rendering::GLWrapper {
+    OpenGLAPI::OpenGLAPI(Window& window) : m_window(window){
         glfwMakeContextCurrent((GLFWwindow*)window.getNativeWindow());
 
         int status = gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
@@ -28,25 +28,25 @@ namespace eg::GLWrapper {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
-    void OGLAPI::swapBuffers() {
+    void OpenGLAPI::swapBuffers() {
         glfwSwapBuffers((GLFWwindow*)m_window.getNativeWindow());
     }
 
-    void OGLAPI::setClearColor(glm::vec3 color) {
+    void OpenGLAPI::setClearColor(glm::vec3 color) {
        GLCall(glClearColor(color.x, color.y, color.z, 1.0));
     }
 
-    void OGLAPI::clear() {
+    void OpenGLAPI::clear() {
         GLCall(glClear(GL_COLOR_BUFFER_BIT));
     }
 
-    i32 OGLAPI::getMaxTexturesPerShader() const {
+    i32 OpenGLAPI::getMaxTexturesPerShader() const {
         i32 count;
         GLCall(glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &count));
         return count;
     }
 
-    void OGLAPI::imguiInit() {
+    void OpenGLAPI::imguiInit() {
         // Setup Platform/Renderer backends
         Application& application = Application::get();
         GLFWwindow* window = static_cast<GLFWwindow*>(application.getWindow().getNativeWindow());
@@ -54,15 +54,15 @@ namespace eg::GLWrapper {
         ImGui_ImplOpenGL3_Init("#version 410");
     }
 
-    void OGLAPI::imguiShutdown() {
+    void OpenGLAPI::imguiShutdown() {
         ImGui_ImplOpenGL3_Shutdown();
     }
 
-    void OGLAPI::imguiBegin() {
+    void OpenGLAPI::imguiBegin() {
         ImGui_ImplOpenGL3_NewFrame();
     }
 
-    void OGLAPI::imguiEnd() {
+    void OpenGLAPI::imguiEnd() {
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 }
