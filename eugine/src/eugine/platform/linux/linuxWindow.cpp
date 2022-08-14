@@ -160,7 +160,8 @@ namespace eg {
 
     void LinuxWindow::onUpdate() {
         glfwPollEvents();
-        glfwSwapBuffers(m_window);
+        if(rendering::getPreferredGraphicsAPI() == rendering::EG_API_OGL)
+          glfwSwapBuffers(m_window);
     }
 
     unsigned int LinuxWindow::getWidth() const {

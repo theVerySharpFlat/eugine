@@ -13,9 +13,7 @@
 #include "eugine/rendering/VertexBufferLayout.h"
 #include "eugine/util/filesystem.h"
 #include <cmath>
-#include <eugine/events/applicationEvent.h>
-#include <eugine/events/keyEvent.h>
-#include <eugine/events/mouseEvent.h>
+#include <eugine/events/applicationEvent.h> #include <eugine/events/keyEvent.h> #include <eugine/events/mouseEvent.h>
 #include <eugine/core/input.h>
 #include <eugine/core/keyCodes.h>
 #include <eugine/rendering/Shader.h>
@@ -181,6 +179,7 @@ void eg::Application::run() {
         static auto startTime = std::chrono::high_resolution_clock::now();
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+        startTime = currentTime;
 
         // trace("frame begin");
         m_renderManager.begin();
@@ -223,7 +222,7 @@ void eg::Application::run() {
 
         m_renderManager.end();
 
-        const float moveSpeed = 3.0f;
+        const float moveSpeed = 210.0f;
         if(Input::isKeyPressed(EG_KEY_LEFT)) {
             m_camera->moveCamera({-moveSpeed * time, 0.0f});
         }

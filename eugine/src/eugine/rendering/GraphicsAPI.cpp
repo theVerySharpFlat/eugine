@@ -5,7 +5,7 @@
 namespace eg::rendering {
 
     GraphicsAPIID getPreferredGraphicsAPI() {
-        return EG_API_OGL;
+        return EG_API_VK;
     }
 
     GraphicsAPI* GraphicsAPI::create(Window& window) {

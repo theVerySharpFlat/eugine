@@ -2,6 +2,7 @@
 #include "Renderer2D.h"
 #include "Renderer2DLowLevel.h"
 
+#include "eugine/rendering/GraphicsAPI.h"
 #include "imgui/imgui.h"
 
 #include "incbin.h"
@@ -112,13 +113,18 @@ namespace eg::rendering {
             baseVertex.textureIndex = 0;
         }
 
+        bool topLeftTexCoords = getPreferredGraphicsAPI() == EG_API_VK;
+
         QuadVertex bottomLeftVertex = baseVertex;
         bottomLeftVertex.position = rotate2D(
                 {quad.center.x - quad.dimensions.x / 2, quad.center.y - quad.dimensions.y / 2},
                 quad.center,
                 quad.rotation
                 );
-        bottomLeftVertex.texCoord = {quad.textureBottomLeft.x, quad.textureBottomLeft.y + 1.0f};
+        if(topLeftTexCoords)
+          bottomLeftVertex.texCoord = {quad.textureBottomLeft.x, quad.textureBottomLeft.y + 1.0f};
+        else
+          bottomLeftVertex.texCoord = {quad.textureBottomLeft.x, quad.textureBottomLeft.y};
 
         QuadVertex bottomRightVertex = baseVertex;
         bottomRightVertex.position = rotate2D(
@@ -126,7 +132,11 @@ namespace eg::rendering {
                 quad.center,
                 quad.rotation
                 );
-        bottomRightVertex.texCoord = {quad.textureTopRight.x, quad.textureBottomLeft.y + 1.0f};
+        if(topLeftTexCoords)
+          bottomRightVertex.texCoord = {quad.textureTopRight.x, quad.textureBottomLeft.y + 1.0f};
+        else
+          bottomRightVertex.texCoord = {quad.textureTopRight.x, quad.textureBottomLeft.y};
+
 
         QuadVertex topRightVertex = baseVertex;
         topRightVertex.position = rotate2D(
@@ -134,7 +144,10 @@ namespace eg::rendering {
                 quad.center,
                 quad.rotation
                 );
-        topRightVertex.texCoord = {quad.textureTopRight.x, -quad.textureTopRight.y + 1.0f};
+        if(topLeftTexCoords)
+          topRightVertex.texCoord = {quad.textureTopRight.x, -quad.textureTopRight.y + 1.0f};
+        else
+          topRightVertex.texCoord = {quad.textureTopRight.x, quad.textureTopRight.y};
 
         QuadVertex topLeftVertex = baseVertex;
         topLeftVertex.position = rotate2D(
@@ -142,7 +155,10 @@ namespace eg::rendering {
                 quad.center,
                 quad.rotation
                 );
-        topLeftVertex.texCoord = {quad.textureBottomLeft.x, -quad.textureTopRight.y + 1.0f};
+        if(topLeftTexCoords)
+          topLeftVertex.texCoord = {quad.textureBottomLeft.x, -quad.textureTopRight.y + 1.0f};
+        else
+          topLeftVertex.texCoord = {quad.textureBottomLeft.x, quad.textureTopRight.y};
 
         m_quadVertexData[m_batchData.currentQuadIndex * 4 + 0] = bottomLeftVertex;
         m_quadVertexData[m_batchData.currentQuadIndex * 4 + 1] = bottomRightVertex;
