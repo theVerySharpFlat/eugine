@@ -13,10 +13,14 @@ namespace eg::rendering::GLWrapper {
         void bind(u32 slot) const;
         void unBind() const;
 
-        bool operator==(const ::eg::rendering::Texture& texture) const override; 
+        bool operator==(const ::eg::rendering::Texture& texture) const override;
+
+        const std::string& getName() { return m_name; }
 
     private:
         u32 m_ID = 0;
+
+        std::string m_name;
     };
 }
 

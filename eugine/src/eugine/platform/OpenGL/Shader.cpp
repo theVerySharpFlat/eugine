@@ -259,7 +259,9 @@ namespace eg::rendering::GLWrapper {
                ));
 
         for(u32 i = 0; i < count; i++) {
-            std::static_pointer_cast<GLWrapper::Texture>(textures[i])->bind(i);
+            auto texture = std::dynamic_pointer_cast<GLWrapper::Texture>(textures[i]);
+            // trace("binding texture \"{}\" to slot {}", texture->getName(), i);
+            texture->bind(i);
         }
     }
 

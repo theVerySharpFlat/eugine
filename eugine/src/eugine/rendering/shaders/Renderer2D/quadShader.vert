@@ -8,7 +8,7 @@ layout(location = 4) in uint textureIndex;
 
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out float out_fragmentAlphaBlendFactor;
-layout(location = 2) out uint out_textureIndex;
+layout(location = 2) out flat uint out_textureIndex;
 layout(location = 3) out vec2 out_texCoord;
 
 #ifdef EG_VULKAN

@@ -7,12 +7,14 @@
 #include <bits/types/FILE.h>
 
 namespace eg::rendering::GLWrapper {
-    Texture::Texture(const fs::path& path) {
+    Texture::Texture(const fs::path& path) : m_name(path.c_str()) {
         std::string data = filesystem::getFileContents(path);
         GLCall(glCreateTextures(GL_TEXTURE_2D, 1, &m_ID));
         GLCall(glBindTexture(GL_TEXTURE_2D, m_ID));
         GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
         GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+        GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 
         i32 width, height, nrChannels;
         stbi_set_flip_vertically_on_load(true);
@@ -26,7 +28,7 @@ namespace eg::rendering::GLWrapper {
         stbi_image_free((void*)img);
     }
 
-    Texture::Texture(const u8* data, u32 size, const char* name) {
+    Texture::Texture(const u8* data, u32 size, const char* name) : m_name(name) {
         GLCall(glCreateTextures(GL_TEXTURE_2D, 1, &m_ID));
         GLCall(glBindTexture(GL_TEXTURE_2D, m_ID));
         GLCall(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));

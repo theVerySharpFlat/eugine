@@ -5,6 +5,7 @@
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 #include "error.h"
+#include "eugine/platform/OpenGL/Shader.h"
 #include "eugine/rendering/Types.h"
 #include "eugine/rendering/VertexBuffer.h"
 
@@ -102,11 +103,18 @@ namespace eg::rendering::GLWrapper {
         u64 offset = 0;
         const auto& attributes = vertexBufferLayout.getAttributes();
         for (int i = 0; i < attributes.size(); i++) {
-            GLCall(glVertexAttribPointer(i, mapShaderTypeToGLTypeCount(attributes[i].type) * attributes[i].count,
-                                         mapShaderTypeToGLType(attributes[i].type), GL_FALSE,
-                                         vertexBufferLayout.getStride(),
-                                         (void*) offset));
+            ShaderType t = attributes[i].type;
+            if(t == SHDR_UINT || t == SHDR_INT) {
+              glVertexAttribIPointer(i, mapShaderTypeToGLTypeCount(attributes[i].type) * attributes[i].count, mapShaderTypeToGLType(attributes[i].type), vertexBufferLayout.getStride(), (void*)offset);
+            } else {
+              GLCall(glVertexAttribPointer(i, mapShaderTypeToGLTypeCount(attributes[i].type) * attributes[i].count,
+                                           mapShaderTypeToGLType(attributes[i].type), GL_FALSE,
+                                           vertexBufferLayout.getStride(),
+                                           (void*) offset));
+            }
             GLCall(glEnableVertexAttribArray(i));
+            trace("enableVertexAttribArray({})", i);
+            trace("stride: {}", vertexBufferLayout.getStride());
 
             offset += attributes[i].count * getSizeOfType(attributes[i].type);
         }

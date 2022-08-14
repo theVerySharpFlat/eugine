@@ -11,6 +11,7 @@ INCTXT(QuadShaderVertSource, "eugine/rendering/shaders/Renderer2D/quadShader.ver
 INCBIN(WhiteTexturePNG, "eugine/rendering/textures/WhiteTexture.png");
 
 
+
 namespace eg::rendering {
     Renderer2D::Renderer2D(GraphicsAPI& graphicsAPI, Renderer2D::Settings settings) : m_graphicsAPI(graphicsAPI),
                                                                                            m_settings(settings) {
@@ -56,7 +57,7 @@ namespace eg::rendering {
                 {
                         "samplers",
                         SHADER_BINDING_TYPE_SAMPLER_ARRAY,
-                        128
+                        m_settings.maxTextures
                 }
         };
 
@@ -106,7 +107,7 @@ namespace eg::rendering {
                     }
                 }
             }
-            m_textures[m_batchData.currentTextureIndex] = quad.texture;
+            m_textures[m_batchData.currentTextureIndex] = quad.texture;//quad.texture;
         } else {
             baseVertex.textureIndex = 0;
         }

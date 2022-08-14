@@ -187,16 +187,16 @@ void eg::Application::run() {
 
             m_renderManager.renderer().begin(*m_camera);
 
-            for(u32 i = 0; i < 100; i++) {
-                for(u32 j = 0; j < 100; j++) {
+            for(u32 i = 0; i < 4; i++) {
+                for(u32 j = 0; j < 4; j++) {
                     m_renderManager.renderer().queueQuad({
                                                                  {100 * i, 100 * j},
                                                                  {100.0f, 100.0f},
-                                                                 m_textures[(i * 100 + j) % 56],
+                                                                 m_textures[(i * 4 + j) % 56],
                                                                  {0.0f, 0.0f},
                                                                  {1.0f, 1.0f},
-                                                                 {1.0f, 1.0f, 0.0f, 0.5f},
-                                                                 0.5f,
+                                                                 {1.0f, 0.0f, 0.0f, 0.0f},
+                                                                 1.0f,
                                                                  glm::radians(0.0f)
                     });
                 }

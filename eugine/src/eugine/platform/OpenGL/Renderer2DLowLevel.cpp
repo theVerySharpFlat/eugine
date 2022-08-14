@@ -13,7 +13,7 @@ namespace eg::rendering::GLWrapper {
         m_uniformBuffer = Ref<GLWrapper::UniformBuffer>(
                 new GLWrapper::UniformBuffer(sizeof(glm::mat4), VertexBuffer::VB_USAGE_HINT_DYNAMIC));
         m_vertexBuffer = Ref<GLWrapper::VertexBuffer>(
-                new GLWrapper::VertexBuffer(nullptr, m_settings.maxQuadsPerBatch * sizeof(Renderer2D::QuadVertex),
+                new GLWrapper::VertexBuffer(nullptr, m_settings.maxQuadsPerBatch * 4 * sizeof(Renderer2D::QuadVertex),
                                             VertexBuffer::VB_USAGE_HINT_DYNAMIC, vboLayout));
         m_indexBuffer = Ref<GLWrapper::IndexBuffer>(
                 new GLWrapper::IndexBuffer(nullptr, sizeof(Renderer2D::IndicesData) * m_settings.maxQuadsPerBatch,
@@ -25,7 +25,7 @@ namespace eg::rendering::GLWrapper {
     }
 
     void Renderer2DLowLevel::begin(Camera2D camera, Ref <rendering::Shader> shader) {
-        m_currentShader = std::static_pointer_cast<GLWrapper::Shader>(shader);
+        m_currentShader = std::dynamic_pointer_cast<GLWrapper::Shader>(shader);
 
         m_currentShader->bind();
         glm::mat4 projxview = camera.getProjectionTimesView();
