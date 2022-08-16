@@ -35,6 +35,7 @@ namespace eg::rendering::GLWrapper {
     }
 
     void UniformBuffer::setData(void* data, u32 size) {
-
+        bind();
+        GLCall(glBufferSubData(GL_UNIFORM_BUFFER, 0, size, data))
     }
 }

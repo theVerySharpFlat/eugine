@@ -5,7 +5,7 @@
 
 namespace eg::rendering {
 
-    static GraphicsAPIID currentGraphicsAPI = EG_API_VK;
+    static GraphicsAPIID currentGraphicsAPI = EG_API_OGL;
 
     GraphicsAPIID getPreferredGraphicsAPI() {
         return currentGraphicsAPI;

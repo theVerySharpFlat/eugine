@@ -29,7 +29,9 @@ namespace eg::rendering::GLWrapper {
 
         m_currentShader->bind();
         glm::mat4 projxview = camera.getProjectionTimesView();
-        m_currentShader->setMat4("projxview", projxview);
+        //m_currentShader->setMat4("projxview", projxview);
+        m_uniformBuffer->setData(&projxview, sizeof(glm::mat4));
+        m_currentShader->setUniformBuffer("PerFrameUBO", m_uniformBuffer);
     }
 
     void Renderer2DLowLevel::drawCall(Renderer2D::QuadVertex* quadVertexData, Renderer2D::IndicesData* indicesData,

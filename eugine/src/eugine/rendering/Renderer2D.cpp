@@ -11,8 +11,6 @@ INCTXT(QuadShaderFragSource, "eugine/rendering/shaders/Renderer2D/quadShader.fra
 INCTXT(QuadShaderVertSource, "eugine/rendering/shaders/Renderer2D/quadShader.vert");
 INCBIN(WhiteTexturePNG, "eugine/rendering/textures/WhiteTexture.png");
 
-
-
 namespace eg::rendering {
     Renderer2D::Renderer2D(GraphicsAPI& graphicsAPI, Renderer2D::Settings settings) : m_graphicsAPI(graphicsAPI),
                                                                                            m_settings(settings) {
@@ -59,13 +57,7 @@ namespace eg::rendering {
                 }
         };
 
-        std::initializer_list<ShaderUniform> shaderUniforms = {
-                {
-                    "projxview",
-                    SHDR_MAT4
-                }
-        };
-
+        std::initializer_list<ShaderUniform> shaderUniforms = {};
 
         m_shader = Shader::create(shaderProgramSource, {shaderUniforms, shaderBindingDescriptions}, vboLayout);
 

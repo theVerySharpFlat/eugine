@@ -16,7 +16,10 @@ layout(binding = 0, set = 0) uniform PerFrameUBO {
     mat4 projxview;
 };
 #else
-uniform mat4 projxview;
+// uniform mat4 projxview;
+layout(std140) uniform PerFrameUBO {
+    mat4 projxview;
+};
 #endif
 
 

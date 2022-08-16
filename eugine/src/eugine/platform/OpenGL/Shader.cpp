@@ -217,6 +217,7 @@ namespace eg::rendering::GLWrapper {
     }
 
     void Shader::setUniformBuffer(const char* name, Ref <rendering::UniformBuffer> uniformBuffer) {
+        bind();
         auto lowLevelUBO = std::static_pointer_cast<GLWrapper::UniformBuffer>(uniformBuffer);
         lowLevelUBO->bind();
 
@@ -232,6 +233,7 @@ namespace eg::rendering::GLWrapper {
         if (found->second.blockIndex == UINT32_MAX) {
             GLCall(found->second.blockIndex = glGetUniformBlockIndex(m_ID, name));
         }
+        //trace("{} has a binding index of {}", name, found->second.bindingIndex);
         GLCall(glUniformBlockBinding(m_ID, found->second.blockIndex, found->second.bindingIndex));
 
         GLCall(glBindBufferBase(GL_UNIFORM_BUFFER, found->second.bindingIndex, lowLevelUBO->m_ID));
