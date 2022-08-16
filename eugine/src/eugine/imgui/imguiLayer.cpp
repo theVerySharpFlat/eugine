@@ -6,7 +6,7 @@
 #include "imguiLayer.h"
 
 #include "imgui/backends/imgui_impl_glfw.h"
-#include "imgui/backends/imgui_impl_opengl3.h"
+
 
 #include "GLFW/glfw3.h"
 #include <cstring>
@@ -54,7 +54,7 @@ namespace eg {
     }
 
     void ImGuiLayer::onAttach() {
-        eg::trace("setting up imgui layer");
+        eg::info("Setting up ImGUI layer");
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -78,22 +78,16 @@ namespace eg {
             style.WindowRounding = 0.0f;
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
-
-        // Setup Platform/Renderer backends
-        Application& application = Application::get();
-        GLFWwindow* window = static_cast<GLFWwindow*>(application.getWindow().getNativeWindow());
-        ImGui_ImplGlfw_InitForOpenGL(window, true);
-        ImGui_ImplOpenGL3_Init("#version 410");
     }
 
     void ImGuiLayer::onDetach() {
-        ImGui_ImplOpenGL3_Shutdown();
+        // ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
     }
 
     void ImGuiLayer::begin() {
-        ImGui_ImplOpenGL3_NewFrame();
+        // ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
     }
@@ -106,8 +100,12 @@ namespace eg {
 
         //do some rendering
         ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        //ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
+    }
+
+    void ImGuiLayer::updateWindows() {
+        ImGuiIO& io = ImGui::GetIO();
         if(io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
             GLFWwindow* backup_current_context = glfwGetCurrentContext();
             ImGui::UpdatePlatformWindows();
@@ -116,9 +114,10 @@ namespace eg {
         }
     }
 
+
     void ImGuiLayer::onImGuiRender() {
         static bool show = true;
-        ImGui::ShowDemoWindow(&show);
+        // ImGui::ShowDemoWindow(&show);
     }
 
 

@@ -27,6 +27,7 @@ namespace eg {
 
         void begin();
         void end();
+        void updateWindows();
 
 
     private:

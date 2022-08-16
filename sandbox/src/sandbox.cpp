@@ -34,9 +34,6 @@ public:
     }
 
     void onImGuiRender() override {
-        ImGui::Begin("test");
-        ImGui::Text("hello world");
-        ImGui::End();
     }
 
 };

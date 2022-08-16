@@ -11,14 +11,13 @@
 #include "eugine/core/window.h"
 #include "eugine/core/layerStack.h"
 
-#include "eugine/platform/OpenGL/wrapper/Renderer.h"
-#include "eugine/platform/OpenGL/wrapper/Texture.h"
+#include "eugine/platform/OpenGL/Texture.h"
 #include "eugine/rendering/Camera2D.h"
 #include "eugine/rendering/IndexBuffer.h"
-#include "eugine/rendering/LowLevelRenderer.h"
 #include "eugine/rendering/Texture.h"
 #include "eugine/rendering/GraphicsAPI.h"
 #include "eugine/rendering/Renderer2D.h"
+#include "eugine/rendering/RenderManager2D.h"
 
 namespace eg {
     class EG_API Application {
@@ -44,10 +43,9 @@ namespace eg {
     private:
 
         //windowing
-        std::unique_ptr<Window> m_window;
+        Ref<Window> m_window;
 
         //layers
-        ImGuiLayer *m_imGuiLayer;
         LayerStack m_layerStack;
 
         //event handling
@@ -69,6 +67,8 @@ namespace eg {
         Ref<rendering::Texture> m_texture = nullptr;
 
         Ref<rendering::Renderer2D> m_renderer2;
+
+        rendering::RenderManager2D m_renderManager{};
 
         bool onKeyEvent(KeyPressedEvent& e);
 

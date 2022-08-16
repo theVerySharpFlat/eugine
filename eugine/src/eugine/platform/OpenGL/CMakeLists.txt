@@ -1,11 +1,12 @@
 target_sources(eugine PRIVATE
-        wrapper/VertexBuffer.cpp
-        wrapper/error.cpp
-        wrapper/Shader.cpp
-        wrapper/VertexArray.cpp
-        wrapper/VertexBufferLayout.cpp
-        wrapper/Renderer.cpp
-        wrapper/IndexBuffer.cpp
-        wrapper/Texture.cpp
-        wrapper/GLAPI.cpp
+        VertexBuffer.cpp
+        error.cpp
+        Shader.cpp
+        VertexBufferLayout.cpp
+        IndexBuffer.cpp
+        Texture.cpp
+        OpenGLAPI.cpp
+        UniformBuffer.cpp
+        VertexArray.cpp
+        Renderer2DLowLevel.cpp
         )

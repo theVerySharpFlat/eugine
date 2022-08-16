@@ -6,6 +6,7 @@
 #define EUGINE_KEYEVENT_H
 
 #include <eugine/events/event.h>
+#include <sstream>
 
 namespace eg {
     class EG_API KeyEvent : public Event {

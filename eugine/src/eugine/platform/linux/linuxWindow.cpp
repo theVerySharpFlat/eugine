@@ -10,6 +10,8 @@
 
 #include <glad/glad.h>
 
+#include <eugine/rendering/GraphicsAPI.h>
+
 namespace eg {
 
     static void GLFWErrorCallback(int error, const char* description){
@@ -41,16 +43,23 @@ namespace eg {
             s_GLFWInitialized = true;
         }
 
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        rendering::GraphicsAPIID api = rendering::getPreferredGraphicsAPI();
+        if(api == rendering::EG_API_OGL) {
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        } else if(api == rendering::EG_API_VK) {
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        }
 
         m_window = glfwCreateWindow((int)m_data.width, (int)m_data.height, m_data.title.c_str(), nullptr, nullptr);
-        // glfwMakeContextCurrent(m_window);
+        if(api == rendering::EG_API_OGL) {
+             glfwMakeContextCurrent(m_window);
 
-        // int status = gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
-        // EG_CORE_ASSERT(status, "Failed to initialize Glad");
+             int status = gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
+             EG_CORE_ASSERT(status, "Failed to initialize Glad");
+        }
 
         glfwSetWindowUserPointer(m_window, &m_data);
 
@@ -142,7 +151,11 @@ namespace eg {
     }
 
     void LinuxWindow::shutdown() {
+        info("Window shutdown");
+        glfwSetWindowShouldClose(m_window, 1);
         glfwDestroyWindow(m_window);
+        glfwTerminate();
+        s_GLFWInitialized = false;
     }
 
     LinuxWindow::~LinuxWindow() {
@@ -151,7 +164,8 @@ namespace eg {
 
     void LinuxWindow::onUpdate() {
         glfwPollEvents();
-        // glfwSwapBuffers(m_window);
+        if(rendering::getPreferredGraphicsAPI() == rendering::EG_API_OGL)
+          glfwSwapBuffers(m_window);
     }
 
     unsigned int LinuxWindow::getWidth() const {
@@ -181,6 +195,14 @@ namespace eg {
 
     void *LinuxWindow::getNativeWindow() const {
         return m_window;
+    }
+
+    WindowProps LinuxWindow::getWindowProps() const {
+        return {
+            m_data.title,
+            m_data.width,
+            m_data.height
+        };
     }
 
 }

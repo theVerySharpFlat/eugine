@@ -37,6 +37,8 @@ namespace eg{
         static Window* create(const WindowProps& props = WindowProps());
 
         virtual void* getNativeWindow() const = 0;
+
+        virtual WindowProps getWindowProps() const = 0;
     };
 }
 
