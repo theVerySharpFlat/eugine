@@ -145,17 +145,14 @@ namespace eg::rendering::VKWrapper {
 
         glm::vec3 m_clearColor = {0.0f, 0.0f, 0.0f};
 
-#ifdef NDEBUG
-        void setupDebugMessenger() {}
+#ifndef EG_VK_VALIDATION
+        bool setupDebugMessenger() { return true; }
 #else
-
         bool setupDebugMessenger();
 
         void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-
-        VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
-
 #endif
+        VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
 
         bool createSyncObjects();
 

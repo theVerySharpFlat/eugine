@@ -16,3 +16,7 @@ target_sources(eugine PRIVATE
         VkDynamicBufferFrameAllocator.cpp
         VkRenderer2DLowLevel.cpp
         )
+
+if(EG_VK_VALIDATION)
+    target_compile_definitions(eugine PRIVATE "EG_VK_VALIDATION")
+endif()

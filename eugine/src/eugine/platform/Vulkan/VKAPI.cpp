@@ -67,7 +67,7 @@ namespace eg::rendering::VKWrapper {
     VKAPI* VKAPI::singleton = nullptr;
     bool VKAPI::initSuccess = true;
 
-    VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE),
+    VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE),
                                    m_device(*this), m_vkWindow(*this, m_device, m_renderPass, m_window),
                                    m_renderPass(m_device, m_vkWindow), m_commandPool(VK_NULL_HANDLE),
                                    m_imguiSystem(*this) {
@@ -92,7 +92,9 @@ namespace eg::rendering::VKWrapper {
         confirmValidationLayerSupport();
         VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo{};
         if (enableValidationLayers) {
+#ifdef EG_VK_VALIDATION
             populateDebugMessengerCreateInfo(debugUtilsMessengerCreateInfo);
+#endif
         }
 
         VkInstanceCreateInfo instanceCreateInfo{};
@@ -183,6 +185,7 @@ namespace eg::rendering::VKWrapper {
     }
 
 
+#ifdef EG_VK_VALIDATION
     void VKAPI::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
         createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
         createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
@@ -204,6 +207,7 @@ namespace eg::rendering::VKWrapper {
         }
         return true;
     }
+#endif
 
     std::vector<const char*> VKAPI::getRequiredInstanceExtensions() {
 

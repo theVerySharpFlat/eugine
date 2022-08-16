@@ -8,6 +8,7 @@
 
 namespace eg::rendering::VKWrapper {
 
+#ifdef EG_VK_VALIDATION
     const char* validationLayers[validationLayersCount] = {
         "VK_LAYER_KHRONOS_validation"
     };
@@ -30,4 +31,10 @@ namespace eg::rendering::VKWrapper {
             EG_ASSERT(layerFound, "layer \"{}\" not found", validationLayer);
         }
     }
+#else
+    const char** validationLayers = nullptr;
+
+    void confirmValidationLayerSupport() {}
+
+#endif
 }

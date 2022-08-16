@@ -6,20 +6,20 @@
 #define EUGINE_VALIDATIONLAYERS_H
 
 namespace eg::rendering::VKWrapper {
-#ifdef NDEBUG
+
+#ifndef EG_VK_VALIDATION
     const bool enableValidationLayers = false;
     static const u32 validationLayersCount = 0;
-    const char** validationLayers = nullptr;
+    extern const char** validationLayers;
 
-    void confirmValidationLayerSupport() {}
 #else
     const bool enableValidationLayers = true;
     static const u32 validationLayersCount = 1;
     extern const char *validationLayers[validationLayersCount];
 
-    void confirmValidationLayerSupport();
 
 #endif
+    void confirmValidationLayerSupport();
 }
 
 #endif //EUGINE_VALIDATIONLAYERS_H
