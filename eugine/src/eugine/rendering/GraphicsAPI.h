@@ -11,10 +11,18 @@ namespace eg::rendering {
         EG_API_VK
     };
     GraphicsAPIID getPreferredGraphicsAPI();
+    /**
+     * Set the preferred graphics API
+     * WARNING: this just sets a variable and doesn't recreate
+     * objects created using the previous API
+     * @param api
+     */
+    void setPreferredGraphicsAPI(GraphicsAPIID api);
 
     class GraphicsAPI {
     public:
         static GraphicsAPI* create(Window& window);
+        static bool vulkanInitializationSuccessful();
 
         virtual ~GraphicsAPI(){};
 

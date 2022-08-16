@@ -151,7 +151,11 @@ namespace eg {
     }
 
     void LinuxWindow::shutdown() {
+        info("Window shutdown");
+        glfwSetWindowShouldClose(m_window, 1);
         glfwDestroyWindow(m_window);
+        glfwTerminate();
+        s_GLFWInitialized = false;
     }
 
     LinuxWindow::~LinuxWindow() {
@@ -191,6 +195,14 @@ namespace eg {
 
     void *LinuxWindow::getNativeWindow() const {
         return m_window;
+    }
+
+    WindowProps LinuxWindow::getWindowProps() const {
+        return {
+            m_data.title,
+            m_data.width,
+            m_data.height
+        };
     }
 
 }

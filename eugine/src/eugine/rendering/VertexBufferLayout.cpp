@@ -11,7 +11,6 @@ namespace eg::rendering {
     void VertexBufferLayout::setAttribute(u32 index, VertexAttrib attrib) {
         EG_ASSERT(index >= 0 && index < m_numAttributes, "VertexAttrib out of index!");
         EG_ASSERT(getSizeOfType(attrib.type) != 0, "Bad type");
-        trace("size of type: {}", getSizeOfType(attrib.type));
         m_attributes[index] = attrib;
     }
 

@@ -18,7 +18,6 @@ namespace eg::rendering {
                                                                                            m_settings(settings) {
         if (m_settings.maxTextures == 0)
             m_settings.maxTextures = m_graphicsAPI.getMaxTexturesPerShader();
-        trace("in Renderer2D maxTextures: {}", m_settings.maxTextures);
 
         m_quadVertexData = (QuadVertex*) malloc(sizeof(QuadVertex) * 4 * settings.maxQuadsPerBatch);
         m_indexData = (IndicesData*) malloc(sizeof(IndicesData) * settings.maxQuadsPerBatch);
@@ -46,8 +45,6 @@ namespace eg::rendering {
                 }
         };
 
-        std::cout << "vertex shader:\n" << std::string(gQuadShaderVertSourceData, gQuadShaderVertSourceSize)
-                  << std::endl;
 
         std::initializer_list<ShaderBindingDescription> shaderBindingDescriptions = {
                 {

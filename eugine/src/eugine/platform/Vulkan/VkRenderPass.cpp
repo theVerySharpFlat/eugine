@@ -50,12 +50,14 @@ namespace eg::rendering::VKWrapper {
         renderPassCreateInfo.pDependencies = &dependency;
 
         if(vkCreateRenderPass(m_device.getDevice(), &renderPassCreateInfo, nullptr, &m_renderPass) != VK_SUCCESS) {
-            fatal("failed to create renderpass!!!");
+            error("failed to create renderpass!!!");
+            m_initSuccess = false;
             return;
         }
     }
 
     void VkRenderPass::destruct() {
-        vkDestroyRenderPass(m_device.getDevice(), m_renderPass, nullptr);
+        if(m_renderPass != VK_NULL_HANDLE)
+            vkDestroyRenderPass(m_device.getDevice(), m_renderPass, nullptr);
     }
 }

@@ -138,7 +138,6 @@ namespace eg::rendering::VKWrapper {
             byteOffset += getSizeOfType(attributes[i].type) * attributes[i].count;
         }
 
-        trace("computed byte offset is {} bytes", byteOffset);
     }
 
     void VkShader::init(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout& layout,
@@ -240,7 +239,6 @@ namespace eg::rendering::VKWrapper {
         colorBlending.pAttachments = &colorBlendAttachment;
 
         m_pushConstantBufferSize = calculateShaderUniformLayoutSize(uniformLayout);
-        trace("m_pushConstantBufferSize: {}", m_pushConstantBufferSize);
         m_pushConstantBuffer = (u8*) malloc(m_pushConstantBufferSize);
 
         if (m_pushConstantBufferSize > 128) {
@@ -251,7 +249,6 @@ namespace eg::rendering::VKWrapper {
         {
             u8* curPtr = m_pushConstantBuffer;
             for (const auto& u: uniformLayout.uniforms) {
-                trace("uniform name: {}", u.name);
                 m_pushConstantNamesToBufPtrMap[u.name] = curPtr;
                 curPtr += getSizeOfType(u.type);
             }
@@ -270,7 +267,6 @@ namespace eg::rendering::VKWrapper {
             for (auto& binding: uniformLayout.bindings) {
                 m_descriptorBindingNameToSetIndexMap[binding.name] = {i, binding.arrayCount, VK_NULL_HANDLE, true};
 
-                trace("binding name: \"{}\"", binding.name);
 
                 VkDescriptorType descriptorType;
                 VkShaderStageFlags stageFlags;

@@ -98,14 +98,13 @@ namespace eg::rendering::GLWrapper {
         GLCall(glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer.m_ID));
 
         const auto vertexBufferLayout = vertexBuffer.getLayout();
-        // trace("stride: {}", vertexBufferLayout.getStride());
 
         u64 offset = 0;
         const auto& attributes = vertexBufferLayout.getAttributes();
         for (int i = 0; i < attributes.size(); i++) {
             ShaderType t = attributes[i].type;
             if(t == SHDR_UINT || t == SHDR_INT) {
-              glVertexAttribIPointer(i, mapShaderTypeToGLTypeCount(attributes[i].type) * attributes[i].count, mapShaderTypeToGLType(attributes[i].type), vertexBufferLayout.getStride(), (void*)offset);
+              GLCall(glVertexAttribIPointer(i, mapShaderTypeToGLTypeCount(attributes[i].type) * attributes[i].count, mapShaderTypeToGLType(attributes[i].type), vertexBufferLayout.getStride(), (void*)offset));
             } else {
               GLCall(glVertexAttribPointer(i, mapShaderTypeToGLTypeCount(attributes[i].type) * attributes[i].count,
                                            mapShaderTypeToGLType(attributes[i].type), GL_FALSE,
@@ -113,8 +112,6 @@ namespace eg::rendering::GLWrapper {
                                            (void*) offset));
             }
             GLCall(glEnableVertexAttribArray(i));
-            trace("enableVertexAttribArray({})", i);
-            trace("stride: {}", vertexBufferLayout.getStride());
 
             offset += attributes[i].count * getSizeOfType(attributes[i].type);
         }

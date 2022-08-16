@@ -65,15 +65,20 @@ namespace eg::rendering::VKWrapper {
     }
 
     VKAPI* VKAPI::singleton = nullptr;
+    bool VKAPI::initSuccess = true;
 
     VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE), m_debugMessenger(VK_NULL_HANDLE),
                                    m_device(*this), m_vkWindow(*this, m_device, m_renderPass, m_window),
-                                   m_renderPass(m_device, m_vkWindow), m_commandPool(VK_NULL_HANDLE), m_imguiSystem(*this) {
+                                   m_renderPass(m_device, m_vkWindow), m_commandPool(VK_NULL_HANDLE),
+                                   m_imguiSystem(*this) {
 
         EG_ASSERT(singleton == nullptr, "vulkan api already initialized!");
         singleton = this;
 
-        EG_ASSERT(volkInitialize() == VK_SUCCESS, "failed to initialize volk!!!")
+        if (volkInitialize() != VK_SUCCESS) {
+            error("failed to initialize volk!!!");
+            return;
+        }
 
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -98,29 +103,73 @@ namespace eg::rendering::VKWrapper {
         instanceCreateInfo.enabledLayerCount = validationLayersCount;
         instanceCreateInfo.ppEnabledLayerNames = validationLayers;
         instanceCreateInfo.pNext = enableValidationLayers ? &debugUtilsMessengerCreateInfo : nullptr;
-        EG_ASSERT(vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance) == VK_SUCCESS,
-                  "Failed to create instance!")
+        if (vkCreateInstance(&instanceCreateInfo, nullptr, &m_instance) != VK_SUCCESS) {
+                error("Failed to create vulkan instance!");
+                initSuccess = false;
+                return;
+        }
         volkLoadInstance(m_instance);
 
-        setupDebugMessenger();
+        if(!setupDebugMessenger()) {
+            initSuccess = false;
+            return;
+        }
 
         m_vkWindow.initialize();
+        if(!m_vkWindow.m_initSuccess) {
+            initSuccess = false;
+            return;
+        }
+
         m_device.initialize();
+        if(!m_device.m_initSuccess) {
+            initSuccess = false;
+            return;
+        }
 
         m_vkWindow.createSwapchain();
+        if(!m_vkWindow.m_initSuccess) {
+            initSuccess = false;
+            return;
+        }
 
         m_renderPass.init();
+        if(!m_renderPass.m_initSuccess) {
+            initSuccess = false;
+            return;
+        }
 
         m_vkWindow.createFrameBuffers();
+        if(!m_vkWindow.m_initSuccess) {
+            initSuccess = false;
+            return;
+        }
 
         createCommandPool();
+        if(m_commandPool == VK_NULL_HANDLE) {
+            initSuccess = false;
+            return;
+        }
         allocateCommandBuffers();
+        for(auto& objs : m_frameObjects) {
+            if(objs.commandBuffer == VK_NULL_HANDLE) {
+                initSuccess = false;
+                return;
+            }
+        }
 
-        createSyncObjects();
+        if(!createSyncObjects()) {
+            initSuccess = false;
+            return;
+        }
 
         glfwSetFramebufferSizeCallback((GLFWwindow*) m_window.getNativeWindow(), framebufferResizeCallback);
 
         createBufferAllocator();
+        if(m_allocator == VK_NULL_HANDLE) {
+            initSuccess = false;
+            return;
+        }
 
         for (auto& allocators: m_descriptorSetAllocators) {
             allocators.textureArrayAllocator.init({
@@ -131,7 +180,6 @@ namespace eg::rendering::VKWrapper {
                                                    });
         }
 
-        // m_imguiSystem.init();
     }
 
 
@@ -147,11 +195,14 @@ namespace eg::rendering::VKWrapper {
         createInfo.pUserData = nullptr;
     }
 
-    void VKAPI::setupDebugMessenger() {
+    bool VKAPI::setupDebugMessenger() {
         VkDebugUtilsMessengerCreateInfoEXT createInfo{};
         populateDebugMessengerCreateInfo(createInfo);
-        EG_ASSERT(createDebugUtilsMessengerEXTProxy(m_instance, &createInfo, nullptr, &m_debugMessenger) == VK_SUCCESS,
-                  "Failed to set up debug messenger!!!")
+        if(createDebugUtilsMessengerEXTProxy(m_instance, &createInfo, nullptr, &m_debugMessenger) != VK_SUCCESS) {
+            error("failed to set up vulkan debug messenger");
+            return false;
+        }
+        return true;
     }
 
     std::vector<const char*> VKAPI::getRequiredInstanceExtensions() {
@@ -174,6 +225,8 @@ namespace eg::rendering::VKWrapper {
 
         if (vkCreateCommandPool(m_device.getDevice(), &createInfo, nullptr, &m_commandPool) != VK_SUCCESS) {
             error("failed to create command pool!");
+            initSuccess = false;
+            m_commandPool = VK_NULL_HANDLE;
             return;
         }
     }
@@ -189,13 +242,13 @@ namespace eg::rendering::VKWrapper {
             if (vkAllocateCommandBuffers(m_device.getDevice(), &allocateInfo, &frameObjects.commandBuffer) !=
                 VK_SUCCESS) {
                 error("failed to allocate command buffer");
+                frameObjects.commandBuffer = VK_NULL_HANDLE;
                 return;
             }
-            trace("command buffer create: {}", (void*) m_frameObjects[frameNumber].commandBuffer);
         }
     }
 
-    void VKAPI::createSyncObjects() {
+    bool VKAPI::createSyncObjects() {
         VkSemaphoreCreateInfo semaphoreCreateInfo{};
         semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -204,28 +257,28 @@ namespace eg::rendering::VKWrapper {
         fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
         for (auto& frameObjects: m_frameObjects) {
-            trace("create objects");
             if (vkCreateSemaphore(m_device.getDevice(), &semaphoreCreateInfo, nullptr,
                                   &frameObjects.imageAvailableSemaphore) != VK_SUCCESS) {
                 error("failed to create imageAvailable semaphore");
-                return;
+                return false;
             }
 
             if (vkCreateSemaphore(m_device.getDevice(), &semaphoreCreateInfo, nullptr,
                                   &frameObjects.renderFinishedSemaphore) != VK_SUCCESS) {
                 error("failed to create renderFinished semaphore");
-                return;
+                return false;
             }
 
 
             if (vkCreateFence(m_device.getDevice(), &fenceCreateInfo, nullptr, &(frameObjects.inFlightFence)) !=
                 VK_SUCCESS) {
                 error("failed to create inFlightFence!!!");
-                return;
+                return false;
             }
 
-            trace("fence on creation: {}", (void*) &frameObjects.inFlightFence);
         }
+
+        return true;
     }
 
     void VKAPI::createBufferAllocator() {
@@ -265,6 +318,7 @@ namespace eg::rendering::VKWrapper {
 
         if (vmaCreateAllocator(&allocatorCreateInfo, &m_allocator) != VK_SUCCESS) {
             error("failed to create allocator!!!");
+            m_allocator = VK_NULL_HANDLE;
             return;
         }
     }
@@ -281,7 +335,8 @@ namespace eg::rendering::VKWrapper {
     }
 
     Ref <VkVertexBuffer>
-    VKAPI::createVertexBuffer(void* data, u32 size, VertexBufferLayout& layout, rendering::VertexBuffer::UsageHints usageHint) {
+    VKAPI::createVertexBuffer(void* data, u32 size, VertexBufferLayout& layout,
+                              rendering::VertexBuffer::UsageHints usageHint) {
         return eg::createRef<VkVertexBuffer>(m_device, m_commandPool, m_allocator, data, size, usageHint, layout);
     }
 
@@ -300,7 +355,7 @@ namespace eg::rendering::VKWrapper {
         return temp;
     }
 
-    Ref<VkTexture> VKAPI::createTextureFromData(const u8* data, u32 size, const char* name) {
+    Ref <VkTexture> VKAPI::createTextureFromData(const u8* data, u32 size, const char* name) {
         auto temp = createRef<VkTexture>(m_device, m_allocator, m_commandPool);
         temp->initFromData(data, size, name);
         return temp;
@@ -450,14 +505,14 @@ namespace eg::rendering::VKWrapper {
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipeline());
 
-        if(shader->getPushConstantsSize() > 0) {
+        if (shader->getPushConstantsSize() > 0) {
             vkCmdPushConstants(commandBuffer, shader->getPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0,
                                shader->getPushConstantsSize(), shader->getPushConstantsBuffer());
-             trace("pconstants");
+            trace("pconstants");
         }
 
         for (auto& descriptorInfo: shader->m_descriptorBindingNameToSetIndexMap) {
-            if(descriptorInfo.second.needRebind) {
+            if (descriptorInfo.second.needRebind) {
                 vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipelineLayout(),
                                         descriptorInfo.second.setNum, 1,
                                         &descriptorInfo.second.descriptorSet, 0,
@@ -476,14 +531,14 @@ namespace eg::rendering::VKWrapper {
         vkCmdDrawIndexed(commandBuffer, indexBuffer->getCount(), 1, 0, 0, 0);
     }
 
-    void VKAPI::bindShader(Ref<VkShader> shader) {
-        if(!shader) {
+    void VKAPI::bindShader(Ref <VkShader> shader) {
+        if (!shader) {
             m_currentBoundShader = nullptr;
             return;
         }
         VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
 
-        if(m_currentBoundShader) {
+        if (m_currentBoundShader) {
             m_currentBoundShader->resetDescriptorBindState();
         }
 
@@ -504,19 +559,19 @@ namespace eg::rendering::VKWrapper {
 
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipeline());
 
-        if(shader->getPushConstantsSize() > 0)
-        vkCmdPushConstants(commandBuffer, shader->getPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0,
-                           shader->getPushConstantsSize(), shader->getPushConstantsBuffer());
+        if (shader->getPushConstantsSize() > 0)
+            vkCmdPushConstants(commandBuffer, shader->getPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0,
+                               shader->getPushConstantsSize(), shader->getPushConstantsBuffer());
 
         m_currentBoundShader = shader;
     }
 
-    void VKAPI::drawIndexed(Ref<VkVertexBuffer> vertexBuffer, Ref<VkIndexBuffer> indexBuffer) {
+    void VKAPI::drawIndexed(Ref <VkVertexBuffer> vertexBuffer, Ref <VkIndexBuffer> indexBuffer) {
         VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
         auto& shader = m_currentBoundShader;
 
-        for (auto& descriptorInfo : shader->m_descriptorBindingNameToSetIndexMap) {
-            if(descriptorInfo.second.needRebind) {
+        for (auto& descriptorInfo: shader->m_descriptorBindingNameToSetIndexMap) {
+            if (descriptorInfo.second.needRebind) {
                 vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shader->getPipelineLayout(),
                                         descriptorInfo.second.setNum, 1,
                                         &descriptorInfo.second.descriptorSet, 0,
@@ -619,11 +674,11 @@ namespace eg::rendering::VKWrapper {
     }
 
     VKAPI::~VKAPI() {
-        if(m_currentBoundShader != nullptr) {
+        if (m_currentBoundShader != nullptr) {
             m_currentBoundShader = nullptr;
         }
-        warn("~VKAPI()");
-        vmaDestroyAllocator(m_allocator);
+        if(m_allocator != VK_NULL_HANDLE)
+            vmaDestroyAllocator(m_allocator);
 
         for (auto& allocators: m_descriptorSetAllocators) {
             allocators.textureArrayAllocator.destruct();
@@ -633,21 +688,26 @@ namespace eg::rendering::VKWrapper {
         // m_imguiSystem.shutdown();
 
         for (auto& frameObjects: m_frameObjects) {
-            vkDestroySemaphore(m_device.getDevice(), frameObjects.imageAvailableSemaphore, nullptr);
-            vkDestroySemaphore(m_device.getDevice(), frameObjects.renderFinishedSemaphore, nullptr);
-            vkDestroyFence(m_device.getDevice(), frameObjects.inFlightFence, nullptr);
+            if(frameObjects.imageAvailableSemaphore != VK_NULL_HANDLE)
+                vkDestroySemaphore(m_device.getDevice(), frameObjects.imageAvailableSemaphore, nullptr);
+            if(frameObjects.renderFinishedSemaphore != VK_NULL_HANDLE)
+                vkDestroySemaphore(m_device.getDevice(), frameObjects.renderFinishedSemaphore, nullptr);
+            if(frameObjects.inFlightFence != VK_NULL_HANDLE)
+                vkDestroyFence(m_device.getDevice(), frameObjects.inFlightFence, nullptr);
         }
 
-        vkDestroyCommandPool(m_device.getDevice(), m_commandPool, nullptr);
+        if(m_commandPool != VK_NULL_HANDLE)
+            vkDestroyCommandPool(m_device.getDevice(), m_commandPool, nullptr);
         m_vkWindow.destroyFrameBuffers();
         m_renderPass.destruct();
         m_vkWindow.destroySwapchain();
         m_device.destruct();
-        if (enableValidationLayers) {
+        if (enableValidationLayers && m_debugMessenger != VK_NULL_HANDLE) {
             destroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
         }
         m_vkWindow.destruct();
-        vkDestroyInstance(m_instance, nullptr);
+        if(m_instance != VK_NULL_HANDLE)
+            vkDestroyInstance(m_instance, nullptr);
     }
 
 }

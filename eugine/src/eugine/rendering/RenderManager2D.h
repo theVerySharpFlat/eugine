@@ -19,7 +19,7 @@ namespace eg::rendering {
         Renderer2D& renderer() { return *m_renderer2D; }
         void end() { m_graphicsAPI->end(); }
 
-        void init(Window* window, Renderer2D::Settings renderSettings);
+        void init(Ref<Window>* window, Renderer2D::Settings renderSettings);
         void shutdown();
 
         ImGuiLayer* getImguiLayer() { return m_imguiLayer; }

@@ -27,6 +27,8 @@ namespace eg::rendering::VKWrapper {
         friend class VkShader;
         friend class VkWindow;
 
+        bool m_initSuccess = true;
+
         ::VkRenderPass m_renderPass = VK_NULL_HANDLE;
 
         VkDevice& m_device;

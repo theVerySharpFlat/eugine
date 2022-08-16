@@ -13,7 +13,9 @@
 #include "eugine/rendering/VertexBufferLayout.h"
 #include "eugine/util/filesystem.h"
 #include <cmath>
-#include <eugine/events/applicationEvent.h> #include <eugine/events/keyEvent.h> #include <eugine/events/mouseEvent.h>
+#include <eugine/events/applicationEvent.h>
+#include <eugine/events/keyEvent.h>
+#include <eugine/events/mouseEvent.h>
 #include <eugine/core/input.h>
 #include <eugine/core/keyCodes.h>
 #include <eugine/rendering/Shader.h>
@@ -78,13 +80,13 @@ eg::Application::Application() {
     filesystem::gotoProjectRoot();
 
     //windowing and events
-    m_window = std::unique_ptr<Window>(Window::create());
+    m_window = Ref<Window>(Window::create());
     m_window->setEventCallback(BIND_EVENT_FN(Application::onEvent));
 
     //m_renderAPI = rendering::GraphicsAPI::create(*m_window);
     //info("Max Textures Per Shader: {}", m_renderAPI->getMaxTexturesPerShader());
 
-    m_window->setVSync(true);
+    m_window->setVSync(false);
 
     // std::string vsData = filesystem::getFileContents("res/shaders/simple.vs");
     // std::string fsData = filesystem::getFileContents("res/shaders/simple.fs");
@@ -156,7 +158,7 @@ eg::Application::Application() {
         0,
         true
     };
-    m_renderManager.init(m_window.get(), settings);
+    m_renderManager.init(&m_window, settings);
     pushOverlay(m_renderManager.getImguiLayer());
     m_renderManager.imguiInit();
     for(int i = 0; i < m_textures.size(); i++) {
@@ -186,12 +188,12 @@ void eg::Application::run() {
 
             m_renderManager.renderer().begin(*m_camera);
 
-            for(u32 i = 0; i < 4; i++) {
-                for(u32 j = 0; j < 4; j++) {
+            for(u32 i = 0; i < 100; i++) {
+                for(u32 j = 0; j < 100; j++) {
                     m_renderManager.renderer().queueQuad({
                                                                  {100 * i, 100 * j},
                                                                  {100.0f, 100.0f},
-                                                                 m_textures[(i * 4 + j) % 56],
+                                                                 m_textures[(i * 100 + j) % 56],
                                                                  {0.0f, 0.0f},
                                                                  {1.0f, 1.0f},
                                                                  {1.0f, 0.0f, 0.0f, 0.0f},
@@ -214,11 +216,11 @@ void eg::Application::run() {
 
         m_renderManager.renderer().end();
 
-        /*m_renderManager.imguiBegin();
+        m_renderManager.imguiBegin();
         m_renderManager.renderer().imguiDebug();
         for(Layer* layer : m_layerStack)
             layer -> onImGuiRender();
-        m_renderManager.imguiEnd();*/
+        m_renderManager.imguiEnd();
 
         m_renderManager.end();
 

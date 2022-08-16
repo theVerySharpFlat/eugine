@@ -54,7 +54,7 @@ namespace eg {
     }
 
     void ImGuiLayer::onAttach() {
-        eg::trace("setting up imgui layer");
+        eg::info("Setting up ImGUI layer");
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -117,7 +117,7 @@ namespace eg {
 
     void ImGuiLayer::onImGuiRender() {
         static bool show = true;
-        ImGui::ShowDemoWindow(&show);
+        // ImGui::ShowDemoWindow(&show);
     }
 
 

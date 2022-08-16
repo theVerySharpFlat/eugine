@@ -43,7 +43,7 @@ namespace eg {
     private:
 
         //windowing
-        std::unique_ptr<Window> m_window;
+        Ref<Window> m_window;
 
         //layers
         LayerStack m_layerStack;

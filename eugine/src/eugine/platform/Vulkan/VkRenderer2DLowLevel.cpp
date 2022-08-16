@@ -37,7 +37,6 @@ namespace eg::rendering::VKWrapper {
     VkRenderer2DLowLevel::VkRenderer2DLowLevel(VKAPI& vkapi, rendering::Renderer2D::Settings settings) : m_api(vkapi),
                                                                                                          m_settings(
                                                                                                                  settings) {
-        trace("in VkRenderer2DLowLevel constructor: {}", settings.maxTextures);
 
         for (auto& combo: m_descriptorSetAllocators) {
             combo.textureArrayAllocator.init({0.0f, 128.0f, 5});

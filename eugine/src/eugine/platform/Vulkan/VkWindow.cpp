@@ -19,7 +19,8 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkWindow::destruct() {
-        vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+        if(m_surface != VK_NULL_HANDLE)
+            vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
     }
 
     VkSurfaceFormatKHR VkWindow::chooseSurfaceFormat(VkSurfaceFormatKHR* formats, u32 count) {
@@ -75,7 +76,8 @@ namespace eg::rendering::VKWrapper {
         u32 surfaceFormatCount = 0;
         vkGetPhysicalDeviceSurfaceFormatsKHR(m_device.getPhysicalDevice(), m_surface, &surfaceFormatCount, nullptr);
         if (surfaceFormatCount == 0) {
-            fatal("failed to retrieve surface formats!!!");
+            error("failed to retrieve vulkan surface formats!!!");
+            m_initSuccess = false;
             return;
         }
         auto surfaceFormats = (VkSurfaceFormatKHR*) alloca(sizeof(VkSurfaceFormatKHR) * surfaceFormatCount);
@@ -84,7 +86,8 @@ namespace eg::rendering::VKWrapper {
         u32 presentModeCount = 0;
         vkGetPhysicalDeviceSurfacePresentModesKHR(m_device.getPhysicalDevice(), m_surface, &presentModeCount, nullptr);
         if (presentModeCount == 0) {
-            fatal("failed to retrieve present modes!!!");
+            error("failed to retrieve vulkan present modes!!!");
+            m_initSuccess = false;
             return;
         }
         auto presentModes = (VkPresentModeKHR*) alloca(sizeof(VkPresentModeKHR) * presentModeCount);
@@ -131,7 +134,8 @@ namespace eg::rendering::VKWrapper {
         swapchainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 
         if(vkCreateSwapchainKHR(m_device.getDevice(), &swapchainCreateInfo, nullptr, &m_swapchain) != VK_SUCCESS) {
-            fatal("failed to create swapchain!");
+            error("failed to create vulkan swapchain!");
+            m_initSuccess = false;
             return;
         }
 
@@ -141,7 +145,8 @@ namespace eg::rendering::VKWrapper {
         u32 swapchainImageCount;
         vkGetSwapchainImagesKHR(m_device.getDevice(), m_swapchain, &swapchainImageCount, nullptr);
         if(!swapchainImageCount) {
-            fatal("failed to retrieve swapchain images!");
+            error("failed to retrieve vulkan swapchain images!");
+            m_initSuccess = false;
             return;
         }
         m_swapchainImages.resize(swapchainImageCount);
@@ -165,7 +170,8 @@ namespace eg::rendering::VKWrapper {
             imageViewCreateInfo.subresourceRange.layerCount = 1;
             
             if(vkCreateImageView(m_device.getDevice(), &imageViewCreateInfo, nullptr, &m_swapchainImageViews[i]) != VK_SUCCESS) {
-                fatal("failed to create swapchain image view {}", i);
+                error("failed to create vulkan swapchain image view {}", i);
+                m_initSuccess = false;
                 return;
             }
         }
@@ -173,9 +179,11 @@ namespace eg::rendering::VKWrapper {
 
     void VkWindow::destroySwapchain() {
         for(auto & m_swapchainImageView : m_swapchainImageViews) {
-            vkDestroyImageView(m_device.getDevice(), m_swapchainImageView, nullptr);
+            if(m_swapchainImageView != VK_NULL_HANDLE)
+                vkDestroyImageView(m_device.getDevice(), m_swapchainImageView, nullptr);
         }
-        vkDestroySwapchainKHR(m_device.getDevice(), m_swapchain, nullptr);
+        if(m_swapchain != VK_NULL_HANDLE)
+            vkDestroySwapchainKHR(m_device.getDevice(), m_swapchain, nullptr);
     }
 
     VkWindow::~VkWindow() {
@@ -201,6 +209,7 @@ namespace eg::rendering::VKWrapper {
 
             if(vkCreateFramebuffer(m_device.getDevice(), &createInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS) {
                 error("failed to create framebuffer {}!!!", i);
+                m_initSuccess = false;
                 return;
             }
         }
@@ -208,13 +217,15 @@ namespace eg::rendering::VKWrapper {
 
     void VkWindow::destroyFrameBuffers() {
         for(u32 i = 0; i < m_framebuffers.size(); i++) {
-            vkDestroyFramebuffer(m_device.getDevice(), m_framebuffers[i], nullptr);
+            if(m_framebuffers[i] != VK_NULL_HANDLE)
+                vkDestroyFramebuffer(m_device.getDevice(), m_framebuffers[i], nullptr);
         }
     }
 
     void VkWindow::createSurface() {
         if (glfwCreateWindowSurface(m_instance, (GLFWwindow*) m_window, nullptr, &m_surface) != VK_SUCCESS) {
-            eg::fatal("failed to create surface!!!");
+            eg::error("failed to create vulkan surface!!!");
+            m_initSuccess = false;
             return;
         }
     }

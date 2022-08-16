@@ -45,6 +45,8 @@ namespace eg::rendering::GLWrapper {
         GLCall(glDrawElements(GL_TRIANGLES, quadCount * 6, GL_UNSIGNED_SHORT, NULL));
     }
 
+
+
     void Renderer2DLowLevel::imguiDebug() {
 
     }

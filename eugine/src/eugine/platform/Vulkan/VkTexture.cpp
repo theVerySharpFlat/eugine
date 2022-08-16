@@ -104,7 +104,6 @@ namespace eg::rendering::VKWrapper {
         m_width = width;
         m_height = height;
         m_numChannels = 4;
-        trace("numChannels: {}", m_numChannels);
         u32 imgSize = m_width * m_height * m_numChannels * sizeof(u8);
 
         VkBuffer stagingBuffer;
@@ -113,7 +112,6 @@ namespace eg::rendering::VKWrapper {
         BufferUtil::createBuffer(m_allocator, VMA_MEMORY_USAGE_AUTO, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                                  BufferUtil::BUFFER_STAGING, imgSize, &stagingBuffer, &stagingBufferAllocation,
                                  &stagingBufferAllocationInfo);
-        trace("img size is {}", imgSize);
         memcpy(stagingBufferAllocationInfo.pMappedData, img, imgSize);
 
 

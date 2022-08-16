@@ -20,7 +20,8 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkDevice::destruct() {
-        vkDestroyDevice(m_device, nullptr);
+        if(m_device != VK_NULL_HANDLE)
+            vkDestroyDevice(m_device, nullptr);
     }
 
     bool VkDevice::isDeviceSuitable(VkPhysicalDevice device) {
@@ -44,7 +45,7 @@ namespace eg::rendering::VKWrapper {
         u32 extensionCount = 0;
         vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
         if (extensionCount == 0) {
-            eg::fatal("failed to retrieve device extensions!");
+            eg::error("failed to retrieve device extensions!");
             return false;
         }
         auto properties = (VkExtensionProperties*) alloca(sizeof(VkExtensionProperties) * extensionCount);
@@ -58,7 +59,6 @@ namespace eg::rendering::VKWrapper {
             // trace("extensions: {}", properties[i].extensionName);
             const auto iterator = requiredExtensions.find(properties[i].extensionName);
             if (iterator != requiredExtensions.end()) {
-                eg::trace("found extension {}", *iterator);
                 foundCount++;
             }
         }
@@ -70,7 +70,8 @@ namespace eg::rendering::VKWrapper {
         u32 deviceCount = 0;
         vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
         if (deviceCount == 0) {
-            eg::fatal("failed to find a Vulkan-capable GPU!!!");
+            eg::error("failed to find a Vulkan-capable GPU!!!");
+            m_initSuccess = false;
             return;
         }
         auto* devices = (VkPhysicalDevice*) alloca(sizeof(VkPhysicalDevice) * deviceCount);
@@ -82,7 +83,8 @@ namespace eg::rendering::VKWrapper {
             }
         }
         if (m_physicalDevice == VK_NULL_HANDLE) {
-            eg::fatal("failed to find a suitable GPU!!!");
+            eg::error("failed to find a suitable GPU!!!");
+            m_initSuccess = false;
             return;
         }
 
@@ -96,7 +98,6 @@ namespace eg::rendering::VKWrapper {
                 queueIndices.presentFamily.value(),
                 queueIndices.graphicsFamily.value()
         };
-        eg::trace("{} unique queues", uniqueQueues.size());
 
         auto queueCreateInfos = (VkDeviceQueueCreateInfo*) alloca(
                 sizeof(VkDeviceQueueCreateInfo) * uniqueQueues.size());
@@ -127,7 +128,8 @@ namespace eg::rendering::VKWrapper {
         createInfo.ppEnabledExtensionNames = deviceExtensions;
 
         if (vkCreateDevice(m_physicalDevice, &createInfo, nullptr, &m_device) != VK_SUCCESS) {
-            eg::fatal("failed to create vulkan logical device!!!");
+            eg::error("failed to create vulkan logical device!!!");
+            m_initSuccess = false;
             return;
         }
 
@@ -142,7 +144,8 @@ namespace eg::rendering::VKWrapper {
         u32 queueFamilyCount = 0;
         vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
         if (!queueFamilyCount) {
-            eg::fatal("vulkan physical device has no queue families!");
+            eg::error("vulkan physical device has no queue families!");
+            m_initSuccess = false;
             return QueueFamilyIndices{};
         }
         auto queueFamilyProperties = (VkQueueFamilyProperties*) alloca(

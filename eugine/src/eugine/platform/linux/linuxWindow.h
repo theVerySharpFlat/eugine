@@ -32,6 +32,8 @@ namespace eg {
 
         void *getNativeWindow() const override;
 
+        WindowProps getWindowProps() const override;
+
     private:
         void init(const WindowProps& props);
         void shutdown();

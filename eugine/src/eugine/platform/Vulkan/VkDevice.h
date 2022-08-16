@@ -44,6 +44,8 @@ namespace eg::rendering::VKWrapper {
         friend class VKAPI;
         friend class VkWindow;
 
+        bool m_initSuccess = true;
+
         void initializePhysicalDevice();
         void initializeLogicalDevice();
 

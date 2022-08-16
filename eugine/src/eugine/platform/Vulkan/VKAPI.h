@@ -37,7 +37,10 @@ namespace eg::rendering::VKWrapper {
 
         static VKAPI* get() { return singleton; }
         static void destroy() { delete singleton; }
+
+        static bool getInitSuccess() {  return initSuccess; }
     private:
+        static bool initSuccess;
         static VKAPI* singleton;
     public:
 
@@ -130,10 +133,10 @@ namespace eg::rendering::VKWrapper {
         VmaAllocator m_allocator;
 
         struct FrameObjectsContainer {
-            VkCommandBuffer commandBuffer;
-            VkSemaphore imageAvailableSemaphore;
-            VkSemaphore renderFinishedSemaphore;
-            VkFence inFlightFence;
+            VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+            VkSemaphore imageAvailableSemaphore = VK_NULL_HANDLE;
+            VkSemaphore renderFinishedSemaphore = VK_NULL_HANDLE;
+            VkFence inFlightFence = VK_NULL_HANDLE;
 
             FrameData frameData;
         };
@@ -146,15 +149,15 @@ namespace eg::rendering::VKWrapper {
         void setupDebugMessenger() {}
 #else
 
-        void setupDebugMessenger();
+        bool setupDebugMessenger();
 
         void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
 
-        VkDebugUtilsMessengerEXT m_debugMessenger;
+        VkDebugUtilsMessengerEXT m_debugMessenger = VK_NULL_HANDLE;
 
 #endif
 
-        void createSyncObjects();
+        bool createSyncObjects();
 
         void createCommandPool();
 
