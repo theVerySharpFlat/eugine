@@ -26,3 +26,6 @@
 [submodule "eugine/vendor/vma"]
 	path = eugine/vendor/vma
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "eugine/vendor/entt"]
+	path = eugine/vendor/entt
+	url = https://github.com/skypjack/entt.git

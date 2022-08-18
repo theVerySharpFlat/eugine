@@ -32,7 +32,8 @@ target_link_libraries(eugine PRIVATE
         volk
         VulkanMemoryAllocator
         glad
-        incbin)
+        incbin
+        EnTT::EnTT)
 
 add_subdirectory(src)
 add_subdirectory(vendor)
