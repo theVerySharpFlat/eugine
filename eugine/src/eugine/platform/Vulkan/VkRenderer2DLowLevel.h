@@ -57,6 +57,8 @@ namespace eg::rendering::VKWrapper {
                         VkDescriptorSetAllocator(m_api.m_device)
                 }
         };
+
+        Ref<VkTexture> m_tempTexture = nullptr;
     };
 }
 

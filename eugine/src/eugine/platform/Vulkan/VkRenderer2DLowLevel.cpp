@@ -113,6 +113,12 @@ namespace eg::rendering::VKWrapper {
             }
         }
         ImGui::End();
+
+        if(!m_tempTexture) {
+            m_tempTexture = m_api.createTexture("res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_A.png");
+        }
+//        ImGui::Begin("Image display test");
+//        ImGui::End();
     }
 
 }
