@@ -21,6 +21,7 @@
 #include "VkDescriptorSetAllocator.h"
 #include "VkUniformBuffer.h"
 #include "VkImguiSystem.h"
+#include "VkOffscreenSubRenderer.h"
 
 #include "eugine/rendering/VertexBuffer.h"
 #include "eugine/rendering/Shader.h"
@@ -32,7 +33,7 @@ namespace eg::rendering::VKWrapper {
 
     class VKAPI : public ::eg::rendering::GraphicsAPI {
     public:
-        VKAPI(Window& window);
+        VKAPI(Window& window, bool renderOffScreen);
         ~VKAPI();
 
         static VKAPI* get() { return singleton; }
@@ -107,7 +108,24 @@ namespace eg::rendering::VKWrapper {
 
         void imguiInit() override { m_imguiSystem.init(); }
         void imguiShutdown() override { m_imguiSystem.shutdown(); }
-        void imguiBegin() override { m_imguiSystem.begin(); }
+        void imguiBegin() override {
+            VkClearValue clearColor = {{{m_clearColor.x, m_clearColor.y, m_clearColor.z, 1.0f}}};
+            // begin renderpass
+            if(m_renderOffScreen) {
+                u32 imageIndex = m_frameObjects[getFrameInFlight()].frameData.imageIndex;
+                VkRenderPassBeginInfo renderPassBeginInfo{};
+                renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+                renderPassBeginInfo.renderPass = m_renderPass.getRenderPass();
+                renderPassBeginInfo.framebuffer = m_vkWindow.getFrameBuffer(imageIndex);
+                renderPassBeginInfo.renderArea.offset = {0, 0};
+                renderPassBeginInfo.renderArea.extent = m_vkWindow.getSwapchainExtent();
+                renderPassBeginInfo.clearValueCount = 1;
+                renderPassBeginInfo.pClearValues = &clearColor;
+
+                vkCmdBeginRenderPass(m_frameObjects[getFrameInFlight()].commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+            }
+            m_imguiSystem.begin();
+        }
         void imguiEnd() override { m_imguiSystem.end(); }
 
     private:
@@ -167,6 +185,9 @@ namespace eg::rendering::VKWrapper {
         void endCommandBufferRecording(u32 imageIndex);
 
         std::vector<const char*> getRequiredInstanceExtensions();
+
+        bool m_renderOffScreen;
+        VkOffscreenSubRenderer m_offscreenRenderer{m_device, m_vkWindow, m_allocator};
 
     };
 }

@@ -33,6 +33,7 @@ namespace eg::rendering::VKWrapper {
         VkExtent2D getSwapchainExtent() { return m_swapchainExtent; }
 
         ::VkFormat& getSwapchainImageFormat() { return m_swapchainImageFormat; }
+        u32 getSwapchainImageCount() const { return m_swapchainImageViews.size(); }
 
         ~VkWindow();
 

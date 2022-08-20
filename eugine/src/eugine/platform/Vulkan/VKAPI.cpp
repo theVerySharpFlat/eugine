@@ -23,9 +23,10 @@ namespace eg::rendering::VKWrapper {
             const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
             void* pUserData
     ) {
-        if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+        if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
             ::eg::error("Vulkan: {}", pCallbackData->pMessage);
-        else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+            EG_DEBUG_BREAK;
+        } else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
             ::eg::warn("Vulkan: {}", pCallbackData->pMessage);
         else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
             ::eg::info("Vulkan: {}", pCallbackData->pMessage);
@@ -67,10 +68,10 @@ namespace eg::rendering::VKWrapper {
     VKAPI* VKAPI::singleton = nullptr;
     bool VKAPI::initSuccess = true;
 
-    VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE),
+    VKAPI::VKAPI(Window& window, bool renderOffScreen) : m_window(window), m_instance(VK_NULL_HANDLE),
                                    m_device(*this), m_vkWindow(*this, m_device, m_renderPass, m_window),
                                    m_renderPass(m_device, m_vkWindow), m_commandPool(VK_NULL_HANDLE),
-                                   m_imguiSystem(*this) {
+                                   m_imguiSystem(*this), m_renderOffScreen(renderOffScreen) {
 
         EG_ASSERT(singleton == nullptr, "vulkan api already initialized!");
         singleton = this;
@@ -181,6 +182,9 @@ namespace eg::rendering::VKWrapper {
                                                            1.0f, 128.0f, 20
                                                    });
         }
+
+        if(m_renderOffScreen)
+            m_offscreenRenderer.init();
 
     }
 
@@ -330,7 +334,7 @@ namespace eg::rendering::VKWrapper {
     Ref<::eg::rendering::VKWrapper::VkShader>
     VKAPI::createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout,
                         rendering::ShaderUniformLayout uniformLayout) {
-        auto temp = createRef<::eg::rendering::VKWrapper::VkShader>(m_device, m_renderPass, m_vkWindow,
+        auto temp = createRef<::eg::rendering::VKWrapper::VkShader>(m_device, m_renderOffScreen ? m_offscreenRenderer.getRenderPass() : m_renderPass, m_vkWindow,
                                                                     m_descriptorSetAllocators.data(), maxFramesInFlight,
                                                                     frameNumber);
         temp->init(source, layout, uniformLayout);
@@ -422,18 +426,22 @@ namespace eg::rendering::VKWrapper {
             error("failed to begin command buffer!");
         }
 
-        VkClearValue clearColor = {{{m_clearColor.x, m_clearColor.y, m_clearColor.z, 1.0f}}};
-        // begin renderpass
-        VkRenderPassBeginInfo renderPassBeginInfo{};
-        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassBeginInfo.renderPass = m_renderPass.getRenderPass();
-        renderPassBeginInfo.framebuffer = m_vkWindow.getFrameBuffer(imageIndex);
-        renderPassBeginInfo.renderArea.offset = {0, 0};
-        renderPassBeginInfo.renderArea.extent = m_vkWindow.getSwapchainExtent();
-        renderPassBeginInfo.clearValueCount = 1;
-        renderPassBeginInfo.pClearValues = &clearColor;
+        if(!m_renderOffScreen) {
+            VkClearValue clearColor = {{{m_clearColor.x, m_clearColor.y, m_clearColor.z, 1.0f}}};
+            // begin renderpass
+            VkRenderPassBeginInfo renderPassBeginInfo{};
+            renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+            renderPassBeginInfo.renderPass = m_renderPass.getRenderPass();
+            renderPassBeginInfo.framebuffer = m_vkWindow.getFrameBuffer(imageIndex);
+            renderPassBeginInfo.renderArea.offset = {0, 0};
+            renderPassBeginInfo.renderArea.extent = m_vkWindow.getSwapchainExtent();
+            renderPassBeginInfo.clearValueCount = 1;
+            renderPassBeginInfo.pClearValues = &clearColor;
 
-        vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+            vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        } else {
+            m_offscreenRenderer.begin(commandBuffer, imageIndex);
+        }
     }
 
     void VKAPI::tempDraw(Ref <VkShader> shader) {
@@ -681,6 +689,8 @@ namespace eg::rendering::VKWrapper {
         if (m_currentBoundShader != nullptr) {
             m_currentBoundShader = nullptr;
         }
+        if(m_renderOffScreen)
+            m_offscreenRenderer.destruct();
         if(m_allocator != VK_NULL_HANDLE)
             vmaDestroyAllocator(m_allocator);
 

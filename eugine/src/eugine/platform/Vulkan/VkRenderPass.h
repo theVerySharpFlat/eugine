@@ -17,7 +17,7 @@ namespace eg::rendering::VKWrapper {
         VkRenderPass(VkDevice& device, VkWindow& window);
         ~VkRenderPass();
 
-        void init();
+        void init(bool offScreen = false);
         void destruct();
 
         ::VkRenderPass getRenderPass() { return m_renderPass; }
@@ -34,6 +34,7 @@ namespace eg::rendering::VKWrapper {
         VkDevice& m_device;
         VkWindow& m_window;
     };
+
 }
 
 #endif //EUGINE_VKRENDERPASS_H

@@ -21,7 +21,7 @@ namespace eg::rendering {
         if(api == EG_API_OGL)
             return new GLWrapper::OpenGLAPI(window);
         else if(api == EG_API_VK)
-            return new VKWrapper::VKAPI(window);
+            return new VKWrapper::VKAPI(window, true);
         else
             EG_ASSERT(false, "Invalid graphics API");
 

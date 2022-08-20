@@ -80,6 +80,10 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkRenderer2DLowLevel::end() {
+        if (m_api.m_renderOffScreen) {
+            m_api.m_offscreenRenderer.end(m_api.m_frameObjects[m_api.getFrameInFlight()].commandBuffer,
+                                          m_api.m_frameObjects[m_api.getFrameInFlight()].frameData.imageIndex);
+        }
     }
 
     VkRenderer2DLowLevel::~VkRenderer2DLowLevel() {
@@ -102,19 +106,19 @@ namespace eg::rendering::VKWrapper {
                 }
             }
         }
-        if(ImGui::CollapsingHeader("Buffer Allocations")) {
-            for(u32 i = 0; i < m_api.maxFramesInFlight; i++) {
+        if (ImGui::CollapsingHeader("Buffer Allocations")) {
+            for (u32 i = 0; i < m_api.maxFramesInFlight; i++) {
                 if (ImGui::TreeNode((std::string("Frame in Flight ") + std::to_string(i)).c_str())) {
-                  ImGui::Text("%d vertex buffers", m_vertexBufferAllocators[i].numAllocations());
-                  ImGui::Text("%d index buffers", m_indexBufferAllocators[i].numAllocations());
-                  ImGui::Text("%d uniform buffers", m_uniformBufferAllocators[i].numAllocations());
-                  ImGui::TreePop();
+                    ImGui::Text("%d vertex buffers", m_vertexBufferAllocators[i].numAllocations());
+                    ImGui::Text("%d index buffers", m_indexBufferAllocators[i].numAllocations());
+                    ImGui::Text("%d uniform buffers", m_uniformBufferAllocators[i].numAllocations());
+                    ImGui::TreePop();
                 }
             }
         }
         ImGui::End();
 
-        if(!m_tempTexture) {
+        if (!m_tempTexture) {
             m_tempTexture = m_api.createTexture("res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_A.png");
         }
 //        ImGui::Begin("Image display test");

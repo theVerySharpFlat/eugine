@@ -192,6 +192,7 @@ namespace eg::rendering::VKWrapper {
 
     void VkWindow::createFrameBuffers() {
         m_framebuffers.resize(m_swapchainImageViews.size());
+        trace("swapchainImageViewSize: {}", m_swapchainImageViews.size());
 
         for (int i = 0; i < m_swapchainImages.size(); i++) {
             VkImageView attachments[] = {
