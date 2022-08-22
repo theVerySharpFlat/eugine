@@ -100,7 +100,7 @@ namespace eg::rendering::VKWrapper {
             initInfo.DescriptorPool = m_pool;
             initInfo.Subpass = 0;
             initInfo.MinImageCount = m_api.m_vkWindow.getMinImageCount();
-            initInfo.ImageCount = m_api.m_vkWindow.getImageCount();
+            initInfo.ImageCount = m_api.m_vkWindow.getSwapchainImageCount();
             initInfo.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
             initInfo.Allocator = nullptr;
             initInfo.CheckVkResultFn = imguiCheckVkResult;

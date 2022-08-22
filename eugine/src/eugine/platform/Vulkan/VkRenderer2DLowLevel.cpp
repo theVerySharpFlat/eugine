@@ -121,6 +121,10 @@ namespace eg::rendering::VKWrapper {
         if (!m_tempTexture) {
             m_tempTexture = m_api.createTexture("res/textures/playing-cards-pack/PNG/Cards (large)/card_spades_A.png");
         }
+
+        m_api.m_offscreenRenderer.drawOutputToWindow("viewport",
+                                                     //m_api.getFrameInFlight());
+                                                     m_api.m_frameObjects[m_api.getFrameInFlight()].frameData.imageIndex);
 //        ImGui::Begin("Image display test");
 //        ImGui::End();
     }

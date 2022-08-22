@@ -6,7 +6,11 @@
 #include "VkDevice.h"
 #include "VkWindow.h"
 
+#include "imgui/backends/imgui_impl_vulkan.h"
+#include "imgui/imgui.h"
+
 namespace eg::rendering::VKWrapper {
+    extern void ImGui_ImplVulkan_CreatePipeline(VkDevice device, const VkAllocationCallbacks* allocator, VkPipelineCache pipelineCache, VkRenderPass renderPass, VkSampleCountFlagBits MSAASamples, VkPipeline* pipeline, uint32_t subpass);
     VkOffscreenSubRenderer::VkOffscreenSubRenderer(VkDevice& device, VkWindow& window, VmaAllocator& allocator)
             : m_device(device), m_window(window), m_allocator(allocator) {
 
@@ -32,6 +36,7 @@ namespace eg::rendering::VKWrapper {
         imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
         imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+        imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
         VmaAllocationCreateInfo allocationCreateInfo{};
         allocationCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
@@ -85,8 +90,8 @@ namespace eg::rendering::VKWrapper {
             return;
         }
 
+
         m_frameBuffers.resize(m_window.getSwapchainImageCount());
-        trace("image count: {}", m_window.getImageCount());
         for (u32 i = 0; i < m_frameBuffers.size(); i++) {
             VkImageView attachments[1];
             attachments[0] = m_images[i].imageView;
@@ -126,6 +131,24 @@ namespace eg::rendering::VKWrapper {
         renderPassBeginInfo.pClearValues = &clearValue;
 
         vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
+    void VkOffscreenSubRenderer::drawOutputToWindow(const char* name, u32 imageIndex) {
+        if (m_imguiDescriptorSets.empty()) {
+            m_imguiDescriptorSets.resize(m_window.getSwapchainImageCount());
+            for(auto& descriptor : m_imguiDescriptorSets) {
+                descriptor = VK_NULL_HANDLE;
+            }
+        }
+
+        if(m_imguiDescriptorSets[imageIndex] == VK_NULL_HANDLE)
+            m_imguiDescriptorSets[imageIndex] = ImGui_ImplVulkan_AddTexture(m_sampler, m_images[imageIndex].imageView,
+                                                                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        ImGui::Begin(name);
+        ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+        ImGui::Image(m_imguiDescriptorSets[imageIndex], viewportPanelSize);
+        ImGui::End();
     }
 
     void VkOffscreenSubRenderer::end(VkCommandBuffer commandBuffer, u32 imageIndex) {

@@ -25,7 +25,7 @@ namespace eg::rendering::VKWrapper {
     ) {
         if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
             ::eg::error("Vulkan: {}", pCallbackData->pMessage);
-            EG_DEBUG_BREAK;
+            // EG_DEBUG_BREAK;
         } else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
             ::eg::warn("Vulkan: {}", pCallbackData->pMessage);
         else if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
@@ -136,7 +136,7 @@ namespace eg::rendering::VKWrapper {
             return;
         }
 
-        m_renderPass.init();
+        m_renderPass.init(false);
         if(!m_renderPass.m_initSuccess) {
             initSuccess = false;
             return;

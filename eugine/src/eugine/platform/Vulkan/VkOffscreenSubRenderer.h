@@ -25,6 +25,8 @@ namespace eg::rendering::VKWrapper {
         void begin(VkCommandBuffer commandBuffer, u32 imageIndex);
         void end(VkCommandBuffer commandBuffer, u32 imageIndex);
 
+        void drawOutputToWindow(const char* name, u32 imageIndex);
+
         VkRenderPass& getRenderPass() { return m_renderPass; };
 
     private:
@@ -44,6 +46,8 @@ namespace eg::rendering::VKWrapper {
         std::vector<ImageData> m_images;
         VkSampler m_sampler;
         std::vector<VkFramebuffer> m_frameBuffers;
+
+        std::vector<VkDescriptorSet> m_imguiDescriptorSets;
     };
 }
 
