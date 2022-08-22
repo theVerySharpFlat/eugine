@@ -388,6 +388,7 @@ namespace eg::rendering::VKWrapper {
                 success = true;
             }
 
+            trace("image index {}", imageIndex);
             return imageIndex;
         }
     }

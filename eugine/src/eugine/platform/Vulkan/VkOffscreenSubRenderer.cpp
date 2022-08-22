@@ -69,6 +69,8 @@ namespace eg::rendering::VKWrapper {
                 error("failed to create image view for offscreen rendering!");
                 return;
             }
+
+            trace("image: {0:x}", (u64)imageData.image);
         }
 
         VkSamplerCreateInfo samplerCreateInfo{};
@@ -93,14 +95,13 @@ namespace eg::rendering::VKWrapper {
 
         m_frameBuffers.resize(m_window.getSwapchainImageCount());
         for (u32 i = 0; i < m_frameBuffers.size(); i++) {
-            VkImageView attachments[1];
-            attachments[0] = m_images[i].imageView;
+            VkImageView attachment = m_images[i].imageView;
 
             VkFramebufferCreateInfo framebufferCreateInfo{};
             framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebufferCreateInfo.width = m_window.getSwapchainExtent().width;
             framebufferCreateInfo.height = m_window.getSwapchainExtent().height;
-            framebufferCreateInfo.pAttachments = attachments;
+            framebufferCreateInfo.pAttachments = &attachment;
             framebufferCreateInfo.attachmentCount = 1;
             framebufferCreateInfo.layers = 1;
             framebufferCreateInfo.renderPass = m_renderPass.getRenderPass();
