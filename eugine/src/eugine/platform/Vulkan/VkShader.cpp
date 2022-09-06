@@ -287,6 +287,9 @@ namespace eg::rendering::VKWrapper {
                 descriptorSetLayoutBinding.stageFlags = stageFlags;
                 descriptorSetLayoutBinding.binding = 0;
                 descriptorSetLayoutBinding.descriptorCount = binding.arrayCount;
+                if(descriptorType == VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER) {
+                    trace("sampler count: {}", binding.arrayCount);
+                }
                 descriptorSetLayoutBinding.descriptorType = descriptorType;
                 descriptorSetLayoutBinding.pImmutableSamplers = nullptr;
 

@@ -6,6 +6,7 @@
 #define EUGINE_VKDEVICE_H
 
 #include <volk.h>
+#include <optional>
 
 
 namespace eg::rendering::VKWrapper {

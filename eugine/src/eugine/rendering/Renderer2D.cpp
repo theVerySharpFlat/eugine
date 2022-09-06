@@ -53,7 +53,7 @@ namespace eg::rendering {
                 {
                         "samplers",
                         SHADER_BINDING_TYPE_SAMPLER_ARRAY,
-                        m_settings.maxTextures
+                        128
                 }
         };
 
