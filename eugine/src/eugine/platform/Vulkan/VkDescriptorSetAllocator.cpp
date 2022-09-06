@@ -4,6 +4,7 @@
 
 #include "VkDescriptorSetAllocator.h"
 #include "VkDevice.h"
+#include "eugine/core/core.h"
 #include <vulkan/vulkan_core.h>
 
 namespace eg::rendering::VKWrapper {
@@ -36,10 +37,12 @@ namespace eg::rendering::VKWrapper {
             poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             poolSizes[0].descriptorCount = (u32) (m_allocationHints.setsPerPool *
                                                   (double) m_allocationHints.avgUniformBuffersPerSet);
+            trace("getFreePool: ubo descriptorCount={}", poolSizes[0].descriptorCount);
             poolSizes[1] = VkDescriptorPoolSize{};
             poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             poolSizes[1].descriptorCount = (u32) (m_allocationHints.setsPerPool *
                                                   (double) m_allocationHints.avgCombinedSamplersPerSet);
+            trace("getFreePool: sampler descriptorCount={}", poolSizes[1].descriptorCount);
 
             VkDescriptorPoolSize* pPoolSizes;
             u32 poolSizeCount = 0;

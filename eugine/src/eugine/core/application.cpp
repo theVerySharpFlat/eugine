@@ -183,7 +183,7 @@ void eg::Application::run() {
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
         startTime = currentTime;
 
-        // trace("frame begin");
+        //trace("frame begin");
         m_renderManager.begin();
 
             m_renderManager.renderer().begin(*m_camera);
@@ -239,6 +239,7 @@ void eg::Application::run() {
         }
 
         m_window->onUpdate();
+        //trace("frame end");
     }
 
 }
