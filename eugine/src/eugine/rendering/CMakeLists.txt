@@ -11,4 +11,5 @@ target_sources(eugine PRIVATE
         Renderer2DLowLevel.cpp
         UniformBuffer.cpp
         RenderManager2D.cpp
+        Framebuffer.cpp
         )

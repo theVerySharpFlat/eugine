@@ -15,6 +15,7 @@ target_sources(eugine PRIVATE
         VkImguiSystem.cpp
         VkDynamicBufferFrameAllocator.cpp
         VkRenderer2DLowLevel.cpp
+        VkFramebuffer.cpp
         )
 
 if(EG_VK_VALIDATION)

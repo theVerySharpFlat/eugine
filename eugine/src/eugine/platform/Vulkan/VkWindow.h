@@ -7,6 +7,7 @@
 
 #include <volk.h>
 #include <eugine/core/window.h>
+#include "VkFramebuffer.h"
 
 namespace eg::rendering::VKWrapper {
     class VKAPI;
@@ -27,7 +28,7 @@ namespace eg::rendering::VKWrapper {
 
         void createFrameBuffers();
         void destroyFrameBuffers();
-        ::VkFramebuffer& getFrameBuffer(u32 index) { return m_framebuffers[index]; }
+        ::VkFramebuffer& getFrameBuffer(u32 index);
 
         void updateSwapchainExtent();
         VkExtent2D getSwapchainExtent() { return m_swapchainExtent; }
@@ -40,6 +41,7 @@ namespace eg::rendering::VKWrapper {
 
         u32 getImageCount() const { return m_imageCount; }
         u32 getMinImageCount() const { return m_minImageCount; }
+        u32 getSwapchainImageCount() const;
 
     private:
         friend class VKAPI;
@@ -64,13 +66,15 @@ namespace eg::rendering::VKWrapper {
         VkFormat m_swapchainImageFormat;
         VkExtent2D m_swapchainExtent;
 
-        std::vector<VkImage> m_swapchainImages;
-        std::vector<VkImageView> m_swapchainImageViews;
+        // std::vector<VkImage> m_swapchainImages;
+        // std::vector<VkImageView> m_swapchainImageViews;
 
         u32 m_minImageCount = 0;
         u32 m_imageCount = 0;
 
-        std::vector<VkFramebuffer> m_framebuffers;
+        VkFramebuffer m_frameBuffer;
+
+        // std::vector<VkFramebuffer> m_framebuffers;
 
         void createSurface();
     };

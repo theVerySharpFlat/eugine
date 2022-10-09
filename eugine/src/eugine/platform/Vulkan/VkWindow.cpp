@@ -12,7 +12,8 @@ namespace eg::rendering::VKWrapper {
     VkWindow::VkWindow(VKAPI& vkapi, VkDevice& device, VkRenderPass& renderPass, Window& window) : m_instance(vkapi.m_instance),
                                                                          m_device(device),
                                                                          m_renderpass(renderPass),
-                                                                         m_window(window.getNativeWindow()) {}
+                                                                         m_window(window.getNativeWindow()),
+                                                                         m_frameBuffer(vkapi, device, *this){}
 
     void VkWindow::initialize() {
         createSurface();
@@ -67,6 +68,16 @@ namespace eg::rendering::VKWrapper {
         vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_device.getPhysicalDevice(), m_surface, &surfaceCapabilities);
 
         m_swapchainExtent = chooseSwapExtent(surfaceCapabilities);
+    }
+
+    u32 VkWindow::getSwapchainImageCount() const {
+        u32 count;
+        vkGetSwapchainImagesKHR(m_device.getDevice(), m_swapchain, &count, nullptr);
+        return count;
+    }
+
+    ::VkFramebuffer& VkWindow::getFrameBuffer(u32 index) {
+        return m_frameBuffer.getFramebuffer(index);
     }
 
     void VkWindow::createSwapchain() {
@@ -149,39 +160,9 @@ namespace eg::rendering::VKWrapper {
             m_initSuccess = false;
             return;
         }
-        m_swapchainImages.resize(swapchainImageCount);
-        vkGetSwapchainImagesKHR(m_device.getDevice(), m_swapchain, &swapchainImageCount, m_swapchainImages.data());
-
-        m_swapchainImageViews.resize(m_swapchainImages.size());
-        for(u32 i = 0; i < m_swapchainImages.size(); i++) {
-            VkImageViewCreateInfo imageViewCreateInfo{};
-            imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-            imageViewCreateInfo.image = m_swapchainImages[i];
-            imageViewCreateInfo.format = m_swapchainImageFormat;
-            imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-            imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-            imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-            imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-            imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-            imageViewCreateInfo.subresourceRange.levelCount = 1;
-            imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-            imageViewCreateInfo.subresourceRange.layerCount = 1;
-            
-            if(vkCreateImageView(m_device.getDevice(), &imageViewCreateInfo, nullptr, &m_swapchainImageViews[i]) != VK_SUCCESS) {
-                error("failed to create vulkan swapchain image view {}", i);
-                m_initSuccess = false;
-                return;
-            }
-        }
     }
 
     void VkWindow::destroySwapchain() {
-        for(auto & m_swapchainImageView : m_swapchainImageViews) {
-            if(m_swapchainImageView != VK_NULL_HANDLE)
-                vkDestroyImageView(m_device.getDevice(), m_swapchainImageView, nullptr);
-        }
         if(m_swapchain != VK_NULL_HANDLE)
             vkDestroySwapchainKHR(m_device.getDevice(), m_swapchain, nullptr);
     }
@@ -191,35 +172,11 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkWindow::createFrameBuffers() {
-        m_framebuffers.resize(m_swapchainImageViews.size());
-
-        for (int i = 0; i < m_swapchainImages.size(); i++) {
-            VkImageView attachments[] = {
-                    m_swapchainImageViews[i]
-            };
-
-            VkFramebufferCreateInfo createInfo{};
-            createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            createInfo.renderPass = m_renderpass.getRenderPass();
-            createInfo.attachmentCount = 1;
-            createInfo.pAttachments = attachments;
-            createInfo.width = m_swapchainExtent.width;
-            createInfo.height = m_swapchainExtent.height;
-            createInfo.layers = 1;
-
-            if(vkCreateFramebuffer(m_device.getDevice(), &createInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS) {
-                error("failed to create framebuffer {}!!!", i);
-                m_initSuccess = false;
-                return;
-            }
-        }
+        m_frameBuffer.init(m_renderpass, m_swapchain, m_swapchainImageFormat);
     }
 
     void VkWindow::destroyFrameBuffers() {
-        for(u32 i = 0; i < m_framebuffers.size(); i++) {
-            if(m_framebuffers[i] != VK_NULL_HANDLE)
-                vkDestroyFramebuffer(m_device.getDevice(), m_framebuffers[i], nullptr);
-        }
+        m_frameBuffer.destruct();
     }
 
     void VkWindow::createSurface() {
