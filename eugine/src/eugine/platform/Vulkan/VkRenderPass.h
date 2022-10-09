@@ -14,10 +14,14 @@ namespace eg::rendering::VKWrapper {
 
     class VkRenderPass {
     public:
+        enum Usage {
+            DEFAULT = 0,
+            OFFSCREEN_FOR_READBACK
+        };
         VkRenderPass(VkDevice& device, VkWindow& window);
         ~VkRenderPass();
 
-        void init();
+        void init(Usage usage = DEFAULT);
         void destruct();
 
         ::VkRenderPass getRenderPass() { return m_renderPass; }
@@ -33,6 +37,8 @@ namespace eg::rendering::VKWrapper {
 
         VkDevice& m_device;
         VkWindow& m_window;
+
+        Usage m_usage = DEFAULT;
     };
 }
 
