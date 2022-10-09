@@ -14,8 +14,9 @@ INCBIN(WhiteTexturePNG, "eugine/rendering/textures/WhiteTexture.png");
 namespace eg::rendering {
     Renderer2D::Renderer2D(GraphicsAPI& graphicsAPI, Renderer2D::Settings settings) : m_graphicsAPI(graphicsAPI),
                                                                                            m_settings(settings) {
-        if (m_settings.maxTextures == 0)
+        if (m_settings.maxTextures == 0) {
             m_settings.maxTextures = m_graphicsAPI.getMaxTexturesPerShader();
+        }
 
         m_quadVertexData = (QuadVertex*) malloc(sizeof(QuadVertex) * 4 * settings.maxQuadsPerBatch);
         m_indexData = (IndicesData*) malloc(sizeof(IndicesData) * settings.maxQuadsPerBatch);
