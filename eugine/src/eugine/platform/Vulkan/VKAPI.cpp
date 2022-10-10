@@ -70,7 +70,7 @@ namespace eg::rendering::VKWrapper {
     VKAPI::VKAPI(Window& window) : m_window(window), m_instance(VK_NULL_HANDLE),
                                    m_device(*this), m_vkWindow(*this, m_device, m_renderPass, m_window),
                                    m_renderPass(m_device, m_vkWindow), m_commandPool(VK_NULL_HANDLE),
-                                   m_imguiSystem(*this) {
+                                   m_imguiSystem(*this), m_offscreenRenderPass(m_device, m_vkWindow) {
 
         EG_ASSERT(singleton == nullptr, "vulkan api already initialized!");
         singleton = this;
@@ -421,19 +421,31 @@ namespace eg::rendering::VKWrapper {
         if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
             error("failed to begin command buffer!");
         }
+    }
 
+    void VKAPI::beginRenderTarget(Framebuffer& frameBuffer) {
+        auto& vkFramebuffer = (VKWrapper::VkFramebuffer&)frameBuffer;
         VkClearValue clearColor = {{{m_clearColor.x, m_clearColor.y, m_clearColor.z, 1.0f}}};
         // begin renderpass
         VkRenderPassBeginInfo renderPassBeginInfo{};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassBeginInfo.renderPass = m_renderPass.getRenderPass();
-        renderPassBeginInfo.framebuffer = m_vkWindow.getFrameBuffer(imageIndex);
+        if(vkFramebuffer.getUsage() == Framebuffer::DEFAULT)
+            renderPassBeginInfo.renderPass = m_renderPass.getRenderPass();
+        else
+            renderPassBeginInfo.renderPass = m_offscreenRenderPass.getRenderPass();
+
+        renderPassBeginInfo.framebuffer = vkFramebuffer.getFramebuffer(m_frameObjects[frameNumber].frameData.imageIndex);
         renderPassBeginInfo.renderArea.offset = {0, 0};
         renderPassBeginInfo.renderArea.extent = m_vkWindow.getSwapchainExtent();
         renderPassBeginInfo.clearValueCount = 1;
         renderPassBeginInfo.pClearValues = &clearColor;
 
-        vkCmdBeginRenderPass(commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(m_frameObjects[frameNumber].commandBuffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
+    void VKAPI::endRenderTarget() {
+        VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
+        vkCmdEndRenderPass(commandBuffer);
     }
 
     void VKAPI::tempDraw(Ref <VkShader> shader) {
@@ -595,7 +607,6 @@ namespace eg::rendering::VKWrapper {
 
     void VKAPI::endCommandBufferRecording(u32 imageIndex) {
         VkCommandBuffer commandBuffer = m_frameObjects[frameNumber].commandBuffer;
-        vkCmdEndRenderPass(commandBuffer);
 
         if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
             error("failed to end command buffer recording!!!");
@@ -670,7 +681,8 @@ namespace eg::rendering::VKWrapper {
         m_vkWindow.destroySwapchain();
 
         m_vkWindow.createSwapchain();
-        m_renderPass.init();
+        m_renderPass.init(VkRenderPass::DEFAULT);
+        m_offscreenRenderPass.init(VkRenderPass::OFFSCREEN_FOR_READBACK);
         m_vkWindow.createFrameBuffers();
         // trace("time to recreate: {}", glfwGetTime());
         // trace("here");

@@ -16,7 +16,12 @@ namespace eg::rendering {
         ~RenderManager2D() = default;
 
         void begin() { m_graphicsAPI->begin(); }
+        void beginRenderTarget(Framebuffer& framebuffer) { m_graphicsAPI->beginRenderTarget(framebuffer); }
+
+        Framebuffer& getDefaultFramebuffer() { return m_graphicsAPI->getDefaultFramebuffer(); }
         Renderer2D& renderer() { return *m_renderer2D; }
+
+        void endRenderTarget() { m_graphicsAPI->endRenderTarget(); }
         void end() { m_graphicsAPI->end(); }
 
         void init(Ref<Window>* window, Renderer2D::Settings renderSettings);

@@ -2,6 +2,7 @@
 #define EG_RENDERING_GRAPHICS_API_H
 
 #include <eugine/core/window.h>
+#include <eugine/rendering/Framebuffer.h>
 #include <glm/glm.hpp>
 
 namespace eg::rendering {
@@ -31,6 +32,10 @@ namespace eg::rendering {
 
         virtual void begin() = 0;
         virtual void end() = 0;
+
+        virtual Framebuffer& getDefaultFramebuffer() {};
+        virtual void beginRenderTarget(Framebuffer& framebuffer) {}//= 0;
+        virtual void endRenderTarget() {}//= 0;
 
         virtual void deviceWaitIdle() = 0;
 

@@ -21,6 +21,7 @@
 #include "VkDescriptorSetAllocator.h"
 #include "VkUniformBuffer.h"
 #include "VkImguiSystem.h"
+#include "VkFramebuffer.h"
 
 #include "eugine/rendering/VertexBuffer.h"
 #include "eugine/rendering/Shader.h"
@@ -60,6 +61,11 @@ namespace eg::rendering::VKWrapper {
 
         void begin() override;
         void end() override;
+
+        void beginRenderTarget(Framebuffer& frameBuffer) override;
+        void endRenderTarget() override;
+
+        Framebuffer& getDefaultFramebuffer() override { return m_vkWindow.getFrameBufferObject(); }
 
         void tempDraw(Ref<VkShader> shader);
         void tempDraw(Ref<VkShader> shader, Ref<VkVertexBuffer> vertexBuffer);
@@ -125,6 +131,7 @@ namespace eg::rendering::VKWrapper {
         VkWindow m_vkWindow;
 
         VkRenderPass m_renderPass;
+        VkRenderPass m_offscreenRenderPass;
 
         VkCommandPool m_commandPool;
 

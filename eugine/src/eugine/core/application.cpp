@@ -185,6 +185,7 @@ void eg::Application::run() {
 
         //trace("frame begin");
         m_renderManager.begin();
+        m_renderManager.beginRenderTarget(m_renderManager.getDefaultFramebuffer());
 
             m_renderManager.renderer().begin(*m_camera);
 
@@ -222,6 +223,7 @@ void eg::Application::run() {
             layer -> onImGuiRender();
         m_renderManager.imguiEnd();
 
+        m_renderManager.endRenderTarget();
         m_renderManager.end();
 
         const float moveSpeed = 210.0f;

@@ -23,6 +23,8 @@ namespace eg::rendering::VKWrapper {
         void init(VkRenderPass& renderPass, VkSwapchainKHR swapchain, VkFormat imageFormat);
         void destruct();
 
+        Usage getUsage() { return m_usage; }
+
         ::VkFramebuffer& getFramebuffer(u32 index) { return m_framebuffers[index]; }
 
     private:

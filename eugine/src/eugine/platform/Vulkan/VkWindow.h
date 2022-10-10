@@ -29,6 +29,7 @@ namespace eg::rendering::VKWrapper {
         void createFrameBuffers();
         void destroyFrameBuffers();
         ::VkFramebuffer& getFrameBuffer(u32 index);
+        VkFramebuffer& getFrameBufferObject() { return m_frameBuffer; }
 
         void updateSwapchainExtent();
         VkExtent2D getSwapchainExtent() { return m_swapchainExtent; }
