@@ -3,10 +3,13 @@
 //
 
 #include <GLFW/glfw3.h>
+#include <memory>
 #include "VkImguiSystem.h"
 #include "VKAPI.h"
 #include "VkCommandBufferUtil.h"
 
+#include "backends/imgui_impl_vulkan.h"
+#include "eugine/platform/Vulkan/VkFramebuffer.h"
 #include "imgui/backends/imgui_impl_glfw.h"
 
 namespace eg::rendering::VKWrapper {
@@ -150,5 +153,22 @@ namespace eg::rendering::VKWrapper {
             ImGui::RenderPlatformWindowsDefault();
             glfwMakeContextCurrent(backup_current_context);
         }*/
+    }
+    
+    void VkImguiSystem::drawFramebuffer(const char* name, Ref<Framebuffer> framebuffer) {
+        Ref<VkFramebuffer> vkFramebuffer = std::static_pointer_cast<VkFramebuffer>(framebuffer);
+        if(VkFramebuffer::sampler == VK_NULL_HANDLE) {
+            VkFramebuffer::createGlobalSampler(m_api.m_device);
+        }
+        u32 imageIndex = vkFramebuffer->m_api.m_frameObjects[m_api.getFrameInFlight()].frameData.imageIndex;
+        if(vkFramebuffer->m_images[imageIndex].descriptorSet == VK_NULL_HANDLE){
+            vkFramebuffer->m_images[imageIndex].descriptorSet = ImGui_ImplVulkan_AddTexture(VkFramebuffer::sampler, vkFramebuffer->m_images[imageIndex].imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        }
+
+        ImGui::Begin(name);
+        ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
+        ImGui::Image(vkFramebuffer->m_images[imageIndex].descriptorSet, viewportPanelSize);
+        ImGui::End();
+        
     }
 }

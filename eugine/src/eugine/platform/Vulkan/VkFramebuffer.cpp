@@ -6,6 +6,7 @@
 #include "VkDevice.h"
 #include "VKAPI.h"
 #include "VkWindow.h"
+#include <vulkan/vulkan_core.h>
 
 namespace eg::rendering::VKWrapper {
     VkFramebuffer::VkFramebuffer(VKAPI& api, VkDevice& device, VkWindow& window) : m_api(api), m_device(device),
@@ -55,6 +56,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkFramebuffer::init(VkRenderPass& renderPass, Framebuffer::Usage usage, VmaAllocator allocator) {
+        trace("renderpass in init: {}", (void*)renderPass.getRenderPass());
         m_allocator = allocator;
         m_usage = usage;
         m_images.resize(m_window.getSwapchainImageCount());
@@ -106,11 +108,40 @@ namespace eg::rendering::VKWrapper {
 
             trace("image: {0:x}", (u64)imageData.image);
         }
+        trace("renderpass before createFramebuffer: {}", (void*)renderPass.getRenderPass());
 
         createFramebuffers(renderPass);
     }
 
-    void VkFramebuffer::createFramebuffers(VkRenderPass renderpass) {
+    VkSampler VkFramebuffer::sampler = VK_NULL_HANDLE;
+
+    void VkFramebuffer::createGlobalSampler(VkDevice& device) {
+        VkSamplerCreateInfo samplerCreateInfo{};
+        samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
+        samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
+        samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerCreateInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerCreateInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerCreateInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+        samplerCreateInfo.mipLodBias = 0.0f;
+        samplerCreateInfo.maxAnisotropy = 1.0f;
+        samplerCreateInfo.minLod = 0.0f;
+        samplerCreateInfo.maxLod = 1.0f;
+        samplerCreateInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+
+        if (vkCreateSampler(device.getDevice(), &samplerCreateInfo, nullptr, &sampler) != VK_SUCCESS) {
+            error("failed to create sampler for offscreen rendering!!!");
+            return;
+        }
+
+    }
+
+    void VkFramebuffer::destroyGlobalSampler(VkDevice& device) {
+        vkDestroySampler(device.getDevice(), sampler, nullptr);
+    }
+
+    void VkFramebuffer::createFramebuffers(VkRenderPass& renderpass) {
         m_framebuffers.resize(m_images.size());
 
         for (int i = 0; i < m_images.size(); i++) {
@@ -126,6 +157,8 @@ namespace eg::rendering::VKWrapper {
             createInfo.width = m_window.getSwapchainExtent().width;
             createInfo.height = m_window.getSwapchainExtent().height;
             createInfo.layers = 1;
+            
+            trace("renderpass in createFramebuffer: {}", (void*)renderpass.getRenderPass());
 
             if(vkCreateFramebuffer(m_device.getDevice(), &createInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS) {
                 error("failed to create framebuffer {}!!!", i);
@@ -136,18 +169,29 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VkFramebuffer::destruct() {
+        m_device.waitIdle();
+        trace("destroy fb");
         for(auto& frameBuffer : m_framebuffers) {
-            vkDestroyFramebuffer(m_device.getDevice(), frameBuffer, nullptr);
+            if(frameBuffer != VK_NULL_HANDLE)
+                vkDestroyFramebuffer(m_device.getDevice(), frameBuffer, nullptr);
+            frameBuffer = VK_NULL_HANDLE;
         }
 
+        trace("destroy image view");
         for(auto& image : m_images) {
-            vkDestroyImageView(m_device.getDevice(), image.imageView, nullptr);
+            if(image.imageView != VK_NULL_HANDLE)
+                vkDestroyImageView(m_device.getDevice(), image.imageView, nullptr);
+            image.imageView = VK_NULL_HANDLE;
         }
 
+        trace("destroy allocation");
         if(m_allocator != VK_NULL_HANDLE) {
             for (auto& image: m_images) {
                 if (image.allocation != VK_NULL_HANDLE) {
                     vmaDestroyImage(m_allocator, image.image, image.allocation);
+                    image.image = VK_NULL_HANDLE;
+                    image.allocation = VK_NULL_HANDLE;
+                    image.allocationInfo = {};
                 }
             }
         }

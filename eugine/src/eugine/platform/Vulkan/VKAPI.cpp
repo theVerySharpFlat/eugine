@@ -7,6 +7,9 @@
 #include "GLFW/glfw3.h"
 #include "VkDevice.h"
 #include "VkShader.h"
+#include "eugine/platform/Vulkan/VkFramebuffer.h"
+#include "eugine/platform/Vulkan/VkRenderPass.h"
+#include "eugine/rendering/Framebuffer.h"
 
 static bool framebufferResized = false;
 
@@ -140,6 +143,7 @@ namespace eg::rendering::VKWrapper {
             initSuccess = false;
             return;
         }
+        m_offscreenRenderPass.init(VkRenderPass::OFFSCREEN_FOR_READBACK);
 
         m_vkWindow.createFrameBuffers();
         if(!m_vkWindow.m_initSuccess) {
@@ -330,7 +334,7 @@ namespace eg::rendering::VKWrapper {
     Ref<::eg::rendering::VKWrapper::VkShader>
     VKAPI::createShader(eg::rendering::Shader::ShaderProgramSource source, eg::rendering::VertexBufferLayout layout,
                         rendering::ShaderUniformLayout uniformLayout) {
-        auto temp = createRef<::eg::rendering::VKWrapper::VkShader>(m_device, m_renderPass, m_vkWindow,
+        auto temp = createRef<::eg::rendering::VKWrapper::VkShader>(m_device, m_offscreenRenderPass, m_vkWindow,
                                                                     m_descriptorSetAllocators.data(), maxFramesInFlight,
                                                                     frameNumber);
         temp->init(source, layout, uniformLayout);
@@ -363,6 +367,17 @@ namespace eg::rendering::VKWrapper {
         auto temp = createRef<VkTexture>(m_device, m_allocator, m_commandPool);
         temp->initFromData(data, size, name);
         return temp;
+    }
+    
+    Ref<VkFramebuffer> VKAPI::createFramebuffer(Framebuffer::Usage usage) {
+        VkFramebuffer* temp = new VkFramebuffer(*this, m_device, m_vkWindow);
+        if(usage == Framebuffer::DEFAULT) {
+            error("User cannot create default framebuffer!");
+            return nullptr;
+        }
+        trace("offscreen renderpass: {}", (void*)m_offscreenRenderPass.getRenderPass());
+        temp->init(m_offscreenRenderPass, usage, m_allocator);
+        return Ref<VkFramebuffer>(temp);
     }
 
     u32 VKAPI::acquireImage(bool& success) {
@@ -671,7 +686,7 @@ namespace eg::rendering::VKWrapper {
     }
 
     void VKAPI::recreateSwapchain() {
-        // trace("recreate swapchain");
+        trace("recreate swapchain");
         // glfwSetTime(0.0);
         deviceWaitIdle();
 
@@ -682,7 +697,7 @@ namespace eg::rendering::VKWrapper {
 
         m_vkWindow.createSwapchain();
         m_renderPass.init(VkRenderPass::DEFAULT);
-        m_offscreenRenderPass.init(VkRenderPass::OFFSCREEN_FOR_READBACK);
+        trace("renderpass after VKAPI renderpass init {}", (void*)m_offscreenRenderPass.getRenderPass());
         m_vkWindow.createFrameBuffers();
         // trace("time to recreate: {}", glfwGetTime());
         // trace("here");

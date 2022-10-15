@@ -5,6 +5,7 @@
 #ifndef EUGINE_IMGUILAYER_H
 #define EUGINE_IMGUILAYER_H
 
+#include "eugine/rendering/Framebuffer.h"
 #include <eugine/core/layer.h>
 #include <eugine/events/event.h>
 #include <eugine/events/keyEvent.h>
@@ -28,6 +29,7 @@ namespace eg {
         void begin();
         void end();
         void updateWindows();
+        
 
 
     private:

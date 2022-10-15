@@ -47,6 +47,7 @@ namespace eg::rendering {
         virtual void imguiShutdown() = 0;
         virtual void imguiBegin() = 0;
         virtual void imguiEnd() = 0;
+        virtual void drawFramebuffer(Ref<rendering::Framebuffer> fb){}
     };
 }
 

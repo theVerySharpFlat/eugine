@@ -79,6 +79,7 @@ namespace eg::rendering::VKWrapper {
         } else if(usage == OFFSCREEN_FOR_READBACK) {
             std::array<VkAttachmentDescription, 2> attchmentDescriptions = {};
             // Color attachment
+            attchmentDescriptions[0] = {};
             attchmentDescriptions[0].format = m_window.getSwapchainImageFormat();
             attchmentDescriptions[0].samples = VK_SAMPLE_COUNT_1_BIT;
             attchmentDescriptions[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;

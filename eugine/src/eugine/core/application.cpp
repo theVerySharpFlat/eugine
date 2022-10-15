@@ -6,6 +6,7 @@
 #include "application.h"
 #include "eugine/platform/OpenGL/Texture.h"
 #include "eugine/platform/OpenGL/Shader.h"
+#include "eugine/rendering/Framebuffer.h"
 #include "eugine/rendering/IndexBuffer.h"
 #include "eugine/rendering/Texture.h"
 #include "eugine/rendering/Types.h"
@@ -175,6 +176,8 @@ eg::Application::~Application() {
 
 void eg::Application::run() {
     auto texture = rendering::Texture::create("res/textures/brick.jpg");
+        
+    Ref<rendering::Framebuffer> fb = rendering::Framebuffer::create(rendering::Framebuffer::OFFSCREEN_RENDER_TARGET_WITH_READBACK);
 
     while (m_running) {
         // trace("frame");
@@ -185,7 +188,7 @@ void eg::Application::run() {
 
         //trace("frame begin");
         m_renderManager.begin();
-        m_renderManager.beginRenderTarget(m_renderManager.getDefaultFramebuffer());
+        m_renderManager.beginRenderTarget(*fb);
 
             m_renderManager.renderer().begin(*m_camera);
 
@@ -216,11 +219,15 @@ void eg::Application::run() {
             });
 
         m_renderManager.renderer().end();
+        m_renderManager.endRenderTarget();
+        m_renderManager.beginRenderTarget(m_renderManager.getDefaultFramebuffer());
 
         m_renderManager.imguiBegin();
         m_renderManager.renderer().imguiDebug();
         for(Layer* layer : m_layerStack)
             layer -> onImGuiRender();
+            
+        m_renderManager.drawFramebuffer(fb);
         m_renderManager.imguiEnd();
 
         m_renderManager.endRenderTarget();

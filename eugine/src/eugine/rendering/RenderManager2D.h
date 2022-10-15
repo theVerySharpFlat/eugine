@@ -32,6 +32,7 @@ namespace eg::rendering {
         void imguiShutdown();
         void imguiBegin();
         void imguiEnd();
+        void drawFramebuffer(Ref<Framebuffer> fb) { m_graphicsAPI->drawFramebuffer(fb); } 
 
     private:
         GraphicsAPI* m_graphicsAPI;

@@ -13,6 +13,8 @@ namespace eg::rendering {
             OFFSCREEN_RENDER_TARGET_WITH_READBACK
         };
         virtual ~Framebuffer(){};
+
+        static Ref<Framebuffer> create(Usage usage);
     };
 }
 

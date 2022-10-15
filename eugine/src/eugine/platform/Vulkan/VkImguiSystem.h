@@ -8,6 +8,7 @@
 #define IMGUI_IMPL_VULKAN_NO_PROTOTYPES
 #include "volk.h"
 #include "imgui/backends/imgui_impl_vulkan.h"
+#include "eugine/rendering/Framebuffer.h"
 
 namespace eg::rendering::VKWrapper {
     class VKAPI;
@@ -22,6 +23,8 @@ namespace eg::rendering::VKWrapper {
 
         void begin();
         void end();
+        
+        void drawFramebuffer(const char* name, Ref<Framebuffer> framebuffer);
 
         void onSwapchainRecreation();
 

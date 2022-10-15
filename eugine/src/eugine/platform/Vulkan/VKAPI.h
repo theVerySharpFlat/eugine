@@ -106,6 +106,8 @@ namespace eg::rendering::VKWrapper {
 
         Ref<VkTexture> createTexture(const char* path);
         Ref<VkTexture> createTextureFromData(const u8* data, u32 size, const char* name);
+        
+        Ref<VkFramebuffer> createFramebuffer(Framebuffer::Usage usage);
 
         u32 getFrameInFlight() const { return frameNumber; }
 
@@ -115,6 +117,7 @@ namespace eg::rendering::VKWrapper {
         void imguiShutdown() override { m_imguiSystem.shutdown(); }
         void imguiBegin() override { m_imguiSystem.begin(); }
         void imguiEnd() override { m_imguiSystem.end(); }
+        void drawFramebuffer(Ref<Framebuffer> fb) override { m_imguiSystem.drawFramebuffer("screen", fb); }
 
     private:
         friend class VkDevice;
